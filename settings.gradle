@@ -1,2 +1,8 @@
 rootProject.name = 'core'
+include 'dataManagement'
+include 'auditing'
+include 'query'
+include 'extensions'
+include 'persistence'
+include 'models'
 

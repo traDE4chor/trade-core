@@ -3,7 +3,7 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.5
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -11,4 +11,32 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+// Summarized configurations, dependencies which are required in common by all sub projects
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+
+    dependencies {
+        compile group: 'de.slub-dresden', name: 'urnlib', version: '1.1.0'
+
+        // Logging dependencies using slf4j API and Logback
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
+        compile group: 'ch.qos.logback', name: 'logback-core', version: '1.1.7'
+        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
+
+        testCompile group: 'junit', name: 'junit', version: '4.11'
+    }
+
+    group 'de.unistuttgart.iaas.trade'
+    version '1.0-SNAPSHOT'
+    sourceCompatibility = 1.8
 }
