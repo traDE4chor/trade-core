@@ -4,6 +4,7 @@ import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
 import de.unistuttgart.iaas.trade.model.ModelUtils;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataElementLifeCycle;
+import de.unistuttgart.iaas.trade.model.lifecycle.LifeCycleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
@@ -54,8 +55,7 @@ public class DataElement {
         this.urn = URN.newInstance(object.getUrn().getNamespaceIdentifier(), object.getUrn()
                 .getNamespaceSpecificString() + ModelUtils.URN_NAMESPACE_SPECIFIC_DELIMITER + this.name);
 
-        this.lifeCycle = new DataElementLifeCycle();
-        this.lifeCycle.init(this);
+        this.lifeCycle = new DataElementLifeCycle(this);
     }
 
     /**
@@ -107,45 +107,126 @@ public class DataElement {
     }
 
     /**
-     * Provides access to the current state of the data element as {@link DataElementLifeCycle.States}.
+     * Initialize.
      *
-     * @return The current state of the data element.
+     * @throws LifeCycleException the life cycle exception
      */
-    public DataElementLifeCycle.States getStateAsEnum() {
-        return state != null ? DataElementLifeCycle.States.valueOf(state) : null;
-    }
+    public void initialize() throws LifeCycleException {
+        // TODO: 27.10.2016 Add data element specific parameters and assignments, e.g. data type, type system, etc.
 
-    public void initialize() {
-        // TODO: 27.10.2016
-
+        // Trigger the ready event
         try {
             this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.ready);
-        }  catch (TooBusyException e) {
-            logger.error("State transition could not be enacted after maximal amount of retries", e);
+        } catch (TooBusyException e) {
+            logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
+                    "amount of retries", this.getUrn(), DataElementLifeCycle.Events.ready);
+            throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
         }
     }
 
-    public void archive() {
-        // TODO: 27.10.2016
-    }
+    /**
+     * Archive.
+     *
+     * @throws LifeCycleException the life cycle exception
+     */
+    public void archive() throws LifeCycleException {
+        if (this.isReady()) {
+            // TODO: 27.10.2016
 
-    public void unarchive() {
-        // TODO: 27.10.2016
-    }
+            // Trigger the archive event
+            try {
+                this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.archive);
+            } catch (TooBusyException e) {
+                logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
+                        "amount of retries", this.getUrn(), DataElementLifeCycle.Events.archive);
+                throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+            }
+        } else {
+            logger.info("The data element ({}) can not be archived because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
 
-    public void delete() {
-        // TODO: 27.10.2016
-
-        // Trigger the delete event
-        try {
-            this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.delete);
-        }  catch (TooBusyException e) {
-            logger.error("State transition could not be enacted after maximal amount of retries", e);
+            throw new LifeCycleException("The data element (" + this.getUrn() +
+                    ") can not be archived because it is in state '" + getState() + "'.");
         }
+    }
 
-        urn = null;
-        entity = null;
-        name = null;
-        lifeCycle = null;
+    /**
+     * Unarchive.
+     *
+     * @throws LifeCycleException the life cycle exception
+     */
+    public void unarchive() throws LifeCycleException {
+        if (this.isArchived()) {
+            // TODO: 27.10.2016
+
+            // Trigger the unarchive event
+            try {
+                this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.unarchive);
+            } catch (TooBusyException e) {
+                logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
+                        "amount of retries", this.getUrn(), DataElementLifeCycle.Events.unarchive);
+                throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+            }
+        } else {
+            logger.info("The data element ({}) can not be un-archived because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data element (" + this.getUrn() +
+                    ") can not be un-archived because it is in state '" + getState() + "'.");
+        }
+    }
+
+    /**
+     * Delete.
+     *
+     * @throws LifeCycleException the life cycle exception
+     */
+    public void delete() throws LifeCycleException {
+        if (this.isReady() || this.isInitial()) {
+            // TODO: 27.10.2016
+
+            // Trigger the delete event
+            try {
+                this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.delete);
+            } catch (TooBusyException e) {
+                logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
+                        "amount of retries", this.getUrn(), DataElementLifeCycle.Events.delete);
+                throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+            }
+
+            urn = null;
+            entity = null;
+            name = null;
+            lifeCycle = null;
+        } else {
+            logger.info("The data element ({}) can not be deleted because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data element (" + this.getUrn() +
+                    ") can not be deleted because it is in state '" + getState() + "'.");
+        }
+    }
+
+    public boolean isInitial() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .INITIAL.name());
+    }
+
+    public boolean isReady() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .READY.name());
+    }
+
+    public boolean isArchived() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .ARCHIVED.name());
+    }
+
+    public boolean isDeleted() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .DELETED.name());
     }
 }

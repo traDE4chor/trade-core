@@ -30,5 +30,6 @@ public class DataElementTest {
         assertEquals(DataElementLifeCycle.States.READY.name(), elm.getState());
     }
 
+
     // TODO: 28.10.2016 Add test cases for the different life cycle transitions
 }

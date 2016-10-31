@@ -27,8 +27,10 @@ public class DataObjectLifeCycle {
 
     private FSM<DataObject> fsm = null;
 
-    public DataObjectLifeCycle() {
+    public DataObjectLifeCycle(DataObject dataObject) {
         buildFSM();
+
+        init(dataObject);
     }
 
     private void buildFSM() {
@@ -40,6 +42,7 @@ public class DataObjectLifeCycle {
                 buildState(States.INITIAL.name(), true)
                 .addTransition(Events.initial.name(), States.INITIAL.name())
                 .addTransition(Events.ready.name(), States.READY.name(), action)
+                .addTransition(Events.delete.name(), States.DELETED.name(), action)
                 .done()
                 .buildState(States.READY.name())
                 .addTransition(Events.initial.name(), States.INITIAL.name(), action)
@@ -57,7 +60,7 @@ public class DataObjectLifeCycle {
         this.fsm = fsmBuilder.build();
     }
 
-    public void init(DataObject dataObject) {
+    private void init(DataObject dataObject) {
         if (dataObject.getState() == null) {
             try {
                 this.fsm.onEvent(dataObject, Events.initial.name());

@@ -27,8 +27,10 @@ public class DataElementLifeCycle {
 
     private FSM<DataElement> fsm = null;
 
-    public DataElementLifeCycle() {
+    public DataElementLifeCycle(DataElement dataElement) {
         buildFSM();
+
+        init(dataElement);
     }
 
     private void buildFSM() {
@@ -57,7 +59,7 @@ public class DataElementLifeCycle {
         this.fsm = fsmBuilder.build();
     }
 
-    public void init(DataElement dataElement) {
+    private void init(DataElement dataElement) {
         if (this.fsm.getCurrentState(dataElement) == null) {
             try {
                 this.fsm.onEvent(dataElement, Events.initial.name());

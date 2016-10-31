@@ -5,6 +5,7 @@ import de.slub.urn.URNSyntaxException;
 import de.unistuttgart.iaas.trade.model.ModelUtils;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataElementLifeCycle;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataObjectLifeCycle;
+import de.unistuttgart.iaas.trade.model.lifecycle.LifeCycleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
@@ -55,8 +56,7 @@ public class DataObject {
         this.name = name;
         this.urn = URN.newInstance(entity, name);
 
-        this.lifeCycle = new DataObjectLifeCycle();
-        this.lifeCycle.init(this);
+        this.lifeCycle = new DataObjectLifeCycle(this);
     }
 
     /**
@@ -106,21 +106,12 @@ public class DataObject {
     }
 
     /**
-     * Provides access to the current state of the data object as {@link DataObjectLifeCycle.States}.
-     *
-     * @return The current state of the data object.
-     */
-    public DataObjectLifeCycle.States getStateAsEnum() {
-        return state != null ? DataObjectLifeCycle.States.valueOf(state) : null;
-    }
-
-    /**
      * Provides the list of data elements associated to this data object.
      *
      * @return An unmodifiable list of data elements.
      */
     public List<DataElement> getDataElements() {
-        return Collections.unmodifiableList(this.dataElements);
+        return this.dataElements != null ? Collections.unmodifiableList(this.dataElements) : null;
     }
 
     public DataElement getDataElement(String name) {
@@ -138,116 +129,274 @@ public class DataObject {
      * READY which means fully prepared for instantiation. If not it won't be added to the data object.
      *
      * @param element The element to add.
-     * @return If the element was added or not.
+     * @throws LifeCycleException the life cycle exception
      */
-    public boolean addDataElement(DataElement element) {
-        boolean success = false;
-
+    public void addDataElement(DataElement element) throws LifeCycleException {
         if (element != null) {
             // Only try to add the data element if the data object is not archived or deleted.
-            if (getStateAsEnum().equals(DataObjectLifeCycle.States.INITIAL) || getStateAsEnum().equals
-                    (DataObjectLifeCycle.States.READY)) {
-
+            if (this.isInitial() || this.isReady()) {
                 // Check if the data element is ready, else reject
-                if (element.getState() != null && element.getStateAsEnum().equals(DataElementLifeCycle.States.READY)) {
+                if (element.isReady()) {
                     this.dataElements.add(element);
-                    success = true;
 
                     // If the data object is in INITIAL state, we trigger the transition to READY since it is now ready for
                     // instantiation.
-                    if (getStateAsEnum().equals(DataObjectLifeCycle.States.INITIAL)) {
+                    if (this.isInitial()) {
                         try {
                             this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.ready);
                         } catch (TooBusyException e) {
-                            logger.error("State transition could not be enacted after maximal amount of retries", e);
+                            logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
+                                    "after maximal " +
+                                    "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                            throw new LifeCycleException("State transition could not be enacted after maximal amount " +
+                                    "of retries", e);
                         }
                     }
                 } else {
                     logger.info("Trying to add a non-ready data element ({}) to data object '{}'", element.getName(),
-                            this
-                            .getUrn());
+                            this.getUrn());
+                    throw new LifeCycleException("Trying to add a non-ready data element (" + element.getName() + ")" +
+                            " to data object '" + this.getUrn() + "'");
                 }
             } else {
                 logger.info("No data element can be added because the data object ({}) is in state '{}'.", this.getUrn(),
                         getState());
+                throw new LifeCycleException("No data element can be added because the data object (" + this.getUrn() +
+                        ") is in state '" + getState() + "'.");
             }
         }
-
-        return success;
     }
 
     /**
      * Deletes an existing data element from the data object.
      *
      * @param element the element to delete
-     * @return If the data element was deleted or not.
      */
-    public boolean deleteDataElement(DataElement element) {
-        boolean success = false;
-
+    public void deleteDataElement(DataElement element) throws LifeCycleException {
         if (element != null) {
-            if (getStateAsEnum().equals(DataObjectLifeCycle.States.INITIAL) || getStateAsEnum().equals
-                    (DataObjectLifeCycle.States.READY)) {
+            if (this.isInitial() || this.isReady()) {
                 // Remove the element from the list
                 this.dataElements.remove(element);
 
                 // Trigger the deletion of the element
                 element.delete();
 
-                success = true;
-
                 // Check if the deleted data element was the only child of the data object
-                if (this.dataElements.size() == 0) {
+                if (this.dataElements.isEmpty()) {
                     // Change the state back to initial to disallow its instantiation
                     try {
                         this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.initial);
                     } catch (TooBusyException e) {
-                        logger.error("State transition could not be enacted after maximal amount of retries", e);
+                        logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
+                                "after maximal " +
+                                "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                        throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
             } else {
                 logger.info("No data element can be deleted because the data object ({}) is in state '{}'.", this
                                 .getUrn(),
                         getState());
+
+                throw new LifeCycleException("No data element can be deleted because the data object (" + this.getUrn() +
+                        ") is in state '" + getState() + "'.");
             }
         }
-
-        return success;
     }
 
-    public void archive() {
-        // TODO: 27.10.2016
+    private void deleteDataElements() throws LifeCycleException {
+        if (this.isInitial() || this.isReady()) {
+            // Loop over all elements
+            for (Iterator<DataElement> iter = this.dataElements.iterator(); iter.hasNext(); ) {
+                DataElement element = iter.next();
 
-        // Trigger the archive event
-        try {
-            this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.archive);
-        } catch (TooBusyException e) {
-            logger.error("State transition could not be enacted after maximal amount of retries", e);
+                // Remove the element from the list
+                iter.remove();
+
+                // Trigger the deletion of the element
+                element.delete();
+
+                // Check if the deleted data element was the only child of the data object
+                if (this.dataElements.isEmpty()) {
+                    // Change the state back to initial to disallow its instantiation
+                    try {
+                        this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.initial);
+                    } catch (TooBusyException e) {
+                        logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
+                                "after maximal " +
+                                "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                        throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+                    }
+                }
+            }
+        } else {
+            logger.info("No data element can be deleted because the data object ({}) is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("No data element can be deleted because the data object (" + this.getUrn() +
+                    ") is in state '" + getState() + "'.");
         }
     }
 
-    public void unarchive() {
-        // TODO: 27.10.2016  
+    /**
+     * Archive.
+     *
+     * @throws LifeCycleException the life cycle exception
+     */
+    public void archive() throws LifeCycleException {
+        if (this.isReady()) {
+            // Remember changed elements for undoing changes in case of an exception
+            List<DataElement> changedElements = new ArrayList<DataElement>();
+
+            try {
+                for (DataElement element : this.dataElements) {
+                    element.archive();
+                    changedElements.add(element);
+                }
+
+                // Trigger the archive event for the whole data object since all data elements are archived
+                // successfully.
+                this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.archive);
+            } catch (Exception e) {
+                logger.warn("Archiving data object '{}' not successful because archiving of one of its data elements " +
+                        "caused an exception. Trying to undo all changes.", this.getUrn());
+
+                try {
+                    // Un-archive the already archived data elements again
+                    for (DataElement elm : changedElements) {
+                        elm.unarchive();
+                    }
+                } catch (Exception ex) {
+                    logger.error("Rollback of changes triggered by archiving data object '{}' was not successful. " +
+                            "MANUAL INTERVENTION REQUIRED.", ex);
+                    throw new LifeCycleException("Archiving data object '" + this
+                            .getUrn() + "' not successful. MANUAL INTERVENTION REQUIRED.", ex);
+                }
+            }
+        } else {
+            logger.info("The data object ({}) can not be archived because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data object (" + this.getUrn() +
+                    ") can not be archived because it is in state '" + getState() + "'.");
+        }
     }
 
-    public void delete() {
-        for (Iterator<DataElement> i = this.dataElements.iterator(); i.hasNext(); ) {
-            deleteDataElement(i.next());
+    /**
+     * Unarchive.
+     *
+     * @throws LifeCycleException the life cycle exception
+     */
+    public void unarchive() throws LifeCycleException {
+        if (this.isArchived()) {
+            // Remember changed elements for undoing changes in case of an exception
+            List<DataElement> changedElements = new ArrayList<DataElement>();
+
+            try {
+                for (DataElement element : this.dataElements) {
+                    element.unarchive();
+                    changedElements.add(element);
+                }
+
+                // Trigger the unarchive event for the whole data object since all data elements are unarchived
+                // successfully.
+                this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.unarchive);
+            } catch (Exception e) {
+                logger.warn("Un-archiving data object '{}' not successful because un-archiving of one of its data " +
+                        "elements caused an exception. Trying to undo all changes.", this.getUrn());
+
+                try {
+                    // Archive the already un-archived data elements again
+                    for (DataElement elm : changedElements) {
+                        elm.archive();
+                    }
+                } catch (Exception ex) {
+                    logger.error("Rollback of changes triggered by un-archiving data object '{}' was not successful. " +
+                            "MANUAL INTERVENTION REQUIRED.", ex);
+                }
+            }
+        } else {
+            logger.info("The data object ({}) can not be un-archived because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data object (" + this.getUrn() +
+                    ") can not be un-archived because it is in state '" + getState() + "'.");
         }
+    }
 
-        // TODO: 27.10.2016
+    /**
+     * Delete.
+     *
+     * @throws LifeCycleException the life cycle exception
+     */
+    public void delete() throws LifeCycleException {
+        if (this.isReady() || this.isInitial() || this.isArchived()) {
 
-        // Trigger the delete event
-        try {
-            this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.delete);
-        } catch (TooBusyException e) {
-            logger.error("State transition could not be enacted after maximal amount of retries", e);
+            try {
+                // Delete all data elements
+                deleteDataElements();
+
+                // Trigger the delete event for the whole data object since all data elements are deleted
+                // successfully.
+                this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.delete);
+            } catch (TooBusyException e) {
+                logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
+                        "after maximal " +
+                        "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+            } catch (Exception e) {
+                logger.error("Deletion data object '{}' not successful because deletion of one of its data " +
+                        "elements caused an exception. MANUAL INTERVENTION REQUIRED.", this.getUrn());
+
+                // Trigger the initial event to disable the creation of new instances of the corrupted object
+                try {
+                    this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.initial);
+                } catch (TooBusyException ex) {
+                    logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
+                            "after maximal " +
+                            "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                    throw new LifeCycleException("Deletion data object '"+this.getUrn()+"' not successful", ex);
+                }
+
+                throw new LifeCycleException("Deletion data object '"+this.getUrn()+"' not successful", e);
+            }
+
+            // Cleanup variables
+            this.urn = null;
+            this.entity = null;
+            this.name = null;
+            this.lifeCycle = null;
+            this.dataElements = null;
+        } else {
+            logger.info("The data object ({}) can not be deleted because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data object (" + this.getUrn() +
+                    ") can not be deleted because it is in state '" + getState() + "'.");
         }
+    }
 
-        // Cleanup variables
-        urn = null;
-        entity = null;
-        name = null;
-        lifeCycle = null;
+    public boolean isInitial() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .INITIAL.name());
+    }
+
+    public boolean isReady() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .READY.name());
+    }
+
+    public boolean isArchived() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .ARCHIVED.name());
+    }
+
+    public boolean isDeleted() {
+        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+                .DELETED.name());
     }
 }

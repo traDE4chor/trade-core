@@ -1,6 +1,8 @@
 package de.unistuttgart.iaas.trade.model.data;
 
+import de.unistuttgart.iaas.trade.model.lifecycle.DataElementLifeCycle;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataObjectLifeCycle;
+import de.unistuttgart.iaas.trade.model.lifecycle.LifeCycleException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,21 +19,18 @@ public class DataObjectTest {
         assertEquals(DataObjectLifeCycle.States.INITIAL.name(), obj.getState());
     }
 
-    @Test
-    public void testNotAllowedTransition() throws Exception {
+    @Test(expected = LifeCycleException.class)
+    public void testNotAllowedStateTransition() throws Exception {
         DataObject obj = new DataObject();
         obj.archive();
-        assertEquals(DataObjectLifeCycle.States.INITIAL.name(), obj.getState());
     }
 
-    @Test
-    public void addDataElementShouldBeRejected() throws Exception {
+    @Test(expected = LifeCycleException.class)
+    public void addingDataElementShouldBeRejected() throws Exception {
         DataObject obj = new DataObject();
 
         DataElement elm = new DataElement(obj);
         obj.addDataElement(elm);
-
-        assertTrue(obj.getDataElements().isEmpty());
     }
 
     @Test
@@ -59,6 +58,23 @@ public class DataObjectTest {
 
         assertTrue(obj.getDataElements().isEmpty());
         assertEquals(DataObjectLifeCycle.States.INITIAL.name(), obj.getState());
+    }
+
+    @Test
+    public void dataObjectShouldBeDeleted() throws Exception {
+        DataObject obj = new DataObject();
+
+        DataElement elm = new DataElement(obj);
+        elm.initialize();
+
+        obj.addDataElement(elm);
+
+        obj.delete();
+
+        assertNull(obj.getDataElements());
+        assertEquals(obj.getState(), DataObjectLifeCycle.States.DELETED.name());
+        assertNull(elm.getUrn());
+        assertEquals(elm.getState(), DataElementLifeCycle.States.DELETED.name());
     }
 
     // TODO: 28.10.2016 Add test cases for the different life cycle transitions
