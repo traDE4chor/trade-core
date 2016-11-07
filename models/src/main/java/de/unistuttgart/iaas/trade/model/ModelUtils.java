@@ -8,4 +8,6 @@ public class ModelUtils {
     public static final String RANDOM_URN_NAMESPACE_ID = "uuid";
 
     public static final String URN_NAMESPACE_SPECIFIC_DELIMITER = "$";
+
+    public static final String DDG_SCHEMA_LOCATION = "/schema/ddgUnifiedModel.xsd";
 }

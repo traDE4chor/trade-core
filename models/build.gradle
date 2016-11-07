@@ -1,3 +1,40 @@
+// Define output folder for the files generated through JAXB/XJC
+def generatedSources = "$buildDir/generated-src/java"
+
+// Add the generated sources to the main SourceSet
+sourceSets {
+    main {
+        // Register an output folder on the main SourceSet
+        output.dir(generatedSources, builtBy: 'xjc')
+    }
+}
+
+// Add the generated Java sources to srcDirs
+sourceSets.main.java.srcDirs generatedSources, 'src/main/java'
+
+configurations { xjc }
+
 dependencies {
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+
     compile group: 'org.statefulj', name: 'statefulj-fsm', version: '3.0'
 }
+
+// Use XJC Ant task to generate Java sources from xsd files
+task xjc {
+    group = 'build'
+    description = 'Generates Java source code from XML schemas'
+    doLast {
+        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+        file(generatedSources).mkdirs()
+        ant.xjc(destdir: generatedSources, header: true, extension: true, removeOldOutput: true, target: '2.1',
+                package: 'de.unistuttgart.iaas.trade.model.ddg') {
+            schema(dir: 'src/main/resources/schema', includes: '**/*.xsd')
+            produces(dir: generatedSources)
+            arg(line: '-encoding UTF-8')
+        }
+    }
+}
+
+compileJava.dependsOn(xjc)

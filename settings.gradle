@@ -5,4 +5,5 @@ include 'query'
 include 'extensions'
 include 'persistence'
 include 'models'
+include 'server'
 
