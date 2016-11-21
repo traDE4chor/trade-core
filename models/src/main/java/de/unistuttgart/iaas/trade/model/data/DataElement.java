@@ -3,6 +3,7 @@ package de.unistuttgart.iaas.trade.model.data;
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
 import de.unistuttgart.iaas.trade.model.ModelUtils;
+import de.unistuttgart.iaas.trade.model.data.instance.DEInstance;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataElementLifeCycle;
 import de.unistuttgart.iaas.trade.model.lifecycle.LifeCycleException;
 import org.slf4j.Logger;
@@ -10,12 +11,18 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  * Created by hahnml on 25.10.2016.
  */
-public class DataElement {
+public class DataElement implements Serializable {
+
+    private static final long serialVersionUID = -2632920295003689320L;
 
     Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.data.DataElement");
 
@@ -27,18 +34,18 @@ public class DataElement {
      * Therefore, we use the following scheme according to RFC 2141:
      * <URN> ::= "urn:" <Namespace Identifier (NID)> ":" <Namespace Specific String (NSS)>
      * <p>
-     * The NID is used to represent the context to which a data element belongs. The NSS is used to
-     * represent the name of the parent data object and the data element itself separated by a '$' as delimiter.
-     * For example, the URN "urn:cm23:resultData$element1" expresses that the data element with the name "element1"
+     * The NID is used to represent the context to which the parent data object belongs. The NSS contains the name of
+     * the data object and the name of the data element separated by a ":" symbol.
+     * For example, the URN "urn:cm23:resultData:element1" expresses that the data element with the name "element1"
      * is a child of the data object "resultData" which belongs to the entity "cm23".
      */
-    private URN urn = null;
+    private transient URN urn = null;
 
     private String entity = null;
 
     private String name = null;
 
-    private DataElementLifeCycle lifeCycle = null;
+    private transient DataElementLifeCycle lifeCycle = null;
 
     @State
     private String state;
@@ -52,9 +59,9 @@ public class DataElement {
      */
     public DataElement(DataObject object, String name) throws URNSyntaxException {
         this.name = name;
-        this.urn = URN.newInstance(object.getUrn().getNamespaceIdentifier(), object.getUrn()
-                .getNamespaceSpecificString() + ModelUtils.URN_NAMESPACE_SPECIFIC_DELIMITER + this.name);
 
+        this.urn = URN.newInstance(object.getUrn().getNamespaceIdentifier(), object.getUrn()
+                .getNamespaceSpecificString() + ModelUtils.URN_NAMESPACE_STRING_DELIMITER + this.name);
         this.lifeCycle = new DataElementLifeCycle(this);
     }
 
@@ -210,6 +217,37 @@ public class DataElement {
         }
     }
 
+    /**
+     * Instantiates the data element and returns the created instance.
+     *
+     * @param owner      the owner of the instance (entity that triggers the instantiation)
+     * @param createdFor the resource for which the instance is created, e.g., for example an instance ID of a
+     *                   workflow (information is used for correlation)
+     * @return the created instance of the data element
+     * @throws LifeCycleException If the data element is in a state which does not allow its instantiation.
+     */
+    public DEInstance instantiate(String owner, String createdFor) throws LifeCycleException {
+        DEInstance result = null;
+
+        if (this.isReady()) {
+            try {
+                result = new DEInstance(this.getUrn(), owner, createdFor);
+            } catch (URNSyntaxException e) {
+                logger.error("Instantiation of data element '{}' caused an exception during URN creation.", this.getUrn
+                        ());
+            }
+        } else {
+            logger.info("The data element ({}) can not be instantiated because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data element (" + this.getUrn() +
+                    ") can not be instantiated because it is in state '" + getState() + "'.");
+        }
+
+        return result;
+    }
+
     public boolean isInitial() {
         return getState() != null && this.getState().equals(DataElementLifeCycle.States
                 .INITIAL.name());
@@ -228,5 +266,25 @@ public class DataElement {
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(DataElementLifeCycle.States
                 .DELETED.name());
+    }
+
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.defaultWriteObject();
+        oos.writeUTF(this.getUrn().toString());
+    }
+
+    private void readObject(ObjectInputStream ois) throws IOException {
+        try {
+            ois.defaultReadObject();
+            try {
+                this.urn = URN.fromString(ois.readUTF());
+            } catch (URNSyntaxException e) {
+                e.printStackTrace();
+            }
+            lifeCycle = new DataElementLifeCycle(this);
+        } catch (ClassNotFoundException e) {
+            logger.error("Class not found during deserialization of data element '{}'", this.getUrn().toString());
+            throw new IOException("Class not found during deserialization of data element.");
+        }
     }
 }

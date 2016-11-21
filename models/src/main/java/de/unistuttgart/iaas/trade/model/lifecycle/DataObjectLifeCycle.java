@@ -28,9 +28,15 @@ public class DataObjectLifeCycle {
     private FSM<DataObject> fsm = null;
 
     public DataObjectLifeCycle(DataObject dataObject) {
+        this(dataObject, true);
+    }
+
+    public DataObjectLifeCycle(DataObject dataObject, boolean initialize) {
         buildFSM();
 
-        init(dataObject);
+        if (initialize) {
+            init(dataObject);
+        }
     }
 
     private void buildFSM() {

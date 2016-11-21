@@ -3,6 +3,7 @@ package de.unistuttgart.iaas.trade.model.data;
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
 import de.unistuttgart.iaas.trade.model.ModelUtils;
+import de.unistuttgart.iaas.trade.model.data.instance.DOInstance;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataElementLifeCycle;
 import de.unistuttgart.iaas.trade.model.lifecycle.DataObjectLifeCycle;
 import de.unistuttgart.iaas.trade.model.lifecycle.LifeCycleException;
@@ -11,12 +12,18 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Created by hahnml on 25.10.2016.
  */
-public class DataObject {
+public class DataObject implements Serializable {
+
+    private static final long serialVersionUID = 2549294173554279537L;
 
     Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.data.DataObject");
 
@@ -28,17 +35,18 @@ public class DataObject {
      * Therefore, we use the following scheme according to RFC 2141:
      * <URN> ::= "urn:" <Namespace Identifier (NID)> ":" <Namespace Specific String (NSS)>
      * <p>
-     * Where the NID is used to represent the context to which a data object belongs.
-     * For example, the URN "urn:cm23:resultData" expresses that the data object with the name "resultData"
-     * belongs to the entity "cm23".
+     * Where the NID is used to represent the context to which a data object belongs and the NSS specifies the name
+     * of the data object.
+     * For example, the URN "urn:cm23:resultData" expresses that the data object with the name "resultData" (NSS)
+     * belongs to the entity "cm23" (NID).
      */
-    private URN urn = null;
+    private transient URN urn = null;
 
     private String entity = null;
 
     private String name = null;
 
-    private DataObjectLifeCycle lifeCycle = null;
+    private transient DataObjectLifeCycle lifeCycle = null;
 
     @State
     private String state;
@@ -358,10 +366,10 @@ public class DataObject {
                     logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                             "after maximal " +
                             "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
-                    throw new LifeCycleException("Deletion data object '"+this.getUrn()+"' not successful", ex);
+                    throw new LifeCycleException("Deletion data object '" + this.getUrn() + "' not successful", ex);
                 }
 
-                throw new LifeCycleException("Deletion data object '"+this.getUrn()+"' not successful", e);
+                throw new LifeCycleException("Deletion data object '" + this.getUrn() + "' not successful", e);
             }
 
             // Cleanup variables
@@ -378,6 +386,37 @@ public class DataObject {
             throw new LifeCycleException("The data object (" + this.getUrn() +
                     ") can not be deleted because it is in state '" + getState() + "'.");
         }
+    }
+
+    /**
+     * Instantiates the data object and returns the created instance.
+     *
+     * @param owner      the owner of the instance (entity that triggers the instantiation)
+     * @param createdFor the resource for which the instance is created, e.g., for example an instance ID of a
+     *                   workflow (information is used for correlation)
+     * @return the created instance of the data object
+     * @throws LifeCycleException If the data object is in a state which does not allow its instantiation.
+     */
+    public DOInstance instantiate(String owner, String createdFor) throws LifeCycleException {
+        DOInstance result = null;
+
+        if (this.isReady()) {
+            try {
+                result = new DOInstance(this.getUrn(), owner, createdFor);
+            } catch (URNSyntaxException e) {
+                logger.error("Instantiation of data object '{}' caused an exception during URN creation.", this.getUrn
+                        ());
+            }
+        } else {
+            logger.info("The data object ({}) can not be instantiated because it is in state '{}'.", this
+                            .getUrn(),
+                    getState());
+
+            throw new LifeCycleException("The data object (" + this.getUrn() +
+                    ") can not be instantiated because it is in state '" + getState() + "'.");
+        }
+
+        return result;
     }
 
     public boolean isInitial() {
@@ -399,4 +438,25 @@ public class DataObject {
         return getState() != null && this.getState().equals(DataElementLifeCycle.States
                 .DELETED.name());
     }
+
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        oos.defaultWriteObject();
+        oos.writeUTF(this.getUrn().toString());
+    }
+
+    private void readObject(ObjectInputStream ois) throws IOException {
+        try {
+            ois.defaultReadObject();
+            try {
+                this.urn = URN.fromString(ois.readUTF());
+            } catch (URNSyntaxException e) {
+                e.printStackTrace();
+            }
+            lifeCycle = new DataObjectLifeCycle(this, false);
+        } catch (ClassNotFoundException e) {
+            logger.error("Class not found during deserialization of data object '{}'", this.getUrn().toString());
+            throw new IOException("Class not found during deserialization of data object.");
+        }
+    }
+
 }

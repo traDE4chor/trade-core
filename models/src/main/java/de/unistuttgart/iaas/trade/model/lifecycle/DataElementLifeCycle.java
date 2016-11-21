@@ -28,9 +28,15 @@ public class DataElementLifeCycle {
     private FSM<DataElement> fsm = null;
 
     public DataElementLifeCycle(DataElement dataElement) {
+        this(dataElement, true);
+    }
+
+    public DataElementLifeCycle(DataElement dataElement, boolean initialize) {
         buildFSM();
 
-        init(dataElement);
+        if (initialize) {
+            init(dataElement);
+        }
     }
 
     private void buildFSM() {

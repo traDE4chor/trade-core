@@ -9,4 +9,13 @@
     <properties>
         <property name="hazelcast.logging.type">slf4j</property>
     </properties>
+
+    <map name="dataObjects">
+        <time-to-live-seconds>4</time-to-live-seconds>
+        <indexes>
+            <index>identifier</index>
+        </indexes>
+        <backup-count>1</backup-count>
+        <async-backup-count>1</async-backup-count>
+    </map>
 </hazelcast>

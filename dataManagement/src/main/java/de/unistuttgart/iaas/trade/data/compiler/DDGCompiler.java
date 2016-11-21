@@ -2,7 +2,7 @@ package de.unistuttgart.iaas.trade.data.compiler;
 
 import de.unistuttgart.iaas.trade.model.data.DataElement;
 import de.unistuttgart.iaas.trade.model.data.DataObject;
-import de.unistuttgart.iaas.trade.model.ddg.DataDependenceGraphType;
+import de.unistuttgart.iaas.trade.model.ddg.DataDependenceGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class DDGCompiler {
 
     Logger logger = LoggerFactory.getLogger("de.unistuttgart.iaas.trade.data.compiler.DDGCompiler");
 
-    private DataDependenceGraphType ddgDef = null;
+    private DataDependenceGraph ddgDef = null;
 
     private List<DataObject> dataObjects = new ArrayList<DataObject>();
 

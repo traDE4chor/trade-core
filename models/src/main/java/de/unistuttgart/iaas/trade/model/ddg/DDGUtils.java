@@ -19,16 +19,23 @@ public class DDGUtils {
 
     private static Logger logger = LoggerFactory.getLogger("de.unistuttgart.iaas.trade.model.ddg.DDGUtils");
 
-    public static DataDependenceGraphType unmarshalGraph(String ddgGraphFilePath)
+    public static DataDependenceGraph unmarshalGraph(String ddgGraphFilePath)
             throws JAXBException, SAXException, FileNotFoundException {
-        FileInputStream fileStream = new FileInputStream(new File(ddgGraphFilePath));
+        FileInputStream stream = new FileInputStream(new File(ddgGraphFilePath));
 
-        return unmarshalGraph(fileStream);
+        return unmarshalGraph(stream);
     }
 
-    public static DataDependenceGraphType unmarshalGraph(InputStream ddgGraphContent)
+    public static DataDependenceGraph unmarshalGraph(byte[] ddgGraph)
+            throws JAXBException, SAXException, FileNotFoundException {
+        ByteArrayInputStream stream = new ByteArrayInputStream(ddgGraph);
+
+        return unmarshalGraph(stream);
+    }
+
+    public static DataDependenceGraph unmarshalGraph(InputStream ddgGraphContent)
             throws JAXBException, SAXException {
-        DataDependenceGraphType graph = null;
+        DataDependenceGraph graph = null;
 
         if (ddgGraphContent != null) {
             SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -37,11 +44,11 @@ public class DDGUtils {
 
             Schema schema = (xsdSchemaContent == null)
                     ? null : schemaFactory.newSchema(new StreamSource(xsdSchemaContent));
-            JAXBContext jaxbContext = JAXBContext.newInstance(DataDependenceGraphType.class.getPackage().getName());
+            JAXBContext jaxbContext = JAXBContext.newInstance(DataDependenceGraph.class.getPackage().getName());
 
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             unmarshaller.setSchema(schema);
-            graph = (DataDependenceGraphType) JAXBIntrospector.getValue(unmarshaller.unmarshal(ddgGraphContent));
+            graph = (DataDependenceGraph) unmarshaller.unmarshal(ddgGraphContent);
         } else {
             logger.warn("Trying to load a data dependence graph from an empty or not existing source.");
         }
@@ -49,7 +56,26 @@ public class DDGUtils {
         return graph;
     }
 
-    public static void marshalGraph(OutputStream outStream, DataDependenceGraphType jaxbElement)
+    public static void marshalGraph(String ddgGraphFilePath, DataDependenceGraph jaxbElement)
+            throws JAXBException, SAXException, FileNotFoundException {
+        FileOutputStream stream = new FileOutputStream(new File(ddgGraphFilePath));
+
+        marshalGraph(stream, jaxbElement);
+    }
+
+    public static byte[] marshalGraph(DataDependenceGraph jaxbElement)
+            throws JAXBException, SAXException, FileNotFoundException {
+        byte[] result = null;
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+        marshalGraph(stream, jaxbElement);
+        result = stream.toByteArray();
+
+        return result;
+    }
+
+    public static void marshalGraph(OutputStream outStream, DataDependenceGraph jaxbElement)
             throws JAXBException, SAXException {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
@@ -64,12 +90,5 @@ public class DDGUtils {
         marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.marshal(jaxbElement, outStream);
-    }
-
-    public static void marshalGraph(String ddgGraphFilePath, DataDependenceGraphType jaxbElement)
-            throws JAXBException, SAXException, FileNotFoundException {
-        FileOutputStream stream = new FileOutputStream(new File(ddgGraphFilePath));
-
-        marshalGraph(stream, jaxbElement);
     }
 }
