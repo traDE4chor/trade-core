@@ -18,6 +18,9 @@ package org.trade.core.model.data;
 
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
+import org.mongodb.morphia.annotations.Transient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.trade.core.model.ModelUtils;
 import org.mongodb.morphia.annotations.Entity;
 
@@ -32,6 +35,9 @@ import java.util.UUID;
 public class DataValue extends BaseResource implements Serializable {
 
     private static final long serialVersionUID = -1774719861199414867L;
+
+    @Transient
+    Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.data.DataValue");
 
     /**
      * We use Uniform Resource Names (URN) to identify data object instances and the data object to which they belong,

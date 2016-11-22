@@ -35,13 +35,13 @@ public class TraDENode {
             System.out.println(dataObjects.size());
 
             DataObject obj = new DataObject("chorModel1", "lattice");
-            dataObjects.set(obj.getUrn().toString(), obj);
+            dataObjects.set(obj.getIdentifier(), obj);
 
             obj = new DataObject("userA", "plot");
-            dataObjects.set(obj.getUrn().toString(), obj);
+            dataObjects.set(obj.getIdentifier().toString(), obj);
 
             obj = new DataObject("random", "input");
-            dataObjects.set(obj.getUrn().toString(), obj);
+            dataObjects.set(obj.getIdentifier().toString(), obj);
 
             System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 
@@ -53,11 +53,17 @@ public class TraDENode {
 
             System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 
+            for (DataObject cur : dataObjects.values()) {
+                System.out.println("######");
+                System.out.println(cur.getName());
+                System.out.println("######");
+            }
+
             instance.shutdown();
         } catch (URNSyntaxException e) {
             e.printStackTrace();
         }
 
-        System.exit(1);
+        System.exit(0);
     }
 }

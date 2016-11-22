@@ -21,6 +21,7 @@ import com.hazelcast.core.MapLoaderLifecycleSupport;
 import com.hazelcast.core.MapStore;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import org.mongodb.morphia.mapping.MapperOptions;
 import org.trade.core.model.data.DataObject;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -39,7 +40,7 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
 
     private final String COLLECTION_NAME = "dataObjects";
 
-    private final String URN_FIELD = "urn";
+    private final String IDENTIFIER_FIELD = "identifier";
 
     private final String ENTITY_FIELD = "entity";
 
@@ -52,11 +53,10 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
 
         Morphia morphia = new Morphia();
 
-        // tell Morphia where to find your classes
-        // can be called multiple times with different packages or classes
+        // Map model classes to db collections
         morphia.mapPackage("de.unistuttgart.iaas.trade.model.data");
 
-        // create the Datastore connecting to mongo
+        // create the datastore connecting to mongo
         this.store = morphia.createDatastore(new MongoClient(new MongoClientURI(mongoUrl)), dbName);
         this.store.ensureIndexes();
     }
@@ -69,7 +69,7 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
     @Override
     public DataObject load(String key) {
         System.out.println("Load " + key);
-        return this.store.createQuery(DataObject.class).field(URN_FIELD).equal(key).asList().get(0);
+        return this.store.createQuery(DataObject.class).field(IDENTIFIER_FIELD).equal(key).asList().get(0);
     }
 
     @Override
@@ -77,9 +77,9 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
         System.out.println("LoadAll " + keys);
         HashMap<String, DataObject> result = new HashMap<String, DataObject>();
 
-        List<DataObject> objs = this.store.createQuery(DataObject.class).filter("urn in", keys).asList();
+        List<DataObject> objs = this.store.createQuery(DataObject.class).filter("identifier in", keys).asList();
         for (DataObject obj : objs) {
-            result.put(obj.getUrn().toString(), obj);
+            result.put(obj.getIdentifier(), obj);
         }
 
         return result;
@@ -92,7 +92,7 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
 
         List<DataObject> objs = this.store.createQuery(DataObject.class).asList();
         for (DataObject obj : objs) {
-            keys.add(obj.getUrn().toString());
+            keys.add(obj.getIdentifier());
         }
         return keys;
     }
@@ -109,13 +109,13 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
 
     @Override
     public void delete(String key) {
-        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).field(URN_FIELD).equal(key);
+        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).field(IDENTIFIER_FIELD).equal(key);
         this.store.delete(toDelete);
     }
 
     @Override
     public void deleteAll(Collection<String> keys) {
-        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).filter("urn in", keys);
+        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).filter("identifier in", keys);
         this.store.delete(toDelete);
     }
 }

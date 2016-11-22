@@ -18,6 +18,7 @@ package org.trade.core.model.data;
 
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
+import org.mongodb.morphia.annotations.Transient;
 import org.trade.core.model.ModelUtils;
 import org.trade.core.model.data.instance.DOInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
@@ -44,6 +45,7 @@ public class DataObject extends BaseResource implements Serializable {
 
     private static final long serialVersionUID = 2549294173554279537L;
 
+    @Transient
     Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.data.DataObject");
 
     /**
@@ -60,6 +62,8 @@ public class DataObject extends BaseResource implements Serializable {
      * belongs to the entity "cm23" (NID).
      */
     private transient URN urn = null;
+
+    private String identifier = null;
 
     private String entity = null;
 
@@ -82,7 +86,9 @@ public class DataObject extends BaseResource implements Serializable {
      */
     public DataObject(String entity, String name) throws URNSyntaxException {
         this.name = name;
+        this.entity = entity;
         this.urn = URN.newInstance(entity, name);
+        this.identifier = urn.toString();
 
         this.lifeCycle = new DataObjectLifeCycle(this);
     }
@@ -109,6 +115,7 @@ public class DataObject extends BaseResource implements Serializable {
         this.urn = urn;
         this.name = urn.getNamespaceSpecificString();
         this.entity = urn.getNamespaceIdentifier();
+        this.identifier = urn.toString();
 
         this.state = state;
 
@@ -124,6 +131,9 @@ public class DataObject extends BaseResource implements Serializable {
         return this.urn;
     }
 
+    public String getIdentifier() {
+        return identifier;
+    }
 
     /**
      * Provides the name of the entity the data object belongs to.
