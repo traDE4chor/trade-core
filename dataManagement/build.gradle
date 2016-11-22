@@ -1,5 +1,3 @@
 dependencies {
     compile project(':models')
-
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
 }

@@ -12,6 +12,10 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
+
+    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
+
+    compile project(':models')
 }
 
 // Summarized configurations, dependencies which are required in common by all sub projects

@@ -1,3 +1,7 @@
 dependencies {
-    compile group: 'org.hibernate', name: 'hibernate-core', version: '5.2.3.Final'
+    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
+    compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
+    compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
+
+    compile project(':models')
 }
