@@ -18,20 +18,21 @@ package org.trade.core.model.data;
 
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
-import org.mongodb.morphia.annotations.Transient;
-import org.trade.core.model.ModelUtils;
-import org.trade.core.model.data.instance.DEInstance;
-import org.trade.core.model.lifecycle.DataElementLifeCycle;
-import org.trade.core.model.lifecycle.LifeCycleException;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.PostLoad;
+import org.mongodb.morphia.annotations.Reference;
+import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.ModelUtils;
+import org.trade.core.model.data.instance.DEInstance;
+import org.trade.core.model.lifecycle.DataElementLifeCycle;
+import org.trade.core.model.lifecycle.LifeCycleException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -44,7 +45,7 @@ public class DataElement extends BaseResource implements Serializable {
     private static final long serialVersionUID = -2632920295003689320L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.data.DataElement");
+    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataElement");
 
     /**
      * We use Uniform Resource Names (URN) to identify data elements and the entity to which they belong, independent
@@ -72,6 +73,9 @@ public class DataElement extends BaseResource implements Serializable {
     @State
     private String state;
 
+    @Reference
+    private DataObject parent = null;
+
     /**
      * Instantiates a new data element and associates it to the given data object.
      *
@@ -80,6 +84,7 @@ public class DataElement extends BaseResource implements Serializable {
      * @throws URNSyntaxException the urn syntax exception
      */
     public DataElement(DataObject object, String name) throws URNSyntaxException {
+        this.parent = object;
         this.name = name;
         this.entity = object.getUrn().getNamespaceIdentifier();
 
@@ -99,6 +104,13 @@ public class DataElement extends BaseResource implements Serializable {
      */
     public DataElement(DataObject object) throws URNSyntaxException {
         this(object, UUID.randomUUID().toString());
+    }
+
+    /**
+     * This constructor is only used by Morphia to load data element from the database.
+     */
+    private DataElement() {
+        this.lifeCycle = new DataElementLifeCycle(this, false);
     }
 
     /**
@@ -296,23 +308,27 @@ public class DataElement extends BaseResource implements Serializable {
                 .DELETED.name());
     }
 
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();
-        oos.writeUTF(this.getUrn().toString());
+    @PostLoad
+    private void postLoad() {
+        try {
+            this.urn = URN.fromString(this.identifier);
+        } catch (URNSyntaxException e) {
+            logger.error("Reloading the persisted data element '{}' caused an URNSyntaxException", this.getIdentifier
+                    ());
+        }
     }
 
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
-            try {
-                this.urn = URN.fromString(ois.readUTF());
-            } catch (URNSyntaxException e) {
-                e.printStackTrace();
-            }
-            lifeCycle = new DataElementLifeCycle(this);
+            this.urn = URN.fromString(this.identifier);
+
+            lifeCycle = new DataElementLifeCycle(this, false);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data element '{}'", this.getUrn().toString());
             throw new IOException("Class not found during deserialization of data element.");
+        } catch (URNSyntaxException e) {
+            e.printStackTrace();
         }
     }
 }

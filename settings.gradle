@@ -6,4 +6,5 @@ include 'extensions'
 include 'persistence'
 include 'models'
 include 'server'
+include 'utils'
 

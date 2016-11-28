@@ -20,6 +20,7 @@ dependencies {
 
     compile group: 'org.statefulj', name: 'statefulj-fsm', version: '3.0'
     compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
+    compile project(':utils')
 }
 
 // Use XJC Ant task to generate Java sources from xsd files

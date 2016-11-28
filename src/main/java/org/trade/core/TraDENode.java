@@ -16,11 +16,27 @@
 
 package org.trade.core;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import de.slub.urn.URNSyntaxException;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
 import org.trade.core.model.data.DataObject;
+import org.trade.core.model.data.DataValue;
+import org.trade.core.utils.TraDEProperties;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by hahnml on 22.11.2016.
@@ -28,35 +44,138 @@ import org.trade.core.model.data.DataObject;
 public class TraDENode {
 
     public static void main(String[] args) {
-        HazelcastInstance instance = Hazelcast.newHazelcastInstance();
+        // Load custom properties such as MongoDB url and db name
+        TraDEProperties properties = new TraDEProperties();
+
+        // Apply the properties to the XML config
+        XmlConfigBuilder builder = new XmlConfigBuilder();
+        builder.setProperties(properties);
+        Config config = builder.build();
+
+        HazelcastInstance instance = Hazelcast.newHazelcastInstance(config);
+
+        Morphia morphia = new Morphia();
+
+        // Map model classes to db collections
+        morphia.mapPackage("org.trade.core.model.data");
+
+        // create the datastore connecting to mongo
+        Datastore store = morphia.createDatastore(new MongoClient(new MongoClientURI(properties
+                .getCacheDbUrl())), properties.getCacheDbName());
+        store.ensureIndexes();
+
+        List<String> keys = new ArrayList<String>();
+        keys.add("urn:chorModel1:lattice");
+        keys.add("urn:userA:plot");
+        keys.add("urn:random:input");
 
         try {
             IMap<String, DataObject> dataObjects = instance.getMap("dataObjects");
-            System.out.println(dataObjects.size());
-
-            DataObject obj = new DataObject("chorModel1", "lattice");
-            dataObjects.set(obj.getIdentifier(), obj);
-
-            obj = new DataObject("userA", "plot");
-            dataObjects.set(obj.getIdentifier().toString(), obj);
-
-            obj = new DataObject("random", "input");
-            dataObjects.set(obj.getIdentifier().toString(), obj);
-
             System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 
-            dataObjects.evictAll();
+            if (!dataObjects.containsKey(keys.get(0))) {
+                DataObject obj = new DataObject("chorModel1", "lattice");
+                dataObjects.set(obj.getIdentifier(), obj);
+            }
 
-            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
+            if (!dataObjects.containsKey(keys.get(1))) {
+                DataObject obj = new DataObject("userA", "plot");
+                dataObjects.set(obj.getIdentifier(), obj);
+            }
 
-            dataObjects.loadAll(true);
+            if (!dataObjects.containsKey(keys.get(2))) {
+                DataObject obj = new DataObject("random", "input");
+                dataObjects.set(obj.getIdentifier(), obj);
+            }
 
-            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
+//            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
+//
+//            dataObjects.evictAll();
+//
+//            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
+//
+//            dataObjects.loadAll(true);
+//
+//            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 
-            for (DataObject cur : dataObjects.values()) {
-                System.out.println("######");
-                System.out.println(cur.getName());
-                System.out.println("######");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            for (String key : keys) {
+                DataObject obj = (DataObject) instance.getMap("dataObjects").get(key);
+                System.out.println("### DataObject ###");
+                System.out.println("Name: " + obj.getName());
+                System.out.println("Identifier: " + obj.getIdentifier());
+                System.out.println("URN: " + obj.getUrn().toString());
+                System.out.println("Entity: " + obj.getEntity());
+                System.out.println("State: " + obj.getState());
+                System.out.println("ObjectID: " + obj.getId().toString());
+                System.out.println("##################");
+            }
+
+            IMap<String, DataValue> dataValues = instance.getMap("dataValues");
+            System.out.println(dataValues.getName() + " - " + dataValues.size());
+
+            List<String> dvKeys = new ArrayList<String>();
+            for (DataValue value : store.createQuery(DataValue.class).retrievedFields(true, "identifier").asList()) {
+                dvKeys.add(value.getIdentifier());
+            }
+
+            if (dvKeys.isEmpty()) {
+                DataValue value = new DataValue("hahnml", "simA");
+
+                try {
+                    // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
+                    byte[] data = Files.readAllBytes(Paths.get("C:\\test\\script.sh"));
+
+                    value.setData(data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                dvKeys.add(value.getIdentifier());
+
+                dataValues.set(value.getIdentifier(), value);
+
+                value = new DataValue("hahnml", "simA");
+
+                try {
+                    // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
+                    byte[] data = Files.readAllBytes(Paths.get("C:\\test\\opalClusterSnapshots.mp4"));
+                    value.setContentType("video/mp4");
+                    value.setData(data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                dvKeys.add(value.getIdentifier());
+
+                dataValues.set(value.getIdentifier(), value);
+                System.out.println(dataValues.getName() + " - " + dataValues.size());
+            }
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            for (String key : dvKeys) {
+                DataValue value = (DataValue) instance.getMap("dataValues").get(key);
+                System.out.println("### DataValue ###");
+                System.out.println("Owner: " + value.getOwner());
+                System.out.println("CreatedFor: " + value.getCreatedFor());
+                System.out.println("Identifier: " + value.getIdentifier());
+                System.out.println("URN: " + value.getUrn().toString());
+                System.out.println("Timestamp: " + value.getCreationTimestamp());
+                System.out.println("State: " + value.getState());
+                if (value.getData() != null) {
+                    System.out.println("Data: " + value.getData().toString() + ", size: " + value.getData().length);
+                }
+                System.out.println("#################");
             }
 
             instance.shutdown();
@@ -64,6 +183,11 @@ public class TraDENode {
             e.printStackTrace();
         }
 
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.exit(0);
     }
 }

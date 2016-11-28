@@ -29,7 +29,7 @@ import org.statefulj.fsm.model.State;
  */
 public class DataObjectLifeCycle {
 
-    Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.lifecycle.DataObjectLifeCycle");
+    Logger logger = LoggerFactory.getLogger("org.trade.core.model.lifecycle.DataObjectLifeCycle");
 
     // defining states
     public enum States {

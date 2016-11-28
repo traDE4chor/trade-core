@@ -3,5 +3,5 @@ dependencies {
     compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
     compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
 
-    compile project(':models')
+    compile project(':models'), project(':utils')
 }

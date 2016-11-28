@@ -33,7 +33,7 @@ import java.io.*;
  */
 public class DDGUtils {
 
-    private static Logger logger = LoggerFactory.getLogger("de.unistuttgart.iaas.trade.model.ddg.DDGUtils");
+    private static Logger logger = LoggerFactory.getLogger("org.trade.core.model.ddg.DDGUtils");
 
     public static DataDependenceGraph unmarshalGraph(String ddgGraphFilePath)
             throws JAXBException, SAXException, FileNotFoundException {

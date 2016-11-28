@@ -21,10 +21,34 @@
         <map-store enabled="true" initial-mode="LAZY">
             <class-name>org.trade.core.persistence.DataObjectStore</class-name>
             <properties>
-                <property name="mongo.url">mongodb://localhost:27017</property>
-                <property name="mongo.db">tradeDB</property>
-                <property name="mongo.collection">dataObjects</property>
+                <property name="mongo.url">${cache.db.url}</property>
+                <property name="mongo.db">${cache.db.name}</property>
             </properties>
+        </map-store>
+    </map>
+
+    <map name="dataValues">
+        <time-to-live-seconds>4</time-to-live-seconds>
+        <indexes>
+            <index>identifier</index>
+        </indexes>
+        <backup-count>1</backup-count>
+        <async-backup-count>1</async-backup-count>
+
+        <map-store enabled="true" initial-mode="LAZY">
+            <class-name>org.trade.core.persistence.DataValueStore</class-name>
+            <properties>
+                <property name="mongo.url">${cache.db.url}</property>
+                <property name="mongo.db">${cache.db.name}</property>
+            </properties>
+
+            <!-- The problem is not related to the way how hazelcast persists nor how morphia synchronizes the data,
+            it is related to the transient flag of the data field. Since we mark this field transient to avoid
+            synchronizing it between nodes through hazelcast, we directly disable its persistent. This happens
+            because morphia is only able to store data which is stored within the configured hazelcast maps.
+            Therefore, because we keep the data out of these maps, the corresponding map store can not persist them. -->
+            <!-- Configure write through so that data values are directly persisted when they are created. -->
+            <!-- <write-delay-seconds>0</write-delay-seconds> -->
         </map-store>
     </map>
 </hazelcast>

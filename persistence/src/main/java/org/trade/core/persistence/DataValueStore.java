@@ -24,16 +24,20 @@ import com.mongodb.MongoClientURI;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
-import org.trade.core.model.data.DataObject;
+import org.trade.core.model.data.DataElement;
+import org.trade.core.model.data.DataValue;
 import org.trade.core.utils.TraDEProperties;
 
 import java.util.*;
 
-public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderLifecycleSupport {
+/**
+ * Created by hahnml on 23.11.2016.
+ */
+public class DataValueStore implements MapStore<String, DataValue>, MapLoaderLifecycleSupport {
 
     private Datastore store;
 
-    public DataObjectStore() {
+    public DataValueStore() {
     }
 
     private final String IDENTIFIER_FIELD = "identifier";
@@ -59,17 +63,16 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
     }
 
     @Override
-    public DataObject load(String key) {
-        return this.store.createQuery(DataObject.class).field(IDENTIFIER_FIELD).equal(key).limit
-                (1).get();
+    public DataValue load(String key) {
+        return this.store.createQuery(DataValue.class).field(IDENTIFIER_FIELD).equal(key).limit(1).get();
     }
 
     @Override
-    public Map<String, DataObject> loadAll(Collection keys) {
-        HashMap<String, DataObject> result = new HashMap<String, DataObject>();
+    public Map<String, DataValue> loadAll(Collection keys) {
+        HashMap<String, DataValue> result = new HashMap<String, DataValue>();
 
-        List<DataObject> objs = this.store.createQuery(DataObject.class).filter("identifier in", keys).asList();
-        for (DataObject obj : objs) {
+        List<DataValue> objs = this.store.createQuery(DataValue.class).filter("identifier in", keys).asList();
+        for (DataValue obj : objs) {
             result.put(obj.getIdentifier(), obj);
         }
 
@@ -80,32 +83,32 @@ public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderL
     public Iterable<String> loadAllKeys() {
         List<String> keys = new LinkedList<String>();
 
-        List<DataObject> objs = this.store.createQuery(DataObject.class).asList();
-        for (DataObject obj : objs) {
+        List<DataValue> objs = this.store.createQuery(DataValue.class).asList();
+        for (DataValue obj : objs) {
             keys.add(obj.getIdentifier());
         }
         return keys;
     }
 
     @Override
-    public void store(String key, DataObject value) {
+    public void store(String key, DataValue value) {
         this.store.save(value);
     }
 
     @Override
-    public void storeAll(Map<String, DataObject> map) {
+    public void storeAll(Map<String, DataValue> map) {
         this.store.save(map.values());
     }
 
     @Override
     public void delete(String key) {
-        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).field(IDENTIFIER_FIELD).equal(key);
+        Query<DataValue> toDelete = this.store.createQuery(DataValue.class).field(IDENTIFIER_FIELD).equal(key);
         this.store.delete(toDelete);
     }
 
     @Override
     public void deleteAll(Collection<String> keys) {
-        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).filter("identifier in", keys);
+        Query<DataValue> toDelete = this.store.createQuery(DataValue.class).filter("identifier in", keys);
         this.store.delete(toDelete);
     }
 }

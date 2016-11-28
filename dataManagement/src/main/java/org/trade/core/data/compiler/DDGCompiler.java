@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class DDGCompiler {
 
-    Logger logger = LoggerFactory.getLogger("de.unistuttgart.iaas.trade.data.compiler.DDGCompiler");
+    Logger logger = LoggerFactory.getLogger("org.trade.core.data.compiler.DDGCompiler");
 
     private DataDependenceGraph ddgDef = null;
 

@@ -18,22 +18,21 @@ package org.trade.core.model.data;
 
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
-import org.mongodb.morphia.annotations.Transient;
-import org.trade.core.model.ModelUtils;
-import org.trade.core.model.data.instance.DOInstance;
-import org.trade.core.model.lifecycle.DataElementLifeCycle;
-import org.trade.core.model.lifecycle.DataObjectLifeCycle;
-import org.trade.core.model.lifecycle.LifeCycleException;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.PostLoad;
 import org.mongodb.morphia.annotations.Reference;
+import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.data.instance.DOInstance;
+import org.trade.core.model.lifecycle.DataElementLifeCycle;
+import org.trade.core.model.lifecycle.DataObjectLifeCycle;
+import org.trade.core.model.lifecycle.LifeCycleException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.*;
 
@@ -46,7 +45,7 @@ public class DataObject extends BaseResource implements Serializable {
     private static final long serialVersionUID = 2549294173554279537L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("de.unistuttgart.trade.model.data.DataObject");
+    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataObject");
 
     /**
      * We use Uniform Resource Names (URN) to identify data objects and the entity to which they belong, independent
@@ -94,31 +93,9 @@ public class DataObject extends BaseResource implements Serializable {
     }
 
     /**
-     * Instantiates a new data object with an automatically generated random URN.
-     *
-     * @throws URNSyntaxException the urn syntax exception
+     * This constructor is only used by Morphia to load data objects from the database.
      */
-    public DataObject() throws URNSyntaxException {
-        this(ModelUtils.RANDOM_URN_NAMESPACE_ID, UUID.randomUUID().toString());
-    }
-
-    /**
-     * Instantiates a previously existing data object based on a predefined state and URN. Use this constructor only
-     * in cases where the data of a previously existing data object should be restored, e.g., to load and
-     * recreate data objects from a database. Using this constructor for the creation of new data objects might
-     * result in inconsistent behavior.
-     *
-     * @param urn   the URN of the data object
-     * @param state the state of the data object
-     */
-    public DataObject(URN urn, String state) {
-        this.urn = urn;
-        this.name = urn.getNamespaceSpecificString();
-        this.entity = urn.getNamespaceIdentifier();
-        this.identifier = urn.toString();
-
-        this.state = state;
-
+    private DataObject() {
         this.lifeCycle = new DataObjectLifeCycle(this, false);
     }
 
@@ -488,23 +465,26 @@ public class DataObject extends BaseResource implements Serializable {
                 .DELETED.name());
     }
 
-    private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();
-        oos.writeUTF(this.getUrn().toString());
+    @PostLoad
+    private void postLoad() {
+        try {
+            this.urn = URN.fromString(this.identifier);
+        } catch (URNSyntaxException e) {
+            logger.error("Reloading the persisted data object '{}' caused an URNSyntaxException", this.getIdentifier());
+        }
     }
 
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
-            try {
-                this.urn = URN.fromString(ois.readUTF());
-            } catch (URNSyntaxException e) {
-                e.printStackTrace();
-            }
+            this.urn = URN.fromString(this.identifier);
+
             lifeCycle = new DataObjectLifeCycle(this, false);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data object '{}'", this.getUrn().toString());
             throw new IOException("Class not found during deserialization of data object.");
+        } catch (URNSyntaxException e) {
+            e.printStackTrace();
         }
     }
 
