@@ -72,8 +72,6 @@ public class DataValue extends BaseResource implements Serializable {
      */
     private transient URN urn = null;
 
-    private String identifier = "";
-
     private String name = null;
 
     private Date timestamp = new Date();
@@ -129,10 +127,6 @@ public class DataValue extends BaseResource implements Serializable {
 
     public Date getCreationTimestamp() {
         return timestamp;
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     public String getOwner() {
@@ -306,7 +300,7 @@ public class DataValue extends BaseResource implements Serializable {
             e.printStackTrace();
         }
 
-        // TODO: Do we need to recreate the props and dpHelper object?
+        // We need to recreate the properties object
         if (this.props == null) {
             props = new TraDEProperties();
         }

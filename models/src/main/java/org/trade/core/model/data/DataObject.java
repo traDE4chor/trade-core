@@ -62,8 +62,6 @@ public class DataObject extends BaseResource implements Serializable {
      */
     private transient URN urn = null;
 
-    private String identifier = null;
-
     private String entity = null;
 
     private String name = null;
@@ -106,10 +104,6 @@ public class DataObject extends BaseResource implements Serializable {
      */
     public URN getUrn() {
         return this.urn;
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     /**

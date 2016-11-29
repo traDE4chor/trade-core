@@ -35,6 +35,12 @@ public abstract class BaseResource implements Serializable {
     @Version
     private Long version;
 
+    protected String identifier = null;
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
     public ObjectId getId() {
         return this.id;
     }

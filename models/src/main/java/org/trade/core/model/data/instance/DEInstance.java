@@ -18,8 +18,15 @@ package org.trade.core.model.data.instance;
 
 import de.slub.urn.URN;
 import de.slub.urn.URNSyntaxException;
+import org.mongodb.morphia.annotations.PostLoad;
+import org.mongodb.morphia.annotations.Transient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.trade.core.model.ModelUtils;
+import org.trade.core.model.data.BaseResource;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
@@ -27,9 +34,12 @@ import java.util.UUID;
 /**
  * Created by hahnml on 26.10.2016.
  */
-public class DEInstance implements Serializable {
+public class DEInstance extends BaseResource implements Serializable {
 
     private static final long serialVersionUID = -7695419620536264095L;
+
+    @Transient
+    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DOInstance");
 
     /**
      * We use Uniform Resource Names (URN) to identify data element instances and the data element to which they belong,
@@ -47,9 +57,11 @@ public class DEInstance implements Serializable {
      */
     private transient URN urn = null;
 
+    private String identifier = null;
+
     private Date timestamp = new Date();
 
-    private UUID instanceID = UUID.randomUUID();
+    private String instanceID = null;
 
     private String owner = "";
 
@@ -61,20 +73,36 @@ public class DEInstance implements Serializable {
         this.owner = owner;
         this.createdFor = createdFor;
 
+        this.instanceID = UUID.randomUUID().toString();
+
         this.urn = URN.newInstance(dataElementURN.getNamespaceIdentifier(),
                 dataElementURN.getNamespaceSpecificString() + ModelUtils.URN_NAMESPACE_STRING_DELIMITER + instanceID
                         .toString());
+
+        // Set the identifier to the stringified value of the URN
+        this.identifier = urn.toString();
+    }
+
+    /**
+     * This constructor is only used by Morphia to load data value from the database.
+     */
+    private DEInstance() {
+
     }
 
     public URN getUrn() {
         return urn;
     }
 
+    public String getIdentifier() {
+        return identifier;
+    }
+
     public Date getCreationTimestamp() {
         return timestamp;
     }
 
-    public UUID getInstanceID() {
+    public String getInstanceID() {
         return instanceID;
     }
 
@@ -96,5 +124,27 @@ public class DEInstance implements Serializable {
 
     public String getState() {
         return state;
+    }
+
+    @PostLoad
+    private void postLoad() {
+        try {
+            this.urn = URN.fromString(this.identifier);
+        } catch (URNSyntaxException e) {
+            logger.error("Reloading the persisted data element instance '{}' caused an URNSyntaxException", this
+                    .getIdentifier());
+        }
+    }
+
+    private void readObject(ObjectInputStream ois) throws IOException {
+        try {
+            ois.defaultReadObject();
+            this.urn = URN.fromString(this.identifier);
+        } catch (ClassNotFoundException e) {
+            logger.error("Class not found during deserialization of data element instance '{}'", getIdentifier());
+            throw new IOException("Class not found during deserialization of data element instance.");
+        } catch (URNSyntaxException e) {
+            e.printStackTrace();
+        }
     }
 }

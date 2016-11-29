@@ -16,27 +16,12 @@
 
 package org.trade.core.persistence;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.MapLoaderLifecycleSupport;
-import com.hazelcast.core.MapStore;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
 import org.trade.core.model.data.DataElement;
-import org.trade.core.model.data.DataValue;
-import org.trade.core.utils.TraDEProperties;
 
-import java.util.*;
+public class DataElementStore extends AMongoStore<DataElement> {
 
-/**
- * Created by hahnml on 23.11.2016.
- */
-public class DataValueStore extends AMongoStore<DataValue> {
-
-    public DataValueStore() {
-        this.resourceType = DataValue.class;
+    public DataElementStore() {
+        this.resourceType = DataElement.class;
     }
 
 }

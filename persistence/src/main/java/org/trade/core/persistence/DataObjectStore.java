@@ -29,83 +29,10 @@ import org.trade.core.utils.TraDEProperties;
 
 import java.util.*;
 
-public class DataObjectStore implements MapStore<String, DataObject>, MapLoaderLifecycleSupport {
-
-    private Datastore store;
+public class DataObjectStore extends AMongoStore<DataObject> {
 
     public DataObjectStore() {
+        this.resourceType = DataObject.class;
     }
 
-    private final String IDENTIFIER_FIELD = "identifier";
-
-    @Override
-    public void init(HazelcastInstance hazelcastInstance, Properties properties, String mapName) {
-        String mongoUrl = (String) properties.get("mongo.url");
-        String dbName = (String) properties.get("mongo.db");
-
-        Morphia morphia = new Morphia();
-
-        // Map model classes to db collections
-        morphia.mapPackage("org.trade.core.model.data");
-
-        // create the datastore connecting to mongo
-        this.store = morphia.createDatastore(new MongoClient(new MongoClientURI(mongoUrl)), dbName);
-        this.store.ensureIndexes();
-    }
-
-    @Override
-    public void destroy() {
-        this.store.getMongo().close();
-    }
-
-    @Override
-    public DataObject load(String key) {
-        return this.store.createQuery(DataObject.class).field(IDENTIFIER_FIELD).equal(key).limit
-                (1).get();
-    }
-
-    @Override
-    public Map<String, DataObject> loadAll(Collection keys) {
-        HashMap<String, DataObject> result = new HashMap<String, DataObject>();
-
-        List<DataObject> objs = this.store.createQuery(DataObject.class).filter("identifier in", keys).asList();
-        for (DataObject obj : objs) {
-            result.put(obj.getIdentifier(), obj);
-        }
-
-        return result;
-    }
-
-    @Override
-    public Iterable<String> loadAllKeys() {
-        List<String> keys = new LinkedList<String>();
-
-        List<DataObject> objs = this.store.createQuery(DataObject.class).asList();
-        for (DataObject obj : objs) {
-            keys.add(obj.getIdentifier());
-        }
-        return keys;
-    }
-
-    @Override
-    public void store(String key, DataObject value) {
-        this.store.save(value);
-    }
-
-    @Override
-    public void storeAll(Map<String, DataObject> map) {
-        this.store.save(map.values());
-    }
-
-    @Override
-    public void delete(String key) {
-        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).field(IDENTIFIER_FIELD).equal(key);
-        this.store.delete(toDelete);
-    }
-
-    @Override
-    public void deleteAll(Collection<String> keys) {
-        Query<DataObject> toDelete = this.store.createQuery(DataObject.class).filter("identifier in", keys);
-        this.store.delete(toDelete);
-    }
 }
