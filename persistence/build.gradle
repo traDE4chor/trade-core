@@ -1,7 +1,5 @@
 dependencies {
     compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
-    compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
-    compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
 
     compile project(':models'), project(':utils')
 }

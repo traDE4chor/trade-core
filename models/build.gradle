@@ -19,6 +19,7 @@ dependencies {
     xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
 
     compile group: 'org.statefulj', name: 'statefulj-fsm', version: '3.0'
+    compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
     compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
     compile project(':utils')
 }
@@ -31,7 +32,7 @@ task xjc {
         ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
         file(generatedSources).mkdirs()
         ant.xjc(destdir: generatedSources, header: true, extension: true, removeOldOutput: true, target: '2.1',
-                package: 'de.unistuttgart.iaas.trade.model.ddg') {
+                package: 'org.trade.core.model.ddg') {
             schema(dir: 'src/main/resources/schema', includes: '**/*.xsd')
             produces(dir: generatedSources)
             arg(line: '-encoding UTF-8')

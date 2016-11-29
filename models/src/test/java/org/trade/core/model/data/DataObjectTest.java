@@ -36,19 +36,19 @@ public class DataObjectTest {
 
     @Test
     public void testStartState() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
         assertEquals(DataObjectLifeCycle.States.INITIAL.name(), obj.getState());
     }
 
     @Test(expected = LifeCycleException.class)
     public void testNotAllowedStateTransition() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
         obj.archive();
     }
 
     @Test(expected = LifeCycleException.class)
     public void addingDataElementShouldBeRejected() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
 
         DataElement elm = new DataElement(obj);
         obj.addDataElement(elm);
@@ -56,7 +56,7 @@ public class DataObjectTest {
 
     @Test
     public void dataElementShouldBeAdded() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
 
         DataElement elm = new DataElement(obj);
         elm.initialize();
@@ -69,7 +69,7 @@ public class DataObjectTest {
 
     @Test
     public void dataElementShouldBeDeleted() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
 
         DataElement elm = new DataElement(obj);
         elm.initialize();
@@ -83,7 +83,7 @@ public class DataObjectTest {
 
     @Test
     public void dataObjectShouldBeDeleted() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
 
         DataElement elm = new DataElement(obj);
         elm.initialize();
@@ -100,7 +100,7 @@ public class DataObjectTest {
 
     @Test
     public void testDataObjectSerializationAndDeserialization() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
         DataElement elm = new DataElement(obj);
         elm.initialize();
         obj.addDataElement(elm);
@@ -126,14 +126,14 @@ public class DataObjectTest {
 
     @Test(expected = LifeCycleException.class)
     public void instantiationOfDataObjectShouldCauseException() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
 
         DOInstance inst = obj.instantiate("owner", "createdFor");
     }
 
     @Test
     public void testDataObjectInstantiation() throws Exception {
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject("modelA", "inputData");
 
         DataElement elm = new DataElement(obj);
         elm.initialize();

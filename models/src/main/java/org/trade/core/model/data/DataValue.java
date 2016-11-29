@@ -208,7 +208,7 @@ public class DataValue extends BaseResource implements Serializable {
         MongoClient client = new MongoClient(new MongoClientURI(this.props.getDataPersistenceDbUrl()));
         MongoDatabase db = client.getDatabase(this.props.getDataPersistenceDbName());
 
-        Document doc = db.getCollection("data").find(Filters.eq("urn", getIdentifier())).limit(1).first();
+        Document doc = db.getCollection("dataCollection").find(Filters.eq("urn", getIdentifier())).limit(1).first();
 
         if (doc != null) {
             if (doc.containsKey("data")) {
@@ -255,7 +255,7 @@ public class DataValue extends BaseResource implements Serializable {
         MongoClient client = new MongoClient(new MongoClientURI(this.props.getDataPersistenceDbUrl()));
         MongoDatabase db = client.getDatabase(this.props.getDataPersistenceDbName());
 
-        MongoCollection<Document> collection = db.getCollection("data");
+        MongoCollection<Document> collection = db.getCollection("dataCollection");
         Document doc = collection.find(Filters.eq("urn", getIdentifier())).limit(1).first();
 
         if (data == null) {

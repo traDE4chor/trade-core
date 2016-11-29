@@ -10,10 +10,26 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integrationTest/java')
+        }
+        resources.srcDir file('src/integrationTest/resources')
+    }
+}
+
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-
-    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
+    integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.5'
+    integrationTestCompile project(path: ':utils', configuration: 'testOutput')
 
     compile project(':models'), project(':persistence'), project(':utils')
 }
@@ -44,4 +60,23 @@ subprojects {
     group 'de.unistuttgart.iaas.trade'
     version '1.0-SNAPSHOT'
     sourceCompatibility = 1.8
+}
+
+task integrationTest(type: Test) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    // By default gradle skips tasks whose inputs and outputs are up to date.
+    // Uncomment the following line to enforce the execution of the integration test whenever the corresponding task
+    // is triggered no matter if something has changed or not.
+    // outputs.upToDateWhen { false }
+}
+
+// Include the integration tests into the build process. Uncomment the following two lines if you prefer to trigger
+// the integration tests only manually and not for each build.
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+// Ensure that distinct HTML reports for different types of tests are created
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
 }

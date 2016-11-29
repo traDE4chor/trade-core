@@ -112,7 +112,9 @@ public class TraDENode {
                 System.out.println("URN: " + obj.getUrn().toString());
                 System.out.println("Entity: " + obj.getEntity());
                 System.out.println("State: " + obj.getState());
-                System.out.println("ObjectID: " + obj.getId().toString());
+                if (obj.getId() != null) {
+                    System.out.println("ObjectID: " + obj.getId().toString());
+                }
                 System.out.println("##################");
             }
 
