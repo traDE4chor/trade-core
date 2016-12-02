@@ -28,6 +28,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.DataValue;
+import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
 import java.io.IOException;
@@ -47,6 +48,15 @@ public class TraDENode {
         // Load custom properties such as MongoDB url and db name
         TraDEProperties properties = new TraDEProperties();
 
+        TraDEServer server = new TraDEServer();
+        try {
+            server.startHTTPServer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void testClusterAndPersistence(TraDEProperties properties) {
         // Apply the properties to the XML config
         XmlConfigBuilder builder = new XmlConfigBuilder();
         builder.setProperties(properties);

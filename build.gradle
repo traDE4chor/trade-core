@@ -2,6 +2,9 @@ group 'de.unistuttgart.iaas.trade'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'java-library-distribution'
+
+version = '0.0.1'
 
 sourceCompatibility = 1.8
 
@@ -31,7 +34,7 @@ dependencies {
     integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.5'
     integrationTestCompile project(path: ':utils', configuration: 'testOutput')
 
-    compile project(':models'), project(':persistence'), project(':utils')
+    compile project(':models'), project(':persistence'), project(':utils'), project(':server')
 }
 
 // Summarized configurations, dependencies which are required in common by all sub projects
@@ -39,6 +42,7 @@ subprojects {
     apply plugin: 'java'
 
     repositories {
+        jcenter()
         mavenCentral()
     }
 
@@ -73,10 +77,62 @@ task integrationTest(type: Test) {
 
 // Include the integration tests into the build process. Uncomment the following two lines if you prefer to trigger
 // the integration tests only manually and not for each build.
-check.dependsOn integrationTest
-integrationTest.mustRunAfter test
+// check.dependsOn integrationTest
+// integrationTest.mustRunAfter test
 
 // Ensure that distinct HTML reports for different types of tests are created
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+// Package root and all subprojects into a single JAR
+//subprojects.each { subproject -> evaluationDependsOn(subproject.path)}
+//
+//jar.dependsOn subprojects.tasks['classes']
+//jar {
+//    baseName = 'traDE-core'
+//    manifest {
+//        attributes 'Main-Class': 'org.trade.core.TraDENode'
+//    }
+//    subprojects.each { subproject ->
+//        from subproject.sourceSets.main.output.classesDir
+//        from subproject.sourceSets.main.output.resourcesDir
+//    }
+//}
+
+//create a single Jar with all dependencies
+//task fatJar(type: Jar) {
+//    manifest {
+//        attributes 'Implementation-Title': 'TraDE Middleware',
+//                'Implementation-Version': version,
+//                'Main-Class': 'org.trade.core.TraDENode'
+//    }
+//    baseName = 'traDE-all'
+//    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+//    with jar
+//}
+
+// Create a deployment archive
+//task buildZip(type: Zip) {
+//    from jar
+//    from processResources
+//    into('lib') {
+//        from configurations.runtime
+//    }
+//}
+
+// Task "distZip" added by plugin "java-library-distribution":
+distZip.shouldRunAfter(build)
+
+jar {
+    // Keep jar clean:
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.MF'
+
+    manifest {
+        attributes 'Main-Class': 'org.trade.core.TraDENode',
+                'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
+    }
+    // How-to add class path:
+    //     http://stackoverflow.com/questions/22659463/add-classpath-in-manifest-using-gradle
+    //     https://gist.github.com/simon04/6865179
 }

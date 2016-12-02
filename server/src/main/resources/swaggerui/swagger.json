@@ -1,0 +1,1324 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "TraDE Middleware API",
+        "description": "This is the API of the TraDE middleware.",
+        "version": "0.0.1",
+        "contact": {
+            "name": "Michael Hahn",
+            "url": "http://trade4chor.github.io",
+            "email": "trade4chor@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "host": "localhost:3000/api",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "externalDocs": {
+        "description": "Find more info here",
+        "url": "http://trade4chor.github.io/docs"
+    },
+    "paths": {
+        "/networks": {
+            "x-swagger-router-controller": "Network",
+            "get": {
+                "tags": [
+                    "network"
+                ],
+                "description": "Gets all available `Network` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the networks.\n",
+                "operationId": "getNetwork",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/limitParam"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Name of networks to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of networks to return",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "ArrayOfWetworks",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Network"
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "network"
+                ],
+                "summary": "Creates and adds a new networkto the TraDE middleware",
+                "operationId": "addNetwork",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Network object that needs to be added.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created and added a new network",
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/networks/{networkId}": {
+            "x-swagger-router-controller": "Network",
+            "get": {
+                "tags": [
+                    "network"
+                ],
+                "summary": "Find a network by Id",
+                "operationId": "getNetworkById",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Id supplied"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "network"
+                ],
+                "summary": "Update an existing network",
+                "description": "",
+                "operationId": "updateNetwork",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be updated",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Network resource that needs to be updated.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "description": "Network not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "network"
+                ],
+                "summary": "Deletes a network",
+                "description": "Deletes a complete network from the TraDE middleware",
+                "operationId": "deleteNetwork",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid network Id"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/networks/{networkId}/nodes": {
+            "x-swagger-router-controller": "Node",
+            "get": {
+                "tags": [
+                    "node"
+                ],
+                "description": "Gets all available `Node` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the nodes.\n",
+                "operationId": "getNodes",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/limitParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "ArrayOfNodes",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Node"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No nodes found with the specified query parameters"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "node"
+                ],
+                "summary": "Add a new node to the network",
+                "operationId": "addNode",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Network object that needs to be added.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/Network"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "networkId",
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/networks/{networkId}/nodes/{nodeId}": {
+            "x-swagger-router-controller": "Node",
+            "get": {
+                "tags": [
+                    "node"
+                ],
+                "summary": "Find a node by Id",
+                "operationId": "getNode",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "nodeId",
+                        "description": "Id of the node that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Node"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid combination of network and node Ids"
+                    },
+                    "404": {
+                        "description": "Network or node not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "node"
+                ],
+                "summary": "Update an existing node",
+                "description": "",
+                "operationId": "updateNode",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "nodeId",
+                        "description": "Id of the node that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "node",
+                        "description": "Node object that needs to be updated.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/Node"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "description": "Node not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "node"
+                ],
+                "summary": "Deletes a node",
+                "description": "Delete the node from the network",
+                "operationId": "deleteNode",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "networkId",
+                        "description": "Id of the network that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "nodeId",
+                        "description": "Id of the node that needs to be deleted",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid combination of network and node Ids"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjects": {
+            "x-swagger-router-controller": "DataObject",
+            "get": {
+                "tags": [
+                    "dataObject"
+                ],
+                "description": "Gets all available `DataObject` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data objects.\n",
+                "operationId": "getDataObject",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/limitParam"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Name of data objects to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of data objects to return",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "ArrayOfDataObjects",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DataObject"
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataObject"
+                ],
+                "summary": "Creates and adds a new data object to the TraDE middleware",
+                "operationId": "addDataObject",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "DataObject object that needs to be added.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created and added a new data object",
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjects/{dataObjectId}": {
+            "x-swagger-router-controller": "DataObject",
+            "get": {
+                "tags": [
+                    "dataObject"
+                ],
+                "summary": "Find a data object by Id",
+                "operationId": "getDataObjectById",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Id supplied"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "dataObject"
+                ],
+                "summary": "Update an existing dataObject",
+                "description": "",
+                "operationId": "updateDataObject",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be updated",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Data object resource that needs to be updated.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "description": "DataObject not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "dataObject"
+                ],
+                "summary": "Deletes a dataObject",
+                "description": "Deletes a complete data object from the TraDE middleware",
+                "operationId": "deleteDataObject",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid data object Id"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjects/{dataObjectId}/pull": {
+            "x-swagger-router-controller": "DataObject",
+            "get": {
+                "tags": [
+                    "dataObject"
+                ],
+                "summary": "Reads data from a data object identified by Id",
+                "operationId": "pullDataObjectData",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "dataElementName",
+                        "in": "query",
+                        "description": "Name of a DataElement",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "dataElementId",
+                        "in": "query",
+                        "description": "Id of a DataElement",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "sourceTraDE",
+                        "in": "query",
+                        "description": "URL of a remote TraDE middlware to pull the data object from",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid name supplied"
+                    },
+                    "404": {
+                        "description": "Data Object not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjects/{dataObjectId}/push": {
+            "x-swagger-router-controller": "DataObject",
+            "post": {
+                "tags": [
+                    "dataObject"
+                ],
+                "summary": "Pushes the data object identified by Id to the TraDE middleware",
+                "description": "",
+                "operationId": "pushDataObjectData",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object to write to",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "dataElement",
+                        "in": "query",
+                        "description": "Name of a data element",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "targetTraDE",
+                        "in": "query",
+                        "description": "URL of a remote TraDE middleware to push the data object to",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "DataObject object to push.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully pushed data",
+                        "schema": {
+                            "$ref": "#/definitions/DataObject"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjects/{dataObjectId}/dataElements": {
+            "x-swagger-router-controller": "DataElement",
+            "get": {
+                "tags": [
+                    "dataElement"
+                ],
+                "description": "Gets all available `DataElement` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data elements.\n",
+                "operationId": "getDataElements",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "$ref": "#/parameters/limitParam"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of data elements to return",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "ArrayOfDataElements",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DataElement"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No data elements found with the specified query parameters"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Add a new dataElement to the dataObject",
+                "operationId": "addDataElement",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "DataElement object that needs to be added.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataElement"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "dataElementId",
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjects/{dataObjectId}/dataElements/{dataElementId}": {
+            "x-swagger-router-controller": "DataElement",
+            "get": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Find a data element by Id",
+                "operationId": "getDataElement",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/DataElement"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid combination of data object and data element Ids"
+                    },
+                    "404": {
+                        "description": "Data object or data element not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Update an existing data element",
+                "description": "",
+                "operationId": "updateDataElement",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "dataElement",
+                        "description": "DataElement object that needs to be updated.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataElement"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "description": "Data element not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Deletes a data element",
+                "description": "Delete the data element from the data object",
+                "operationId": "deleteDataElement",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be deleted",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid combination of data object and data element Ids"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataElements": {
+            "x-swagger-router-controller": "DataElement",
+            "get": {
+                "tags": [
+                    "dataElement"
+                ],
+                "description": "Gets all available `DataElement` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data elements.\n",
+                "operationId": "getDataElementsDirectly",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/limitParam"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of data elements to return",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "title": "ArrayOfDataElements",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DataElement"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No data elements found with the specified query parameters"
+                    }
+                }
+            }
+        },
+        "/dataElements/{dataElementId}": {
+            "x-swagger-router-controller": "DataElement",
+            "get": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Find a data element by Id",
+                "operationId": "getDataElementDirectly",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/DataElement"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid combination of data object and data element Ids"
+                    },
+                    "404": {
+                        "description": "Data object or data element not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Update an existing data element",
+                "description": "",
+                "operationId": "updateDataElementDirectly",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "dataElement",
+                        "description": "DataElement object that needs to be updated.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataElement"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "description": "Data element not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Network": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "title": "ArrayOfTraDENodes",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Node"
+                    }
+                }
+            }
+        },
+        "Node": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "dataObjects": {
+                    "title": "ArrayOfDataObjects",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataObject"
+                    }
+                },
+                "dataElements": {
+                    "title": "ArrayOfDataElements",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataElement"
+                    }
+                }
+            }
+        },
+        "DataObject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "storageStrategy": {
+                    "$ref": "#/definitions/StorageStrategyEnum"
+                },
+                "status": {
+                    "$ref": "#/definitions/StatusEnum"
+                },
+                "dataElements": {
+                    "title": "ArrayOfDataElements",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataElement"
+                    }
+                },
+                "instances": {
+                    "title": "ArrayOfDataObjectInstances",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataObjectInstance"
+                    }
+                }
+            }
+        },
+        "DataObjectInstance": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "createdFor": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/InstanceStatusEnum"
+                },
+                "elementInstances": {
+                    "title": "ArrayOfDataElementInstances",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataElementInstance"
+                    }
+                }
+            }
+        },
+        "DataElement": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/StatusEnum"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "instances": {
+                    "title": "ArrayOfDataElementInstances",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DataElementInstance"
+                    }
+                }
+            }
+        },
+        "DataElementInstance": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "createdFor": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/InstanceStatusEnum"
+                },
+                "value": {
+                    "$ref": "#/definitions/DataValue"
+                }
+            }
+        },
+        "DataValue": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "access": {
+                    "$ref": "#/definitions/AccessEnum"
+                },
+                "type": {
+                    "$ref": "#/definitions/TypeEnum"
+                },
+                "data": {
+                    "type": "string",
+                    "format": "byte"
+                }
+            }
+        },
+        "StorageStrategyEnum": {
+            "type": "string",
+            "default": "persisted",
+            "enum": [
+                "persisted",
+                "in_mem"
+            ]
+        },
+        "StatusEnum": {
+            "type": "string",
+            "default": "created",
+            "enum": [
+                "created",
+                "archived"
+            ]
+        },
+        "InstanceStatusEnum": {
+            "type": "string",
+            "default": "created",
+            "enum": [
+                "created",
+                "archived"
+            ]
+        },
+        "AccessEnum": {
+            "type": "string",
+            "default": "local",
+            "enum": [
+                "local",
+                "remote",
+                "reference"
+            ]
+        },
+        "TypeEnum": {
+            "type": "string",
+            "default": "default",
+            "enum": [
+                "default",
+                "constant",
+                "stream"
+            ]
+        },
+        "InvalidInput": {
+            "type": "object",
+            "properties": {
+                "property": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "example": {
+                    "type": "string"
+                },
+                "moreInfo": {
+                    "type": "string"
+                }
+            }
+        },
+        "NotFound": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "errorCode": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "property": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "developerMessage": {
+                    "type": "string"
+                },
+                "moreInfo": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "parameters": {
+        "limitParam": {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of returned objects",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+        }
+    },
+    "responses": {
+        "ErrorResponse": {
+            "description": "Server error",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "NotFoundResponse": {
+            "description": "The required resource was not found based on the provided query parameters.",
+            "schema": {
+                "$ref": "#/definitions/NotFound"
+            }
+        },
+        "InvalidInputResponse": {
+            "description": "Invalid input",
+            "schema": {
+                "$ref": "#/definitions/InvalidInput"
+            }
+        }
+    }
+}
