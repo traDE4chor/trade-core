@@ -16,29 +16,90 @@
 
 package org.trade.core.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import org.eclipse.jetty.util.security.Password;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.trade.core.utils.TraDEProperties;
+
+import java.io.File;
 
 /**
  * Created by hahnml on 07.11.2016.
  */
 public class TraDEServer {
 
-    private int port = 3000;
+    private Server server = null;
 
-    public void startHTTPServer() throws Exception {
-        Server server = new Server(port);
+    public void startHTTPServer(TraDEProperties properties) throws Exception {
+        server = new Server();
 
+        setupConnectors(properties);
+
+        setupHandlers();
+
+        try {
+            server.start();
+            server.join();
+        } finally {
+            server.destroy();
+        }
+    }
+
+    private void setupConnectors(TraDEProperties props) {
+        Connector[] connectors = null;
+
+        // HTTP Configuration
+        HttpConfiguration http_config = new HttpConfiguration();
+        http_config.setSecureScheme("https");
+        http_config.setSecurePort(props.getHttpsServerPort());
+        http_config.setOutputBufferSize(32768);
+
+        // HTTP connector
+        ServerConnector http = new ServerConnector(server,
+                new HttpConnectionFactory(http_config));
+        http.setPort(props.getHttpServerPort());
+        http.setIdleTimeout(30000);
+
+        connectors = new Connector[]{http};
+
+        String keystorePath = props.getServerKeystore();
+        if (keystorePath != null) {
+            File keystoreFile = new File(".", keystorePath).getAbsoluteFile();
+            if (keystoreFile.exists()) {
+                // SSL Context Factory for HTTPS
+                SslContextFactory sslContextFactory = new SslContextFactory();
+                sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
+                sslContextFactory.setKeyStorePassword(props.getKeyStorePassword());
+
+                // HTTPS Configuration
+                HttpConfiguration https_config = new HttpConfiguration(http_config);
+                SecureRequestCustomizer src = new SecureRequestCustomizer();
+                src.setStsMaxAge(2000);
+                src.setStsIncludeSubDomains(true);
+                https_config.addCustomizer(src);
+
+                // HTTPS connector
+                ServerConnector https = new ServerConnector(server,
+                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                        new HttpConnectionFactory(https_config));
+                https.setPort(props.getHttpsServerPort());
+                https.setIdleTimeout(500000);
+
+                connectors = new Connector[]{http, https};
+            }
+        }
+
+        // Set the connectors
+        server.setConnectors(connectors);
+    }
+
+    private void setupHandlers() {
         // Create a new ServletContextHandler for the API
         ServletContextHandler apiContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         apiContext.setContextPath("/");
@@ -64,7 +125,7 @@ public class TraDEServer {
 
         // Setup Swagger-UI static resources
         String resourceBasePath = TraDEServer.class.getResource("/swaggerui").toExternalForm();
-        docContext.setWelcomeFiles(new String[] {"index.html"});
+        docContext.setWelcomeFiles(new String[]{"index.html"});
         docContext.setResourceBase(resourceBasePath);
         docContext.addServlet(new ServletHolder(new DefaultServlet()), "/*");
 
@@ -72,20 +133,6 @@ public class TraDEServer {
         ContextHandlerCollection handlers = new ContextHandlerCollection();
         handlers.setHandlers(new Handler[]{apiContext, docContext});
         server.setHandler(handlers);
-
-        try {
-            server.start();
-            server.join();
-        } finally {
-            server.destroy();
-        }
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
 }

@@ -1,12 +1,12 @@
 group 'de.unistuttgart.iaas.trade'
 version '1.0-SNAPSHOT'
 
-apply plugin: 'java'
-apply plugin: 'java-library-distribution'
-
-version = '0.0.1'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
+
+mainClassName = 'org.trade.core.TraDENode'
+applicationName = 'traDE'
 
 repositories {
     jcenter()
@@ -61,6 +61,8 @@ subprojects {
         testCompile group: 'junit', name: 'junit', version: '4.11'
     }
 
+    jar.baseName = 'traDE-'+project.name
+
     group 'de.unistuttgart.iaas.trade'
     version '1.0-SNAPSHOT'
     sourceCompatibility = 1.8
@@ -85,54 +87,46 @@ tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
 
-// Package root and all subprojects into a single JAR
-//subprojects.each { subproject -> evaluationDependsOn(subproject.path)}
-//
-//jar.dependsOn subprojects.tasks['classes']
-//jar {
-//    baseName = 'traDE-core'
-//    manifest {
-//        attributes 'Main-Class': 'org.trade.core.TraDENode'
-//    }
-//    subprojects.each { subproject ->
-//        from subproject.sourceSets.main.output.classesDir
-//        from subproject.sourceSets.main.output.resourcesDir
-//    }
-//}
+startScripts {
+    classpath += files('config')
+    doLast {
+        def windowsScriptFile = file getWindowsScript()
+        def unixScriptFile = file getUnixScript()
+        windowsScriptFile.text = windowsScriptFile.text.replace('%APP_HOME%\\lib\\config', '%APP_HOME%\\config')
+        unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/config', '$APP_HOME/config')
+    }
+}
 
-//create a single Jar with all dependencies
-//task fatJar(type: Jar) {
-//    manifest {
-//        attributes 'Implementation-Title': 'TraDE Middleware',
-//                'Implementation-Version': version,
-//                'Main-Class': 'org.trade.core.TraDENode'
-//    }
-//    baseName = 'traDE-all'
-//    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-//    with jar
-//}
+distributions {
+    main {
+        baseName = 'traDE-all'
+        contents {
+            from('config') {
+                into 'config'
+            }
+            from('ssl') {
+                into 'ssl'
+            }
+        }
+    }
+}
 
-// Create a deployment archive
-//task buildZip(type: Zip) {
-//    from jar
-//    from processResources
-//    into('lib') {
-//        from configurations.runtime
-//    }
-//}
-
-// Task "distZip" added by plugin "java-library-distribution":
-distZip.shouldRunAfter(build)
+task createKeystoreFile {
+    def keystoreFolder = file('ssl')
+    if (file(keystoreFolder).exists()) {
+        keystoreFolder.deleteDir()
+    }
+    keystoreFolder.mkdir()
+    ant.genkey(alias:'traDE', keystore:'ssl/keystore.jks', storepass:'someKeyStorePassword', keyalg:'RSA',
+            dname:'CN=trade4chor.github.io, O=TraDE, C=DE', keysize:2048)
+}
+assembleDist.dependsOn createKeystoreFile
 
 jar {
-    // Keep jar clean:
-    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.MF'
+    baseName = 'traDE-core'
+}
 
-    manifest {
-        attributes 'Main-Class': 'org.trade.core.TraDENode',
-                'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
-    }
-    // How-to add class path:
-    //     http://stackoverflow.com/questions/22659463/add-classpath-in-manifest-using-gradle
-    //     https://gist.github.com/simon04/6865179
+task runAppInIDE(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath + files('config')
+    main = 'org.trade.core.TraDENode'
 }

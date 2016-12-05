@@ -199,6 +199,7 @@ public class DataObject extends BaseResource implements Serializable {
      * Deletes an existing data element from the data object.
      *
      * @param element the element to delete
+     * @throws LifeCycleException the life cycle exception
      */
     public void deleteDataElement(DataElement element) throws LifeCycleException {
         if (element != null) {

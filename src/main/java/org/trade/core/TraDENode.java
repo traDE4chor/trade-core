@@ -50,13 +50,15 @@ public class TraDENode {
 
         TraDEServer server = new TraDEServer();
         try {
-            server.startHTTPServer();
+            server.startHTTPServer(properties);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        //testClusterAndPersistence(properties);
     }
 
-    public void testClusterAndPersistence(TraDEProperties properties) {
+    public static void testClusterAndPersistence(TraDEProperties properties) {
         // Apply the properties to the XML config
         XmlConfigBuilder builder = new XmlConfigBuilder();
         builder.setProperties(properties);
