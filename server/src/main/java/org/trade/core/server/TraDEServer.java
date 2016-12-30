@@ -22,8 +22,8 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.security.Password;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.trade.core.utils.TraDEProperties;
 
@@ -37,11 +37,12 @@ public class TraDEServer {
     private Server server = null;
 
     public void startHTTPServer(TraDEProperties properties) throws Exception {
-        server = new Server();
+        QueuedThreadPool threadPool = new QueuedThreadPool(properties.getServerMaxNumberOfThreads(), 10);
+        server = new Server(threadPool);
 
         setupConnectors(properties);
 
-        setupHandlers();
+        setupHandlers(properties);
 
         try {
             server.start();
@@ -99,7 +100,7 @@ public class TraDEServer {
         server.setConnectors(connectors);
     }
 
-    private void setupHandlers() {
+    private void setupHandlers(TraDEProperties props) {
         // Create a new ServletContextHandler for the API
         ServletContextHandler apiContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         apiContext.setContextPath("/");
@@ -121,6 +122,7 @@ public class TraDEServer {
         // Setup Swagger servlet
         ServletHolder swaggerServlet = docContext.addServlet(io.swagger.jersey.config.JerseyJaxrsConfig.class,
                 "/swagger-core");
+        swaggerServlet.setInitParameter("swagger.api.basepath", "http://localhost:"+ props.getHttpServerPort() + "/api");
         swaggerServlet.setInitOrder(2);
 
         // Setup Swagger-UI static resources

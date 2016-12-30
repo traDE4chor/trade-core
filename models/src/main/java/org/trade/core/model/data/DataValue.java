@@ -82,7 +82,9 @@ public class DataValue extends BaseResource implements Serializable {
 
     private String state = "";
 
-    private String contentType = "application/octet-stream";
+    private String type = null;
+
+    private String contentType = null;
 
     private Date lastModified = timestamp;
 
@@ -141,16 +143,47 @@ public class DataValue extends BaseResource implements Serializable {
         return state;
     }
 
+    public Date getLastModified() {
+        return lastModified;
+    }
+
+    /**
+     * Gets the type of the data element. The following basic types are supported by default: "string", "number",
+     * "boolean", "xml_element", "xml_element_list", or "binary". This list should be extensible in
+     * the future by adding corresponding type (system) plugins.
+     *
+     * @return the type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Sets type.
+     *
+     * @param type the type
+     */
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * Gets content type of the data element in form of a MIME type. For example, "text/plain; charset=utf-8",
+     * "image/jpeg" or "video/mpeg".
+     *
+     * @return the content type
+     */
     public String getContentType() {
         return contentType;
     }
 
+    /**
+     * Sets content type.
+     *
+     * @param contentType the content type
+     */
     public void setContentType(String contentType) {
         this.contentType = contentType;
-    }
-
-    public Date getLastModified() {
-        return lastModified;
     }
 
     public byte[] getData() {

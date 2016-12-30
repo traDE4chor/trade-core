@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema xmlns:ddg="http://de.uni-stuttgart/iaas/trade/ddg" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            targetNamespace="http://de.uni-stuttgart/iaas/trade/ddg">
+<xsd:schema xmlns:ddg="http://org.trade.models/ddg" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://org.trade.models/ddg">
 
     <xsd:element name="DataDependenceGraph">
         <xsd:complexType>
@@ -29,13 +29,14 @@
     </xsd:element>
 
     <xsd:complexType abstract="true" name="DependenceNodeType">
-        <xsd:sequence>
-            <xsd:element name="incoming" type="ddg:EdgeListType" maxOccurs="1" minOccurs="0"/>
-            <xsd:element name="outgoing" type="ddg:EdgeListType" maxOccurs="1" minOccurs="0"/>
-        </xsd:sequence>
-        <xsd:attribute name="identifier" type="xsd:ID" use="required"/>
-        <xsd:attribute name="name" type="xsd:string"/>
-    </xsd:complexType>
+    	<xsd:sequence>
+    		<xsd:element name="incoming" type="ddg:EdgeListType"
+    			maxOccurs="1" minOccurs="1" />
+    		<xsd:element name="outgoing" type="ddg:EdgeListType"
+    			maxOccurs="1" minOccurs="1" />
+    	</xsd:sequence>
+    	<xsd:attribute name="identifier" type="xsd:ID" use="required" />
+    	<xsd:attribute name="name" type="xsd:string" />    </xsd:complexType>
 
     <xsd:complexType name="EdgeListType">
         <xsd:sequence>
@@ -53,6 +54,7 @@
         <xsd:complexContent>
             <xsd:extension base="ddg:DependenceNodeType">
                 <xsd:sequence>
+                    <xsd:element name="parent" type="xsd:IDREF" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="type" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -66,14 +68,24 @@
     </xsd:complexType>
 
     <xsd:complexType name="DataDependenceEdgeType">
-        <xsd:sequence>
-            <xsd:element name="source" type="xsd:IDREF"/>
-            <xsd:element name="sourceSelector" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="target" type="xsd:IDREF"/>
-            <xsd:element name="targetSelector" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        </xsd:sequence>
-        <xsd:attribute name="identifier" type="xsd:ID" use="required"/>
-        <xsd:attribute name="name" type="xsd:string"/>
+    	<xsd:sequence>
+    		<xsd:element name="source" type="xsd:IDREF" />
+    		<xsd:element name="sourceSelector" type="xsd:string"
+    			minOccurs="0" maxOccurs="1" />
+    		<xsd:element name="target" type="xsd:IDREF" />
+    		<xsd:element name="targetSelector" type="xsd:string"
+    			minOccurs="0" maxOccurs="1" />
+    	</xsd:sequence>
+    	<xsd:attribute name="identifier" type="xsd:ID" use="required" />
+    	<xsd:attribute name="name" type="xsd:string" />
+    	<xsd:attribute name="type">
+    		<xsd:simpleType>
+    			<xsd:restriction base="xsd:string">
+    				<xsd:enumeration value="VALUE"/>
+    				<xsd:enumeration value="REFERENCE"/>
+    			</xsd:restriction>
+    		</xsd:simpleType>
+    	</xsd:attribute>
     </xsd:complexType>
 
     <xsd:complexType name="DataObjectListType">
@@ -86,19 +98,8 @@
         <xsd:complexContent>
             <xsd:extension base="ddg:DependenceNodeType">
                 <xsd:sequence>
-                    <xsd:element name="type">
-                        <xsd:simpleType>
-                            <xsd:restriction base="xsd:string">
-                                <xsd:enumeration value="DATA"></xsd:enumeration>
-                                <xsd:enumeration value="CONSTANT"></xsd:enumeration>
-                                <xsd:enumeration value="REFERENCE"></xsd:enumeration>
-                                <xsd:enumeration value="FILE"></xsd:enumeration>
-                                <xsd:enumeration value="STREAM"></xsd:enumeration>
-                            </xsd:restriction>
-                        </xsd:simpleType>
-                    </xsd:element>
                     <xsd:element name="dataElements" type="ddg:DataElementListType" maxOccurs="1"
-                                 minOccurs="0"></xsd:element>
+                                 minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -108,7 +109,7 @@
     <xsd:complexType name="DataElementListType">
         <xsd:sequence>
             <xsd:element name="dataElement" minOccurs="0" maxOccurs="unbounded"
-                         type="ddg:DataElementType"></xsd:element>
+                         type="ddg:DataElementType"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -116,7 +117,8 @@
         <xsd:complexContent>
             <xsd:extension base="ddg:DependenceNodeType">
                 <xsd:sequence>
-                    <xsd:element name="typeDefinition" type="xsd:string" maxOccurs="1" minOccurs="0"/>
+                	<xsd:element name="type" type="xsd:string"/>
+                	<xsd:element name="contentType" type="xsd:string" maxOccurs="1" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

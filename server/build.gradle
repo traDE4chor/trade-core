@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'org.detoeuf.swagger-codegen' version '1.6.3'
     id 'java'
@@ -20,21 +22,23 @@ task generateSources {
     }
 }
 
+// Load the specified port number from the config.properties file
+Properties properties = new Properties()
+properties.load(project.parent.file('/config/config.properties').newDataInputStream())
+def httpPort = properties.getProperty('server.port.http')
+
 // Copy the swagger.json file to the static swaggerui resources to make it accessible
+// Replace the $PORT_NUMBER$ placeholder with the actual HTTP port from the properties file
 task copySwaggerFile(type: Copy) {
     from project.file('swagger.json')
     into 'src/main/resources/swaggerui'
+    filter(ReplaceTokens, tokens: [port_number:httpPort])
 }
 
-sourceSets.main.java.srcDirs += "${project.buildDir.path}/generated-sources/swagger/src/main/java"
 sourceSets.main.java.srcDirs += "${project.buildDir.path}/generated-sources/swagger/src/gen/java"
-
 
 compileJava {
     dependsOn generateSources, copySwaggerFile
-    source "${project.buildDir.path}/generated-sources/swagger/src/main/java",
-            "${project.buildDir.path}/generated-sources/swagger/src/gen/java",
-            sourceSets.main.java
 }
 
 dependencies {

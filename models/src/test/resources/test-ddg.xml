@@ -1,4 +1,4 @@
-<ddg:DataDependenceGraph xmlns:ddg="http://de.uni-stuttgart/iaas/trade/ddg">
+<ddg:DataDependenceGraph xmlns:ddg="http://org.trade.models/ddg">
     <processors>
         <processor identifier="act_A" name="ActivityA">
             <incoming>
@@ -24,19 +24,19 @@
             <outgoing>
                 <edge>readInput</edge>
             </outgoing>
-            <type>DATA</type>
             <dataElements>
                 <dataElement identifier="de_partA" name="partA">
-                    <typeDefinition>string</typeDefinition>
+                    <type>xml_element</type>
+                    <contentType>application/xml</contentType>
                 </dataElement>
                 <dataElement identifier="de_partB" name="partB">
-                    <typeDefinition>boolean</typeDefinition>
+                    <type>binary</type>
+                    <contentType>image/jpeg</contentType>
                 </dataElement>
             </dataElements>
         </dataObject>
 
         <dataObject identifier="do_output" name="output">
-            <type>DATA</type>
             <dataElements>
                 <dataElement identifier="de_result" name="string">
                     <incoming>
@@ -45,13 +45,13 @@
                     <outgoing>
                         <edge>readResult</edge>
                     </outgoing>
-                    <typeDefinition>file</typeDefinition>
+                    <type>string</type>
                 </dataElement>
                 <dataElement identifier="de_flag" name="string">
                     <incoming>
                         <edge>setFlag</edge>
                     </incoming>
-                    <typeDefinition>boolean</typeDefinition>
+                    <type>boolean</type>
                 </dataElement>
             </dataElements>
         </dataObject>

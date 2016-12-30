@@ -55,6 +55,8 @@ public class TraDENode {
             e.printStackTrace();
         }
 
+
+
         //testClusterAndPersistence(properties);
     }
 

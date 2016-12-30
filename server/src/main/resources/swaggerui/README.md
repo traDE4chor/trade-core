@@ -1,10 +1,10 @@
 # Swagger UI
 
-[![Build Status](https://travis-ci.org/swagger-api/swagger-ui.svg?branch=master)](https://travis-ci.org/swagger-api/swagger-ui)
+[![Build Status](https://travis-ci.org/swagger-io.swagger.trade.server.jersey.api/swagger-ui.svg?branch=master)](https://travis-ci.org/swagger-io.swagger.trade.server.jersey.api/swagger-ui)
 [![NPM version](https://badge.fury.io/js/swagger-ui.svg)](http://badge.fury.io/js/swagger-ui)
 
-[![Dependency Status](https://david-dm.org/swagger-api/swagger-ui/status.svg)](https://david-dm.org/swagger-api/swagger-ui)
-[![devDependency Status](https://david-dm.org/swagger-api/swagger-ui/dev-status.svg)](https://david-dm.org/swagger-api/swagger-ui#info=devDependencies)
+[![Dependency Status](https://david-dm.org/swagger-io.swagger.trade.server.jersey.api/swagger-ui/status.svg)](https://david-dm.org/swagger-io.swagger.trade.server.jersey.api/swagger-ui)
+[![devDependency Status](https://david-dm.org/swagger-io.swagger.trade.server.jersey.api/swagger-ui/dev-status.svg)](https://david-dm.org/swagger-io.swagger.trade.server.jersey.api/swagger-ui#info=devDependencies)
 
 Swagger UI is part of the Swagger project.  The Swagger project allows you to produce, visualize and consume your OWN RESTful services.  No proxy or 3rd party services required.  Do it your own way.
 
@@ -24,11 +24,11 @@ The OpenAPI Specification has undergone 4 revisions since initial creation in 20
 
 Swagger UI Version | Release Date | OpenAPI Spec compatibility | Notes | Status
 ------------------ | ------------ | -------------------------- | ----- | ------
-2.2.6              | 2016-10-14   | 1.1, 1.2, 2.0              | [tag v2.2.6](https://github.com/swagger-api/swagger-ui/tree/v2.2.6) |
-2.1.5              | 2016-07-20   | 1.1, 1.2, 2.0              | [tag v2.1.5](https://github.com/swagger-api/swagger-ui/tree/v2.1.5) |
-2.0.24             | 2014-09-12   | 1.1, 1.2 | [tag v2.0.24](https://github.com/swagger-api/swagger-ui/tree/v2.0.24) |
-1.0.13             | 2013-03-08   | 1.1, 1.2 | [tag v1.0.13](https://github.com/swagger-api/swagger-ui/tree/v1.0.13) |
-1.0.1              | 2011-10-11   | 1.0, 1.1 | [tag v1.0.1](https://github.com/swagger-api/swagger-ui/tree/v1.0.1)   |
+2.2.6              | 2016-10-14   | 1.1, 1.2, 2.0              | [tag v2.2.6](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/tree/v2.2.6) |
+2.1.5              | 2016-07-20   | 1.1, 1.2, 2.0              | [tag v2.1.5](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/tree/v2.1.5) |
+2.0.24             | 2014-09-12   | 1.1, 1.2 | [tag v2.0.24](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/tree/v2.0.24) |
+1.0.13             | 2013-03-08   | 1.1, 1.2 | [tag v1.0.13](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/tree/v1.0.13) |
+1.0.1              | 2011-10-11   | 1.0, 1.1 | [tag v1.0.1](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/tree/v1.0.1)   |
 
 ## How to Use It
 
@@ -77,7 +77,7 @@ You may choose to customize Swagger UI for your organization. Here is an overvie
 -    src/main/javascript: main code
 
 ### SwaggerUi
-To use swagger-ui you should take a look at the [source of swagger-ui html page](https://github.com/swagger-api/swagger-ui/blob/master/dist/index.html) and customize it. This basically requires you to instantiate a SwaggerUi object and call load() on it as below:
+To use swagger-ui you should take a look at the [source of swagger-ui html page](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/blob/master/dist/index.html) and customize it. This basically requires you to instantiate a SwaggerUi object and call load() on it as below:
 
 ```javascript
 var swaggerUi = new SwaggerUi({
@@ -95,7 +95,7 @@ Parameter Name | Description
 url | The url pointing to `swagger.json` (Swagger 2.0) or the resource listing (earlier versions) as per [OpenAPI Spec](https://github.com/OAI/OpenAPI-Specification/).
 authorizations | An authorization object to be passed to swagger-js.  Setting it here will trigger inclusion of any authorization or custom signing logic when fetching the swagger description file.  Note the object structure should be `{ key: AuthorizationObject }`
 spec | A JSON object describing the OpenAPI Specification. When used, the `url` parameter will not be parsed. This is useful for testing manually-generated specifications without hosting them. Works for Swagger 2.0 specs only.
-validatorUrl | By default, Swagger-UI attempts to validate specs against swagger.io's online validator. You can use this parameter to set a different validator URL, for example for locally deployed validators ([Validator Badge](https://github.com/swagger-api/validator-badge)). Setting it to `null` will disable validation. This parameter is relevant for Swagger 2.0 specs only.
+validatorUrl | By default, Swagger-UI attempts to validate specs against swagger.io's online validator. You can use this parameter to set a different validator URL, for example for locally deployed validators ([Validator Badge](https://github.com/swagger-io.swagger.trade.server.jersey.api/validator-badge)). Setting it to `null` will disable validation. This parameter is relevant for Swagger 2.0 specs only.
 dom_id | The id of a dom element inside which SwaggerUi will put the user interface for swagger.
 booleanValues | SwaggerUI renders boolean data types as a dropdown. By default it provides a 'true' and 'false' string as the possible choices. You can use this parameter to change the values in dropdown to be something else, for example 0 and 1 by setting booleanValues to new Array(0, 1).
 docExpansion | Controls how the API listing is displayed. It can be set to 'none' (default), 'list' (shows operations for each resource), or 'full' (fully expanded: shows operations and their details).
@@ -114,18 +114,18 @@ jsonEditor | Enables a graphical view for editing complex bodies.  Defaults to `
 
 
 ### HTTP Methods and API Invocation
-swagger-ui supports invocation of all HTTP methods APIs including GET, PUT, POST, DELETE, PATCH, OPTIONS.  These are handled in the [swagger-js](https://github.com/swagger-api/swagger-js) project, please see there for specifics on their usage.
+swagger-ui supports invocation of all HTTP methods APIs including GET, PUT, POST, DELETE, PATCH, OPTIONS.  These are handled in the [swagger-js](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-js) project, please see there for specifics on their usage.
 
 
 ### Header Parameters
-Header params are supported through a pluggable mechanism in [swagger-js](https://github.com/swagger-api/swagger-js).  You can see the [index.html](https://github.com/swagger-api/swagger-ui/blob/master/dist/index.html) for a sample of how to dynamically set headers:
+Header params are supported through a pluggable mechanism in [swagger-js](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-js).  You can see the [index.html](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/blob/master/dist/index.html) for a sample of how to dynamically set headers:
 
 ```js
-// add a new SwaggerClient.ApiKeyAuthorization when the api-key changes in the ui.
+// add a new SwaggerClient.ApiKeyAuthorization when the io.swagger.trade.server.jersey.api-key changes in the ui.
 $('#input_apiKey').change(function() {
   var key = $('#input_apiKey')[0].value;
   if(key && key.trim() != "") {
-    swaggerUi.api.clientAuthorizations.add("auth_name", new SwaggerClient.ApiKeyAuthorization("api_key", key, "header"));
+    swaggerUi.io.swagger.trade.server.jersey.api.clientAuthorizations.add("auth_name", new SwaggerClient.ApiKeyAuthorization("api_key", key, "header"));
   }
 })
 ```
@@ -136,7 +136,7 @@ This will add the header `api_key` with value `key` on calls that have the `auth
 If you have some header parameters which you need to send with every request, use the headers as below:
 
 ```js
-swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", "XXXX", "header"));
+swaggerUi.io.swagger.trade.server.jersey.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", "XXXX", "header"));
 ```
 
 Note!  You can pass multiple header params on a single request, just use unique names for them (`key` is used in the above example).
@@ -205,7 +205,7 @@ This tells us that the petstore resource listing supports OPTIONS, and the follo
 - Try swagger-ui from your file system and look at the debug console.  If CORS is not enabled, you'll see something like this:
 
 ```
-XMLHttpRequest cannot load http://sad.server.com/v2/api-docs. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
+XMLHttpRequest cannot load http://sad.server.com/v2/io.swagger.trade.server.jersey.api-docs. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'null' is therefore not allowed access.
 ```
 
 Swagger-UI cannot easily show this error state.
@@ -230,12 +230,12 @@ Only headers with these names will be allowed to be sent by Swagger-UI.
 
 ## How to Improve It
 
-Create your own fork of [swagger-api/swagger-ui](https://github.com/swagger-api/swagger-ui)
+Create your own fork of [swagger-io.swagger.trade.server.jersey.api/swagger-ui](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui)
 
-To share your changes, [submit a pull request](https://github.com/swagger-api/swagger-ui/pull/new/master).
+To share your changes, [submit a pull request](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/pull/new/master).
 
 ## Change Log
-Please see [releases](https://github.com/swagger-api/swagger-ui/releases) for change log.
+Please see [releases](https://github.com/swagger-io.swagger.trade.server.jersey.api/swagger-ui/releases) for change log.
 
 ## License
 

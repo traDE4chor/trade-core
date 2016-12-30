@@ -48,6 +48,8 @@ public class TraDEProperties extends Properties {
 
     public static final String PROPERTY_HTTP_SERVER_PORT = "server.port.http";
     public static final String PROPERTY_HTTPS_SERVER_PORT = "server.port.https";
+    public static final String PROPERTY_SERVER_MAX_NUMBER_OF_THREADS = "server.threads.max";
+
     public static final String PROPERTY_SERVER_SSL_KEYSTORE = "server.ssl.keystore.path";
     public static final String PROPERTY_SERVER_SSL_KEYSTORE_PASSWORD = "server.ssl.keystore.password";
 
@@ -86,11 +88,43 @@ public class TraDEProperties extends Properties {
     }
 
     public int getHttpServerPort() {
-        return Integer.valueOf(getProperty(PROPERTY_HTTP_SERVER_PORT, "8080"));
+        int port = 8080;
+
+        String prop = getProperty(PROPERTY_HTTP_SERVER_PORT, "8080");
+        try {
+            port = Integer.valueOf(prop);
+            if (port < 1 || port > 65535) {
+                logger.warn("The HTTP server port ({}) specified in the properties file is not a valid port number. " +
+                        "Therefore, the default value '{}' is used. " +
+                        "Please change the value of the port in the properties.", prop, port);
+            }
+        } catch (NumberFormatException e) {
+            logger.warn("The HTTP server port ({}) specified in the properties file is not a valid port number. " +
+                    "Therefore, the default value '{}' is used. " +
+                    "Please change the value of the port in the properties.", prop, port);
+        }
+
+        return port;
     }
 
     public int getHttpsServerPort() {
-        return Integer.valueOf(getProperty(PROPERTY_HTTPS_SERVER_PORT, "8443"));
+        int port = 8443;
+
+        String prop = getProperty(PROPERTY_HTTPS_SERVER_PORT, "8443");
+        try {
+            port = Integer.valueOf(prop);
+            if (port < 1 || port > 65535) {
+                logger.warn("The HTTPS server port ({}) specified in the properties file is not a valid port number. " +
+                        "Therefore, the default value '{}' is used. " +
+                        "Please change the value of the port in the properties.", prop, port);
+            }
+        } catch (NumberFormatException e) {
+            logger.warn("The HTTPS server port ({}) specified in the properties file is not a valid port number. " +
+                    "Therefore, the default value '{}' is used. " +
+                    "Please change the value of the port in the properties.", prop, port);
+        }
+
+        return port;
     }
 
     public String getServerKeystore() {
@@ -99,6 +133,21 @@ public class TraDEProperties extends Properties {
 
     public String getKeyStorePassword() {
         return getProperty(PROPERTY_SERVER_SSL_KEYSTORE_PASSWORD, "someKeyStorePassword");
+    }
+
+    public int getServerMaxNumberOfThreads() {
+        int maxThreads = 1000;
+
+        String prop = getProperty(PROPERTY_SERVER_MAX_NUMBER_OF_THREADS, "1000");
+        try {
+            maxThreads = Integer.valueOf(prop);
+        } catch (NumberFormatException e) {
+            logger.warn("The maximum thread number ({}) specified in the properties file is not a valid number. " +
+                    "Therefore, the default value '{}' is used. " +
+                    "Please specify a valid number in the properties file as soon as possible.", prop, maxThreads);
+        }
+
+        return maxThreads;
     }
 
     private void loadProperties() {
