@@ -49,6 +49,7 @@ public class TraDENode {
         TraDEProperties properties = new TraDEProperties();
 
         TraDEServer server = new TraDEServer();
+
         try {
             server.startHTTPServer(properties);
         } catch (Exception e) {

@@ -16,12 +16,25 @@
 
 package org.trade.core.data.management;
 
+import io.swagger.trade.server.jersey.model.DataValue;
+
 /**
  * Created by hahnml on 25.10.2016.
  */
 public class DataManager {
 
+    private static DataManager instance = new DataManager();
+
+    private DataManager() {
+        // Block instantiation
+    }
+
+    public static DataManager getInstance() {
+        return instance;
+    }
 
 
-
+    public DataValue registerDataValue(DataValue body) {
+        return null;
+    }
 }

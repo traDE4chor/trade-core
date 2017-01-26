@@ -17,41 +17,56 @@
 package io.swagger.trade.server.jersey.api.impl;
 
 import io.swagger.trade.server.jersey.api.ApiResponseMessage;
-import io.swagger.trade.server.jersey.api.DataElementsApiService;
+import io.swagger.trade.server.jersey.api.DataValuesApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
-import io.swagger.trade.server.jersey.model.DataElement;
+import io.swagger.trade.server.jersey.model.DataValue;
+import org.trade.core.data.management.DataManager;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-01-25T16:21:34.105+01:00")
-public class DataElementsApiServiceImpl extends DataElementsApiService {
+public class DataValuesApiServiceImpl extends DataValuesApiService {
+
     @Override
-    public Response getDataElementDirectly(String dataElementId, SecurityContext securityContext) throws NotFoundException {
+    public Response addDataValue(DataValue body, SecurityContext securityContext) throws NotFoundException {
+        DataValue result = DataManager.getInstance().registerDataValue(body);
+
+        //UriBuilder builder = uriInfo.getAbsolutePathBuilder();
+        //builder.path(result.getId());
+
+        //return Response.created(builder.build()).entity(result).build();
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    @Override
+    public Response getDataValueDirectly(String dataValueId, Boolean wrapDataInResponse, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
-    public Response getDataElementsDirectly(Integer limit, String status, SecurityContext securityContext) throws NotFoundException {
+    public Response getDataValuesDirectly(Integer limit, String status, Boolean wrapDataInResponse, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
-    public Response pullDataElementData(String dataElementId, Boolean asReference, SecurityContext securityContext) throws NotFoundException {
+    public Response pullDataValue(String dataValueId, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
-    public Response pushDataElementData(String dataElementId, byte[] data, Boolean replyReference, SecurityContext securityContext) throws NotFoundException {
+    public Response pushDataValue(String dataValueId, byte[] data, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
-    public Response updateDataElementDirectly(String dataElementId, DataElement dataElement, SecurityContext securityContext) throws NotFoundException {
+    public Response updateDataValueDirectly(String dataValueId, DataValue dataValue, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

@@ -31,12 +31,13 @@
     <xsd:complexType abstract="true" name="DependenceNodeType">
     	<xsd:sequence>
     		<xsd:element name="incoming" type="ddg:EdgeListType"
-    			maxOccurs="1" minOccurs="1" />
+    			maxOccurs="1" minOccurs="0" />
     		<xsd:element name="outgoing" type="ddg:EdgeListType"
-    			maxOccurs="1" minOccurs="1" />
+    			maxOccurs="1" minOccurs="0" />
     	</xsd:sequence>
     	<xsd:attribute name="identifier" type="xsd:ID" use="required" />
-    	<xsd:attribute name="name" type="xsd:string" />    </xsd:complexType>
+    	<xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
 
     <xsd:complexType name="EdgeListType">
         <xsd:sequence>

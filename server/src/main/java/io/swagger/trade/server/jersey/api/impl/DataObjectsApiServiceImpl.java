@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Michael Hahn
+ * Copyright 2017 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,12 @@ import io.swagger.trade.server.jersey.api.DataObjectsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.model.DataElement;
 import io.swagger.trade.server.jersey.model.DataObject;
-import io.swagger.trade.server.jersey.model.StatusEnum;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+@javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-01-25T16:21:34.105+01:00")
 public class DataObjectsApiServiceImpl extends DataObjectsApiService {
-
     @Override
     public Response addDataElement(String dataObjectId, DataElement body, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
@@ -66,11 +65,8 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
 
     @Override
     public Response getDataObject(Integer limit, String name, String status, SecurityContext securityContext) throws NotFoundException {
-        DataObject obj = new DataObject();
-        obj.setName("Test");
-        obj.setStatus(StatusEnum.CREATED);
-
-        return Response.ok().entity(obj).build();
+        // do some magic!
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override

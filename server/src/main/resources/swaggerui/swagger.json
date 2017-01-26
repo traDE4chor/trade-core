@@ -14,7 +14,6 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
     },
-    "host": "localhost:8080/api",
     "consumes": [
         "application/json"
     ],
@@ -32,7 +31,7 @@
                 "tags": [
                     "network"
                 ],
-                "description": "Gets all available `Network` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the networks.\n",
+                "description": "Gets all available `Network` resources.\nOptional query parameter of **limit** determines the limit of returned resources, parameter **name** filters result list by name and parameter **status** filters result list by status of the networks.\n",
                 "operationId": "getNetwork",
                 "parameters": [
                     {
@@ -55,9 +54,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns all `Network` resources based on the provided parameters.",
                         "schema": {
-                            "title": "ArrayOfWetworks",
+                            "title": "ArrayOfNetworks",
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/Network"
@@ -73,7 +72,7 @@
                 "tags": [
                     "network"
                 ],
-                "summary": "Creates and adds a new networkto the TraDE middleware",
+                "summary": "Creates and adds a new network to the TraDE middleware",
                 "operationId": "addNetwork",
                 "parameters": [
                     {
@@ -89,6 +88,11 @@
                 "responses": {
                     "201": {
                         "description": "Successfully created and added a new network",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
                         "schema": {
                             "$ref": "#/definitions/Network"
                         }
@@ -121,13 +125,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns a `Network` resource based on the provided parameters.",
                         "schema": {
                             "$ref": "#/definitions/Network"
                         }
                     },
                     "400": {
-                        "description": "Invalid Id supplied"
+                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -161,7 +165,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Successful updated existing network",
                         "schema": {
                             "$ref": "#/definitions/Network"
                         }
@@ -170,7 +174,7 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Network not found"
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -195,13 +199,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Successfully deleted existing network",
                         "schema": {
                             "$ref": "#/definitions/Network"
                         }
                     },
                     "400": {
-                        "description": "Invalid network Id"
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -231,7 +238,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns all `Node` resources based on the provided parameters.",
                         "schema": {
                             "title": "ArrayOfNodes",
                             "type": "array",
@@ -262,23 +269,31 @@
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "Network object that needs to be added.",
+                        "description": "Node object that needs to be added.",
                         "required": false,
                         "schema": {
-                            "$ref": "#/definitions/Network"
+                            "$ref": "#/definitions/Node"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "successful operation",
+                    "201": {
+                        "description": "Successfully created and added a new node",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
                         "schema": {
-                            "title": "networkId",
+                            "title": "nodeId",
                             "type": "string"
                         }
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -312,16 +327,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns a `Node` resource based on the provided parameters.",
                         "schema": {
                             "$ref": "#/definitions/Node"
                         }
                     },
                     "400": {
-                        "description": "Invalid combination of network and node Ids"
+                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Network or node not found"
+                        "$ref": "#/responses/NotFoundResponse"
                     }
                 }
             },
@@ -362,7 +377,7 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Node not found"
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -394,7 +409,10 @@
                 ],
                 "responses": {
                     "400": {
-                        "description": "Invalid combination of network and node Ids"
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -431,7 +449,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns all `DataObject` resources based on the provided parameters.",
                         "schema": {
                             "title": "ArrayOfDataObjects",
                             "type": "array",
@@ -440,8 +458,8 @@
                             }
                         }
                     },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
                     }
                 }
             },
@@ -465,6 +483,11 @@
                 "responses": {
                     "201": {
                         "description": "Successfully created and added a new data object",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
                         "schema": {
                             "$ref": "#/definitions/DataObject"
                         }
@@ -497,13 +520,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns a `DataObject` resource based on the provided parameters.",
                         "schema": {
                             "$ref": "#/definitions/DataObject"
                         }
                     },
                     "400": {
-                        "description": "Invalid Id supplied"
+                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -546,7 +569,7 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "DataObject not found"
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -577,7 +600,10 @@
                         }
                     },
                     "400": {
-                        "description": "Invalid data object Id"
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -625,16 +651,17 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns an archive of all data being attached to the data objects' data elements.",
                         "schema": {
-                            "$ref": "#/definitions/DataObject"
+                            "type": "string",
+                            "format": "binary"
                         }
                     },
                     "400": {
-                        "description": "Invalid name supplied"
+                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Data Object not found"
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -693,6 +720,9 @@
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
                     },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
                     }
@@ -728,7 +758,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns all `DataElement` resources based on the provided parameters.",
                         "schema": {
                             "title": "ArrayOfDataElements",
                             "type": "array",
@@ -767,15 +797,22 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "successful operation",
+                    "201": {
+                        "description": "Successfully created and added a new data element",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
                         "schema": {
-                            "title": "dataElementId",
-                            "type": "string"
+                            "$ref": "#/definitions/DataElement"
                         }
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -809,16 +846,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns a `DataElement` resource based on the provided parameters.",
                         "schema": {
                             "$ref": "#/definitions/DataElement"
                         }
                     },
                     "400": {
-                        "description": "Invalid combination of data object and data element Ids"
+                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Data object or data element not found"
+                        "$ref": "#/responses/NotFoundResponse"
                     }
                 }
             },
@@ -890,7 +927,7 @@
                     }
                 ],
                 "responses": {
-                    "400": {
+                    "404": {
                         "description": "Invalid combination of data object and data element Ids"
                     },
                     "500": {
@@ -921,7 +958,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns all `DataElement` resources based on the provided parameters.",
                         "schema": {
                             "title": "ArrayOfDataElements",
                             "type": "array",
@@ -955,16 +992,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns a `DataElement` resource based on the provided parameters.",
                         "schema": {
                             "$ref": "#/definitions/DataElement"
                         }
                     },
-                    "400": {
-                        "description": "Invalid combination of data object and data element Ids"
-                    },
                     "404": {
-                        "description": "Data object or data element not found"
+                        "description": "Data element not found"
                     }
                 }
             },
@@ -998,7 +1032,366 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Data element not found"
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataElements/{dataElementId}/pull": {
+            "x-swagger-router-controller": "DataElement",
+            "get": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Pulls data from the data value associated to the data element identified by Id",
+                "operationId": "pullDataElementData",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "asReference",
+                        "in": "query",
+                        "description": "If the data should be returned directly or a reference to the data value holding the data",
+                        "required": false,
+                        "default": true,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The data attached to the data element",
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    },
+                    "303": {
+                        "description": "Redirect to the data value holding the requested data",
+                        "headers": {
+                            "Location": {
+                                "description": "The URL of the data value",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataElements/{dataElementId}/push": {
+            "x-swagger-router-controller": "DataElement",
+            "post": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Pushes data to the TraDE middleware by attaching a new data value holding the provided data to the data element",
+                "operationId": "pushDataElementData",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element to attach data to",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "replyReference",
+                        "in": "query",
+                        "description": "If the data value holding the pushed data or only a reference to it should be returned",
+                        "required": false,
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    {
+                        "in": "body",
+                        "name": "data",
+                        "description": "The data to push.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully pushed data",
+                        "schema": {
+                            "$ref": "#/definitions/DataElement"
+                        }
+                    },
+                    "303": {
+                        "description": "Redirect to the data value holding the pushed data",
+                        "headers": {
+                            "Location": {
+                                "description": "The URL of the data value",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataValues": {
+            "x-swagger-router-controller": "DataValue",
+            "get": {
+                "tags": [
+                    "dataValue"
+                ],
+                "description": "Gets all available `DataValue` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data values.\n",
+                "operationId": "getDataValuesDirectly",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/limitParam"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of data values to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "wrapDataInResponse",
+                        "in": "query",
+                        "description": "If the data should be returned within the response",
+                        "required": false,
+                        "default": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns all `DataValue` resources based on the provided parameters.",
+                        "schema": {
+                            "title": "ArrayOfDataValue",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DataValue"
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Creates and adds a new data value to the TraDE middleware",
+                "operationId": "addDataValue",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "DataValue object that needs to be added.",
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created and added a new data value",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataValues/{dataValueId}": {
+            "x-swagger-router-controller": "DataValue",
+            "get": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Find a data value by Id",
+                "operationId": "getDataValueDirectly",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataValueId",
+                        "description": "Id of the data value that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "wrapDataInResponse",
+                        "in": "query",
+                        "description": "If the data should be returned within the response",
+                        "required": false,
+                        "default": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns a `DataValue` resource based on the provided parameters.",
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Update an existing data value",
+                "description": "",
+                "operationId": "updateDataValueDirectly",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataValueId",
+                        "description": "Id of the data value that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "dataValue",
+                        "description": "DataValue object that needs to be updated.",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataValues/{dataValueId}/pull": {
+            "x-swagger-router-controller": "DataValue",
+            "get": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Pulls data from the data value identified by Id",
+                "operationId": "pullDataValue",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataValueId",
+                        "description": "Id of the data value that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data attached to data value",
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataValues/{dataValueId}/push": {
+            "x-swagger-router-controller": "DataValue",
+            "post": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Pushes data to the TraDE middleware by attaching it to the data value identified by Id",
+                "operationId": "pushDataValue",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataValueId",
+                        "description": "Id of the data value to attach data to",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "data",
+                        "description": "The data to push.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully pushed data",
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1066,11 +1459,11 @@
                 "href": {
                     "type": "string"
                 },
-                "name": {
+                "entity": {
                     "type": "string"
                 },
-                "storageStrategy": {
-                    "$ref": "#/definitions/StorageStrategyEnum"
+                "name": {
+                    "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/StatusEnum"
@@ -1127,6 +1520,12 @@
                 "href": {
                     "type": "string"
                 },
+                "parent": {
+                    "$ref": "#/definitions/DataObject"
+                },
+                "entity": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -1134,6 +1533,9 @@
                     "$ref": "#/definitions/StatusEnum"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "content_type": {
                     "type": "string"
                 },
                 "instances": {
@@ -1180,11 +1582,22 @@
                 "name": {
                     "type": "string"
                 },
-                "access": {
-                    "$ref": "#/definitions/AccessEnum"
+                "createdBy": {
+                    "type": "string"
                 },
                 "type": {
-                    "$ref": "#/definitions/TypeEnum"
+                    "type": "string"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "lastModified": {
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "data": {
                     "type": "string",
@@ -1192,19 +1605,12 @@
                 }
             }
         },
-        "StorageStrategyEnum": {
-            "type": "string",
-            "default": "persisted",
-            "enum": [
-                "persisted",
-                "in_mem"
-            ]
-        },
         "StatusEnum": {
             "type": "string",
             "default": "created",
             "enum": [
                 "created",
+                "ready",
                 "archived"
             ]
         },
@@ -1214,24 +1620,6 @@
             "enum": [
                 "created",
                 "archived"
-            ]
-        },
-        "AccessEnum": {
-            "type": "string",
-            "default": "local",
-            "enum": [
-                "local",
-                "remote",
-                "reference"
-            ]
-        },
-        "TypeEnum": {
-            "type": "string",
-            "default": "default",
-            "enum": [
-                "default",
-                "constant",
-                "stream"
             ]
         },
         "InvalidInput": {
