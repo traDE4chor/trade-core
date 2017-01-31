@@ -56,7 +56,16 @@ public class TraDENode {
             e.printStackTrace();
         }
 
-
+        // Register a shutdown hook to stop the embedded Jetty server
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                try {
+                    server.stopHTTPServer();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
 
         //testClusterAndPersistence(properties);
     }
@@ -148,7 +157,7 @@ public class TraDENode {
                     // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
                     byte[] data = Files.readAllBytes(Paths.get("C:\\test\\script.sh"));
 
-                    value.setData(data);
+                    value.setData(data, data.length);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -163,7 +172,7 @@ public class TraDENode {
                     // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
                     byte[] data = Files.readAllBytes(Paths.get("C:\\test\\opalClusterSnapshots.mp4"));
                     value.setContentType("video/mp4");
-                    value.setData(data);
+                    value.setData(data, data.length);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

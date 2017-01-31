@@ -1,0 +1,59 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'org.detoeuf.swagger-codegen' version '1.6.3'
+    id 'java'
+}
+
+task generateClient {
+    swagger {
+        inputSpec = project.file('src/main/resources/swagger.json').absolutePath
+
+        language = 'java'
+
+        additionalProperties = [
+                'invokerPackage'   : 'io.swagger.trade.client.jersey',
+                'modelPackage'     : 'io.swagger.trade.client.jersey.model',
+                'apiPackage'       : 'io.swagger.trade.client.jersey.api',
+                'library'          : 'jersey2',
+                'serializableModel': 'true',
+                'dateLibrary'      : 'java7'
+        ]
+    }
+}
+
+// Load the specified port number from the config.properties file
+Properties properties = new Properties()
+properties.load(project.parent.file('/config/config.properties').newDataInputStream())
+def httpPort = properties.getProperty('server.port.http')
+
+// Copy the swagger.json file to the resources to make it accessible
+// Replace the $PORT_NUMBER$ placeholder with the actual HTTP port from the properties file
+task copySwaggerFile(type: Copy) {
+    from project(':server').file('swagger.json')
+    into 'src/main/resources'
+    filter(ReplaceTokens, tokens: [port_number:httpPort])
+}
+
+// Add generated classes to the main source set
+sourceSets.main.java.srcDirs += "${project.buildDir.path}/generated-sources/swagger/src/main/java"
+sourceSets.main.resources.srcDirs += "${project.buildDir.path}/generated-sources/swagger/docs"
+
+// Add dependencies to
+compileJava {
+    dependsOn generateClient, copySwaggerFile
+}
+
+dependencies {
+    compile project (':server')
+
+    compile 'io.swagger:swagger-annotations:1.5.8'
+    compile "org.glassfish.jersey.core:jersey-client:2.24"
+    compile "org.glassfish.jersey.media:jersey-media-multipart:2.24"
+    compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.24"
+    compile "com.fasterxml.jackson.core:jackson-core:2.8.5"
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.8.5"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.8.5"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.8.5"
+    compile "com.brsanthu:migbase64:2.2"
+}

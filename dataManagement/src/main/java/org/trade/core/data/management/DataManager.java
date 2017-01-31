@@ -16,7 +16,9 @@
 
 package org.trade.core.data.management;
 
-import io.swagger.trade.server.jersey.model.DataValue;
+import org.trade.core.model.data.DataValue;
+
+import java.util.HashMap;
 
 /**
  * Created by hahnml on 25.10.2016.
@@ -24,6 +26,9 @@ import io.swagger.trade.server.jersey.model.DataValue;
 public class DataManager {
 
     private static DataManager instance = new DataManager();
+
+    // TODO: Use Hazelcast, etc. instead of local maps
+    private HashMap<String, DataValue> dataValues = new HashMap<>();
 
     private DataManager() {
         // Block instantiation
@@ -34,7 +39,14 @@ public class DataManager {
     }
 
 
-    public DataValue registerDataValue(DataValue body) {
-        return null;
+    public DataValue registerDataValue(DataValue body)
+    {
+        this.dataValues.put(body.getName(), body);
+
+        return body;
+    }
+
+    public DataValue getDataValue(String dataValueId) {
+        return this.dataValues.get(dataValueId);
     }
 }

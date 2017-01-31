@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Michael Hahn
+ * Copyright 2016 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,71 +16,72 @@
 
 package io.swagger.trade.server.jersey.api.impl;
 
-import io.swagger.trade.server.jersey.api.ApiResponseMessage;
-import io.swagger.trade.server.jersey.api.NetworksApiService;
-import io.swagger.trade.server.jersey.api.NotFoundException;
+import io.swagger.trade.server.jersey.api.*;
+import io.swagger.trade.server.jersey.model.*;
+
 import io.swagger.trade.server.jersey.model.Network;
+import io.swagger.trade.server.jersey.model.Error;
+import io.swagger.trade.server.jersey.model.InvalidInput;
 import io.swagger.trade.server.jersey.model.Node;
+import io.swagger.trade.server.jersey.model.NotFound;
+
+import java.util.List;
+import io.swagger.trade.server.jersey.api.NotFoundException;
+
+import java.io.InputStream;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-@javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-01-25T16:21:34.105+01:00")
+@javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-01-31T17:07:23.956+01:00")
 public class NetworksApiServiceImpl extends NetworksApiService {
     @Override
     public Response addNetwork(Network body, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response addNode(String networkId, Node body, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response deleteNetwork(String networkId, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response deleteNode(String networkId, String nodeId, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response getNetwork(Integer limit, String name, String status, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response getNetworkById(String networkId, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response getNode(String networkId, String nodeId, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response getNodes(String networkId, Integer limit, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response updateNetwork(String networkId, Network body, SecurityContext securityContext) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
-
     @Override
     public Response updateNode(String networkId, String nodeId, Node node, SecurityContext securityContext) throws NotFoundException {
         // do some magic!

@@ -80,13 +80,15 @@ public class DataValue extends BaseResource implements Serializable {
 
     private String createdFor = "";
 
-    private String state = "";
+    private String state = "created";
 
     private String type = null;
 
     private String contentType = null;
 
     private Date lastModified = timestamp;
+
+    private long size = 0L;
 
     public DataValue(String owner, String createdFor) throws URNSyntaxException {
         props = new TraDEProperties();
@@ -186,6 +188,15 @@ public class DataValue extends BaseResource implements Serializable {
         this.contentType = contentType;
     }
 
+    /**
+     * Return the size of the attached data.
+     *
+     * @return The size of the data attached to the data value object.
+     */
+    public long getSize() {
+        return this.size;
+    }
+
     public byte[] getData() {
         byte[] result = null;
 
@@ -203,7 +214,12 @@ public class DataValue extends BaseResource implements Serializable {
         return result;
     }
 
-    public void setData(byte[] data) {
+    public void setData(byte[] data, long size) {
+        this.size = size;
+
+        // TODO: Where and how do we handle/track state changes?
+        this.state = "ready";
+
         switch (this.props.getDataPersistenceMode()) {
             case DB:
                 storeDataToDB(data);

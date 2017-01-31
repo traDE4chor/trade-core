@@ -44,12 +44,12 @@ public class TraDEServer {
 
         setupHandlers(properties);
 
-        try {
-            server.start();
-            server.join();
-        } finally {
-            server.destroy();
-        }
+        server.start();
+    }
+
+    public void stopHTTPServer() throws Exception {
+        server.stop();
+        server.destroy();
     }
 
     private void setupConnectors(TraDEProperties props) {
@@ -122,7 +122,7 @@ public class TraDEServer {
         // Setup Swagger servlet
         ServletHolder swaggerServlet = docContext.addServlet(io.swagger.jersey.config.JerseyJaxrsConfig.class,
                 "/swagger-core");
-        swaggerServlet.setInitParameter("swagger.api.basepath", "http://localhost:"+ props.getHttpServerPort() + "/api");
+        swaggerServlet.setInitParameter("swagger.api.basepath", "http://localhost:" + props.getHttpServerPort() + "/api");
         swaggerServlet.setInitOrder(2);
 
         // Setup Swagger-UI static resources
@@ -136,5 +136,4 @@ public class TraDEServer {
         handlers.setHandlers(new Handler[]{apiContext, docContext});
         server.setHandler(handlers);
     }
-
 }

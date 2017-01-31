@@ -34,7 +34,7 @@ dependencies {
     integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.5'
     integrationTestCompile project(path: ':utils', configuration: 'testOutput')
 
-    compile project(':models'), project(':persistence'), project(':utils'), project(':server')
+    compile project(':models'), project(':persistence'), project(':utils'), project(':server'), project(':client')
 }
 
 // Summarized configurations, dependencies which are required in common by all sub projects

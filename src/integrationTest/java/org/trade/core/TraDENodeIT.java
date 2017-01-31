@@ -147,7 +147,7 @@ public class TraDENodeIT {
                     byte[] data = IOUtils.toByteArray(in);
                     assertNotNull(data);
 
-                    value.setData(data);
+                    value.setData(data, data.length);
 
                     MongoCollection<Document> collection = dataStore.getCollection("dataCollection");
                     Document doc = collection.find(Filters.eq("urn", value.getIdentifier())).limit(1).first();

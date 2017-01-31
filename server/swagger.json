@@ -14,6 +14,7 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
     },
+    "host": "localhost:@port_number@/api",
     "consumes": [
         "application/json"
     ],
@@ -619,6 +620,10 @@
                 ],
                 "summary": "Reads data from a data object identified by Id",
                 "operationId": "pullDataObjectData",
+                "produces": [
+                    "application/octet-stream",
+                    "application/json"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -1048,6 +1053,10 @@
                 ],
                 "summary": "Pulls data from the data value associated to the data element identified by Id",
                 "operationId": "pullDataElementData",
+                "produces": [
+                    "application/octet-stream",
+                    "application/json"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -1163,7 +1172,7 @@
                 "tags": [
                     "dataValue"
                 ],
-                "description": "Gets all available `DataValue` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data values.\n",
+                "description": "Gets all available `DataValue` resources.\nOptional query param of **limit** determines the limit of returned resources, and param **status** filters result list by status of the data values.\n",
                 "operationId": "getDataValuesDirectly",
                 "parameters": [
                     {
@@ -1175,14 +1184,6 @@
                         "description": "Status of data values to return",
                         "required": false,
                         "type": "string"
-                    },
-                    {
-                        "name": "wrapDataInResponse",
-                        "in": "query",
-                        "description": "If the data should be returned within the response",
-                        "required": false,
-                        "default": false,
-                        "type": "boolean"
                     }
                 ],
                 "responses": {
@@ -1213,7 +1214,7 @@
                         "name": "body",
                         "description": "DataValue object that needs to be added.",
                         "schema": {
-                            "$ref": "#/definitions/DataValue"
+                            "$ref": "#/definitions/DataValueRequest"
                         }
                     }
                 ],
@@ -1253,14 +1254,6 @@
                         "description": "Id of the data value that needs to be fetched",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "name": "wrapDataInResponse",
-                        "in": "query",
-                        "description": "If the data should be returned within the response",
-                        "required": false,
-                        "default": false,
-                        "type": "boolean"
                     }
                 ],
                 "responses": {
@@ -1297,13 +1290,19 @@
                         "in": "body",
                         "name": "dataValue",
                         "description": "DataValue object that needs to be updated.",
-                        "required": false,
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataValue"
+                            "$ref": "#/definitions/DataValueRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Returns the updated `DataValue` resource based on the provided modifications.",
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
                     },
@@ -1324,6 +1323,10 @@
                 ],
                 "summary": "Pulls data from the data value identified by Id",
                 "operationId": "pullDataValue",
+                "produces": [
+                    "application/octet-stream",
+                    "application/json"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -1339,6 +1342,18 @@
                         "schema": {
                             "type": "string",
                             "format": "binary"
+                        },
+                        "headers": {
+                            "Content-Disposition": {
+                                "type": "string"
+                            },
+                            "Content-Length": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "Content-Type": {
+                                "type": "string"
+                            }
                         }
                     },
                     "400": {
@@ -1361,6 +1376,9 @@
                 ],
                 "summary": "Pushes data to the TraDE middleware by attaching it to the data value identified by Id",
                 "operationId": "pushDataValue",
+                "consumes": [
+                    "application/octet-stream"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -1368,6 +1386,14 @@
                         "description": "Id of the data value to attach data to",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "Content-Length",
+                        "description": "The size of the data passed as header",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
                     },
                     {
                         "in": "body",
@@ -1381,11 +1407,8 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Successfully pushed data",
-                        "schema": {
-                            "$ref": "#/definitions/DataValue"
-                        }
+                    "204": {
+                        "description": "Successfully pushed data"
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
@@ -1535,7 +1558,7 @@
                 "type": {
                     "type": "string"
                 },
-                "content_type": {
+                "contentType": {
                     "type": "string"
                 },
                 "instances": {
@@ -1588,7 +1611,7 @@
                 "type": {
                     "type": "string"
                 },
-                "content_type": {
+                "contentType": {
                     "type": "string"
                 },
                 "created": {
@@ -1599,9 +1622,26 @@
                     "type": "string",
                     "format": "date-time"
                 },
-                "data": {
-                    "type": "string",
-                    "format": "byte"
+                "status": {
+                    "$ref": "#/definitions/StatusEnum"
+                },
+                "size": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "DataValueRequest": {
+            "type": "object",
+            "properties": {
+                "createdBy": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "contentType": {
+                    "type": "string"
                 }
             }
         },

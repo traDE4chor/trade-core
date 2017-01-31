@@ -7,4 +7,5 @@ include 'persistence'
 include 'models'
 include 'server'
 include 'utils'
+include 'client'
 
