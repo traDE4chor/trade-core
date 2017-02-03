@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.trade.core.model.ModelUtils;
 import org.trade.core.utils.TraDEProperties;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -73,6 +74,8 @@ public class DataValue extends BaseResource implements Serializable {
     private transient URN urn = null;
 
     private String name = null;
+
+    private String readableName = "";
 
     private Date timestamp = new Date();
 
@@ -149,6 +152,15 @@ public class DataValue extends BaseResource implements Serializable {
         return lastModified;
     }
 
+    public String getHumanReadableName() {
+        return readableName;
+    }
+
+    public void setHumanReadableName(String readableName) {
+        this.readableName = readableName;
+        this.lastModified = new Date();
+    }
+
     /**
      * Gets the type of the data element. The following basic types are supported by default: "string", "number",
      * "boolean", "xml_element", "xml_element_list", or "binary". This list should be extensible in
@@ -167,6 +179,7 @@ public class DataValue extends BaseResource implements Serializable {
      */
     public void setType(String type) {
         this.type = type;
+        this.lastModified = new Date();
     }
 
     /**
@@ -186,6 +199,7 @@ public class DataValue extends BaseResource implements Serializable {
      */
     public void setContentType(String contentType) {
         this.contentType = contentType;
+        this.lastModified = new Date();
     }
 
     /**
@@ -214,7 +228,7 @@ public class DataValue extends BaseResource implements Serializable {
         return result;
     }
 
-    public void setData(byte[] data, long size) {
+    public void setData(byte[] data, long size) throws Exception {
         this.size = size;
 
         // TODO: Where and how do we handle/track state changes?
@@ -229,6 +243,21 @@ public class DataValue extends BaseResource implements Serializable {
                 break;
             default:
                 storeDataToFile(data);
+        }
+
+        this.lastModified = new Date();
+    }
+
+    public void destroy() {
+        switch (this.props.getDataPersistenceMode()) {
+            case DB:
+                removeDataFromDB();
+                break;
+            case FILE:
+                removeDataFromFile();
+                break;
+            default:
+                removeDataFromFile();
         }
     }
 
@@ -276,27 +305,21 @@ public class DataValue extends BaseResource implements Serializable {
         return data;
     }
 
-    private void storeDataToFile(byte[] data) {
+    private void storeDataToFile(byte[] data) throws IOException {
         Path path = Paths.get(this.props.getDataPersistenceFileDirectory(), ModelUtils.translateURNtoFolderPath(this
                 .urn));
         Path file = Paths.get(path.toString(), ModelUtils.DATA_FILE_NAME);
 
-        try {
-            if (data == null) {
-                // We assume that if the value is set to null, we should delete also the corresponding file
-                Files.deleteIfExists(file);
-            } else {
+        if (data == null) {
+            // We assume that if the value is set to null, we should delete also the corresponding file
+            Files.deleteIfExists(file);
+        } else {
 
-                if (Files.notExists(path)) {
-                    Files.createDirectories(path);
-                }
-
-                Files.write(file, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                this.lastModified = new Date();
-
+            if (Files.notExists(path)) {
+                Files.createDirectories(path);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            Files.write(file, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
         }
     }
 
@@ -324,6 +347,51 @@ public class DataValue extends BaseResource implements Serializable {
                         .append("lastModified", new Date());
                 collection.insertOne(document);
             }
+        }
+
+        client.close();
+    }
+
+    private void removeDataFromFile() {
+        Path rootFolder = Paths.get(this.props.getDataPersistenceFileDirectory());
+
+        // We use the identifier as file name
+        Path file = Paths.get(this.props.getDataPersistenceFileDirectory(), ModelUtils.translateURNtoFolderPath
+                (getUrn()), ModelUtils.DATA_FILE_NAME);
+
+        try {
+            // Delete the associated file, if it exists
+            if (Files.exists(file)) {
+                Files.delete(file);
+            }
+
+            // Check if parent folders are empty, if so delete also these folders
+            Path current = file.getParent();
+            while (!current.equals(rootFolder)) {
+                File cFile = current.toFile();
+                if (cFile.isDirectory() && cFile.listFiles().length == 0) {
+                    Files.delete(current);
+                }
+
+                current = current.getParent();
+            }
+        } catch (IOException e) {
+            logger.error("Deleting data from file '{}' for data value '{}' caused an exception", file.toString(),
+                    getIdentifier());
+        }
+    }
+
+    private void removeDataFromDB() {
+        MongoClient client = new MongoClient(new MongoClientURI(this.props.getDataPersistenceDbUrl()));
+        MongoDatabase db = client.getDatabase(this.props.getDataPersistenceDbName());
+
+        Document doc = db.getCollection("dataCollection").findOneAndDelete(Filters.eq("urn", getIdentifier()));
+
+        if (doc != null) {
+            logger.info("Data value '{}' and its associated data successfully deleted from DB.", getIdentifier());
+        } else {
+            logger.info("The database does not contain the specified data value '{}'",
+                    getIdentifier());
         }
 
         client.close();

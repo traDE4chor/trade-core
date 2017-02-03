@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.trade.server.jersey.api.factories.DataValuesApiServiceFactory;
 import io.swagger.trade.server.jersey.model.DataValue;
 import io.swagger.trade.server.jersey.model.DataValueRequest;
+import io.swagger.trade.server.jersey.model.DataValueUpdateRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -52,6 +53,23 @@ public class DataValuesApi {
         return delegate.addDataValue(body, securityContext, uriInfo);
     }
 
+    @DELETE
+    @Path("/{dataValueId}")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Deletes a data value", notes = "Deletes a data value and its associated data from the TraDE middleware", response = DataValue.class, tags={ "dataValue", })
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Successfully deleted data value", response = DataValue.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = DataValue.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = DataValue.class) })
+    public Response deleteDataValue(@ApiParam(value = "Id of the data value that needs to be fetched",required=true) @PathParam("dataValueId") String dataValueId
+,@Context SecurityContext securityContext)
+    throws NotFoundException {
+        return delegate.deleteDataValue(dataValueId,securityContext);
+    }
+
     @GET
     @Path("/{dataValueId}")
     @Consumes({"application/json"})
@@ -60,9 +78,9 @@ public class DataValuesApi {
     @io.swagger.annotations.ApiResponses(value = {
             @io.swagger.annotations.ApiResponse(code = 200, message = "Returns a `DataValue` resource based on the provided parameters.", response = DataValue.class),
 
-            @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid input", response = DataValue.class),
-
-            @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = DataValue.class)})
+            @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = DataValue.class),
+            
+            @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = DataValue.class) })
     public Response getDataValueDirectly(@ApiParam(value = "Id of the data value that needs to be fetched", required = true) @PathParam("dataValueId") String dataValueId
             , @Context SecurityContext securityContext, @Context UriInfo uriInfo)
             throws NotFoundException {
@@ -70,14 +88,14 @@ public class DataValuesApi {
     }
 
     @GET
-
-    @Consumes({"application/json"})
-    @Produces({"application/json"})
-    @io.swagger.annotations.ApiOperation(value = "", notes = "Gets all available `DataValue` resources. Optional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data values. ", response = DataValue.class, responseContainer = "List", tags = {"dataValue",})
-    @io.swagger.annotations.ApiResponses(value = {
-            @io.swagger.annotations.ApiResponse(code = 200, message = "Returns all `DataValue` resources based on the provided parameters.", response = DataValue.class, responseContainer = "List"),
-
-            @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = DataValue.class, responseContainer = "List")})
+    
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "", notes = "Gets all available `DataValue` resources. Optional query param of **limit** determines the limit of returned resources, and param **status** filters result list by status of the data values. ", response = DataValue.class, responseContainer = "List", tags={ "dataValue", })
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Returns all `DataValue` resources based on the provided parameters.", response = DataValue.class, responseContainer = "List"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = DataValue.class, responseContainer = "List") })
     public Response getDataValuesDirectly(@ApiParam(value = "Limit of returned objects") @QueryParam("limit") Integer limit
             , @ApiParam(value = "Status of data values to return") @QueryParam("status") String status
             , @Context SecurityContext securityContext, @Context UriInfo uriInfo)
@@ -87,60 +105,56 @@ public class DataValuesApi {
 
     @GET
     @Path("/{dataValueId}/pull")
-    @Consumes({"application/json"})
-    @Produces({"application/octet-stream", "application/json"})
-    @io.swagger.annotations.ApiOperation(value = "Pulls data from the data value identified by Id", notes = "", response = byte[].class, tags = {"dataValue",})
-    @io.swagger.annotations.ApiResponses(value = {
-            @io.swagger.annotations.ApiResponse(code = 200, message = "Data attached to data value", response = byte[].class),
-
-            @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid input", response = byte[].class),
-
-            @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = byte[].class),
-
-            @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = byte[].class)})
-    public Response pullDataValue(@ApiParam(value = "Id of the data value that needs to be fetched", required = true) @PathParam("dataValueId") String dataValueId
-            , @Context SecurityContext securityContext, @Context UriInfo uriInfo)
-            throws NotFoundException {
-        return delegate.pullDataValue(dataValueId, securityContext, uriInfo);
+    @Consumes({ "application/json" })
+    @Produces({ "application/octet-stream" })
+    @io.swagger.annotations.ApiOperation(value = "Pulls data from the data value identified by Id", notes = "", response = byte[].class, tags={ "dataValue", })
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Data attached to data value", response = byte[].class),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = byte[].class),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = byte[].class) })
+    public Response pullDataValue(@ApiParam(value = "Id of the data value that needs to be fetched",required=true) @PathParam("dataValueId") String dataValueId
+,@Context SecurityContext securityContext)
+    throws NotFoundException {
+        return delegate.pullDataValue(dataValueId,securityContext);
     }
 
     @POST
     @Path("/{dataValueId}/push")
-    @Consumes({"application/octet-stream"})
-    @Produces({"application/json"})
-    @io.swagger.annotations.ApiOperation(value = "Pushes data to the TraDE middleware by attaching it to the data value identified by Id", notes = "", response = void.class, tags = {"dataValue",})
-    @io.swagger.annotations.ApiResponses(value = {
-            @io.swagger.annotations.ApiResponse(code = 204, message = "Successfully pushed data", response = void.class),
-
-            @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid input", response = void.class),
-
-            @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = void.class),
-
-            @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = void.class)})
-    public Response pushDataValue(@ApiParam(value = "Id of the data value to attach data to", required = true) @PathParam("dataValueId") String dataValueId
-            , @ApiParam(value = "The size of the data passed as header", required = true) @HeaderParam("Content-Length") Long contentLength
-            , @ApiParam(value = "The data to push.", required = true) byte[] data
-            , @Context SecurityContext securityContext, @Context UriInfo uriInfo)
-            throws NotFoundException {
-        return delegate.pushDataValue(dataValueId, contentLength, data, securityContext, uriInfo);
+    @Consumes({ "application/octet-stream" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Pushes data to the TraDE middleware by attaching it to the data value identified by Id", notes = "", response = void.class, tags={ "dataValue", })
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 204, message = "Successfully pushed data", response = void.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid input", response = void.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = void.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = void.class) })
+    public Response pushDataValue(@ApiParam(value = "Id of the data value to attach data to",required=true) @PathParam("dataValueId") String dataValueId
+,@ApiParam(value = "The size of the data passed as header" ,required=true)@HeaderParam("Content-Length") Long contentLength
+,@ApiParam(value = "The data to push." ,required=true) byte[] data
+,@Context SecurityContext securityContext)
+    throws NotFoundException {
+        return delegate.pushDataValue(dataValueId,contentLength,data,securityContext);
     }
 
     @PUT
     @Path("/{dataValueId}")
-    @Consumes({"application/json"})
-    @Produces({"application/json"})
-    @io.swagger.annotations.ApiOperation(value = "Update an existing data value", notes = "", response = DataValue.class, tags = {"dataValue",})
-    @io.swagger.annotations.ApiResponses(value = {
-            @io.swagger.annotations.ApiResponse(code = 200, message = "Returns the updated `DataValue` resource based on the provided modifications.", response = DataValue.class),
-
-            @io.swagger.annotations.ApiResponse(code = 400, message = "Invalid input", response = DataValue.class),
-
-            @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = DataValue.class),
-
-            @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = DataValue.class)})
-    public Response updateDataValueDirectly(@ApiParam(value = "Id of the data value that needs to be fetched", required = true) @PathParam("dataValueId") String dataValueId
-            , @ApiParam(value = "DataValue object that needs to be updated.", required = true) DataValueRequest dataValue
-            , @Context SecurityContext securityContext, @Context UriInfo uriInfo)
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Update an existing data value", notes = "", response = DataValue.class, tags={ "dataValue", })
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "Returns the updated `DataValue` resource based on the provided modifications.", response = DataValue.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "The required resource was not found based on the provided query parameters.", response = DataValue.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server error", response = DataValue.class) })
+    public Response updateDataValueDirectly(@ApiParam(value = "Id of the data value that needs to be fetched",required=true) @PathParam("dataValueId") String dataValueId
+,@ApiParam(value = "DataValue object that needs to be updated." ,required=true) DataValueUpdateRequest dataValue
+,@Context SecurityContext securityContext, @Context UriInfo uriInfo)
             throws NotFoundException {
         return delegate.updateDataValueDirectly(dataValueId, dataValue, securityContext, uriInfo);
     }

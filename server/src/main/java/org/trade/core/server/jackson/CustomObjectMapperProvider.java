@@ -16,13 +16,14 @@
 
 package org.trade.core.server.jackson;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
-import java.lang.reflect.Field;
+import java.text.DateFormat;
 
 /**
  * Created by hahnml on 02.12.2016.
@@ -30,53 +31,26 @@ import java.lang.reflect.Field;
 @Provider
 public class CustomObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
-    final ObjectMapper defaultObjectMapper;
-    final ObjectMapper enumObjectMapper;
+    private ObjectMapper mapper;
 
     public CustomObjectMapperProvider() {
-        defaultObjectMapper = createDefaultMapper();
-        enumObjectMapper = createEnumMapper();
+        mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
+    }
+
+    /**
+     * Set the date format for JSON (de)serialization with Date properties.
+     */
+    public void setDateFormat(DateFormat dateFormat) {
+        mapper.setDateFormat(dateFormat);
     }
 
     @Override
-    public ObjectMapper getContext(final Class<?> type) {
-
-        if (type.isEnum() || containsEnum(type)) {
-            return enumObjectMapper;
-        } else {
-            return defaultObjectMapper;
-        }
-
-    }
-
-    private boolean containsEnum(Class<?> type) {
-        boolean found = false;
-
-        Field[] fields = type.getDeclaredFields();
-        int i = 0;
-        while (!found && i < fields.length) {
-            found = fields[i].getType().isEnum();
-            i++;
-        }
-
-        return found;
-    }
-
-    private static ObjectMapper createDefaultMapper() {
-        final ObjectMapper result = new ObjectMapper();
-        result.enable(SerializationFeature.INDENT_OUTPUT);
-
-        return result;
-    }
-
-    private static ObjectMapper createEnumMapper() {
-        final ObjectMapper result = new ObjectMapper();
-        result.enable(SerializationFeature.INDENT_OUTPUT);
-
-        // Uses Enum.toString() for serialization of an Enum
-        result.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        result.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-
-        return result;
+    public ObjectMapper getContext(Class<?> type) {
+        return mapper;
     }
 }

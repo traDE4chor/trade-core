@@ -39,9 +39,10 @@ import javax.ws.rs.core.UriInfo;
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-01-31T17:07:23.956+01:00")
 public abstract class DataValuesApiService {
     public abstract Response addDataValue(DataValueRequest body,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
+    public abstract Response deleteDataValue(String dataValueId,SecurityContext securityContext) throws NotFoundException;    
     public abstract Response getDataValueDirectly(String dataValueId,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
     public abstract Response getDataValuesDirectly(Integer limit,String status,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
-    public abstract Response pullDataValue(String dataValueId,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
-    public abstract Response pushDataValue(String dataValueId,Long contentLength,byte[] data,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
-    public abstract Response updateDataValueDirectly(String dataValueId,DataValueRequest dataValue,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
+    public abstract Response pullDataValue(String dataValueId,SecurityContext securityContext) throws NotFoundException;
+    public abstract Response pushDataValue(String dataValueId,Long contentLength,byte[] data,SecurityContext securityContext) throws NotFoundException;
+    public abstract Response updateDataValueDirectly(String dataValueId,DataValueUpdateRequest dataValue,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException;
 }

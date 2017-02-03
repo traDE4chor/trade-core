@@ -1197,8 +1197,8 @@
                             }
                         }
                     },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -1263,11 +1263,11 @@
                             "$ref": "#/definitions/DataValue"
                         }
                     },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
-                    },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -1292,7 +1292,7 @@
                         "description": "DataValue object that needs to be updated.",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataValueRequest"
+                            "$ref": "#/definitions/DataValueUpdateRequest"
                         }
                     }
                 ],
@@ -1303,8 +1303,36 @@
                             "$ref": "#/definitions/DataValue"
                         }
                     },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Deletes a data value",
+                "description": "Deletes a data value and its associated data from the TraDE middleware",
+                "operationId": "deleteDataValue",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataValueId",
+                        "description": "Id of the data value that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted data value",
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -1324,8 +1352,7 @@
                 "summary": "Pulls data from the data value identified by Id",
                 "operationId": "pullDataValue",
                 "produces": [
-                    "application/octet-stream",
-                    "application/json"
+                    "application/octet-stream"
                 ],
                 "parameters": [
                     {
@@ -1344,9 +1371,6 @@
                             "format": "binary"
                         },
                         "headers": {
-                            "Content-Disposition": {
-                                "type": "string"
-                            },
                             "Content-Length": {
                                 "type": "integer",
                                 "format": "int64"
@@ -1355,9 +1379,6 @@
                                 "type": "string"
                             }
                         }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -1634,7 +1655,24 @@
         "DataValueRequest": {
             "type": "object",
             "properties": {
+                "name": {
+                    "type": "string"
+                },
                 "createdBy": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "contentType": {
+                    "type": "string"
+                }
+            }
+        },
+        "DataValueUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
                     "type": "string"
                 },
                 "type": {

@@ -36,7 +36,7 @@ public class ResourceTransformationUtils {
 
         //value.setId(dataValue.getIdentifier());
         value.setId(dataValue.getName());
-        value.setName(dataValue.getName());
+        value.setName(dataValue.getHumanReadableName());
 
         value.setType(dataValue.getType());
         value.setContentType(dataValue.getContentType());
@@ -47,7 +47,7 @@ public class ResourceTransformationUtils {
         value.setCreatedBy(dataValue.getOwner());
         value.setSize(dataValue.getSize());
 
-        value.setStatus(StatusEnum.valueOf(dataValue.getState()));
+        value.setStatus(model2resource(dataValue.getState()));
 
         return value;
     }
@@ -57,9 +57,22 @@ public class ResourceTransformationUtils {
         org.trade.core.model.data.DataValue value = new org.trade.core.model.data.DataValue(dataValue.getCreatedBy(),
                 null);
 
+        value.setHumanReadableName(dataValue.getName());
         value.setContentType(dataValue.getContentType());
         value.setType(dataValue.getType());
 
         return value;
+    }
+
+    public static StatusEnum model2resource(String value) {
+        if (value.equals(StatusEnum.CREATED.toString())) {
+            return StatusEnum.CREATED;
+        } else if (value.equals(StatusEnum.ARCHIVED.toString())) {
+            return StatusEnum.ARCHIVED;
+        } else if (value.equals(StatusEnum.READY.toString())) {
+            return StatusEnum.READY;
+        }
+
+        return null;
     }
 }

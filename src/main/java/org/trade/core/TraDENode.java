@@ -158,7 +158,7 @@ public class TraDENode {
                     byte[] data = Files.readAllBytes(Paths.get("C:\\test\\script.sh"));
 
                     value.setData(data, data.length);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -173,7 +173,7 @@ public class TraDENode {
                     byte[] data = Files.readAllBytes(Paths.get("C:\\test\\opalClusterSnapshots.mp4"));
                     value.setContentType("video/mp4");
                     value.setData(data, data.length);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 

@@ -152,7 +152,7 @@ public class TraDENodeIT {
                     MongoCollection<Document> collection = dataStore.getCollection("dataCollection");
                     Document doc = collection.find(Filters.eq("urn", value.getIdentifier())).limit(1).first();
                     assertNotNull(((Binary) doc.get("data")).getData());
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
