@@ -165,6 +165,12 @@ public class DataValueTestHelper {
             // Push data to second data value
             dvApiInstance.pushDataValue(idOfDataValue2, new Long(data2.length), data2);
 
+            // Push different data to the same data value
+            byte[] simpleData = "some data".getBytes();
+            dvApiInstance.pushDataValue(idOfDataValue2, 9L, simpleData);
+            // Check if the data is successfully updated
+            assertEquals(simpleData.length, dvApiInstance.getDataValueDirectly(idOfDataValue2).getSize().intValue());
+
             // Push data to third data value
             String data = "test value";
             dvApiInstance.pushDataValue(idOfDataValue3, new Long(data.length()), data.getBytes());

@@ -319,7 +319,7 @@ public class DataValue extends BaseResource implements Serializable {
                 Files.createDirectories(path);
             }
 
-            Files.write(file, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            Files.write(file, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         }
     }
 

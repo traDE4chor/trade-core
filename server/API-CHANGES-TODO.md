@@ -5,8 +5,9 @@
     * http://stackoverflow.com/questions/10326460/how-to-avoid-outofmemoryerror-when-uploading-a-large-file-using-jersey-client/31140433#31140433
     * http://stackoverflow.com/questions/23701106/how-jersey-2-client-can-send-input-output-binary-stream-to-server-and-vise-versa/23701359#23701359
     * http://stackoverflow.com/questions/10587561/password-protected-zip-file-in-java/32253028#32253028
-    * http://stackoverflow.com/questions/3496209/input-and-output-binary-streams-using-jersey/28479669
-    #28479669
+    * http://stackoverflow.com/questions/3496209/input-and-output-binary-streams-using-jersey/28479669#28479669
+    * If we do not switch to streams the ``Content-Length`` header for PULL requests could be removed or at least 
+    marked as not being *required* !? 
 
 # General API ToDos
   * [ ] Add '500 Server Error' where applicable and useful
