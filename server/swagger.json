@@ -14,7 +14,6 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
     },
-    "host": "localhost:@port_number@/api",
     "consumes": [
         "application/json"
     ],
@@ -26,76 +25,428 @@
         "url": "http://trade4chor.github.io/docs"
     },
     "paths": {
-        "/networks": {
-            "x-swagger-router-controller": "Network",
+        "/dataDependencyGraphs": {
+            "x-swagger-router-controller": "DataDependencyGraph",
             "get": {
                 "tags": [
-                    "network"
+                    "dataDependencyGraph"
                 ],
-                "description": "Gets all available `Network` resources.\nOptional query parameter of **limit** determines the limit of returned resources, parameter **name** filters result list by name and parameter **status** filters result list by status of the networks.\n",
-                "operationId": "getNetwork",
+                "description": "Gets all available `DataDependencyGraph` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data dependency graph resources and param **name** filters result list by name.",
+                "operationId": "getDataDependencyGraphs",
                 "parameters": [
                     {
-                        "$ref": "#/parameters/limitParam"
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
                     },
                     {
                         "name": "name",
                         "in": "query",
-                        "description": "Name of networks to return",
+                        "description": "Name of data dependency graph to return",
                         "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns all `DataDependencyGraph` resources based on the provided parameters.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataDependencyGraphArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataDependencyGraph"
+                ],
+                "summary": "Creates and adds a new data dependency graph to the TraDE middleware",
+                "operationId": "addDataDependencyGraph",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "dataDependencyGraphData",
+                        "description": "The name and creating entity of the data dependency graph that will be created.",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "entity"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "entity": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created and added a new data dependency graph",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataDependencyGraph"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataDependencyGraphs/{graphId}": {
+            "x-swagger-router-controller": "DataDependencyGraph",
+            "get": {
+                "tags": [
+                    "dataDependencyGraph"
+                ],
+                "summary": "Find a data dependency graph by Id",
+                "operationId": "getDataDependencyGraphDirectly",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "graphId",
+                        "description": "Id of the data dependency graph that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns a `DataDependencyGraph` resource based on the provided parameters.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataDependencyGraph"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "dataDependencyGraph"
+                ],
+                "summary": "Deletes a data dependency graph.",
+                "description": "Deletes a data dependency graph from the TraDE middleware.",
+                "operationId": "deleteDataDependencyGraph",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "graphId",
+                        "description": "Id of the data dependency graph that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted data dependency graph"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataDependencyGraphs/{graphId}/serialized-graph": {
+            "x-swagger-router-controller": "DataDependencyGraph",
+            "get": {
+                "tags": [
+                    "dataDependencyGraph"
+                ],
+                "summary": "Provides the serialized graph model of the data dependency graph",
+                "operationId": "downloadGraphModel",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "graphId",
+                        "description": "Id of the data dependency graph that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The serialized graph model",
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        },
+                        "headers": {
+                            "Content-Length": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "Content-Type": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataDependencyGraph"
+                ],
+                "summary": "Upload a serialized graph model to the TraDE middleware in order to make it available.",
+                "operationId": "uploadGraphModel",
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "graphId",
+                        "description": "Id of the data dependency graph that needs to be fetched",
+                        "required": true,
                         "type": "string"
                     },
                     {
-                        "name": "status",
+                        "in": "header",
+                        "name": "Content-Length",
+                        "description": "The size of the serialized graph model passed as header",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "body",
+                        "name": "graph",
+                        "description": "The serialized graph model to upload.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully uploaded the graph model to the TraDE middleware."
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataDependencyGraphs/{graphId}/dataModel": {
+            "x-swagger-router-controller": "DataModel",
+            "get": {
+                "tags": [
+                    "dataModel"
+                ],
+                "summary": "Get the data model associated to the data dependency graph.",
+                "operationId": "getDataModel",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "graphId",
+                        "description": "Id of the data dependency graph that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the `DataModel` resource associated to the data dependency graph.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataModel"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataModel"
+                ],
+                "summary": "Associates an existing dataModel to the data dependency graph.",
+                "operationId": "setDataModel",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "graphId",
+                        "description": "Id of the data dependency graph that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "dataModel",
+                        "description": "DataModel object that needs to be associated. In order to realize the association the provided data model should at least contain a valid Id of a known DataModel.",
+                        "schema": {
+                            "$ref": "#/definitions/DataModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully associated a data model.",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataModels": {
+            "x-swagger-router-controller": "DataModel",
+            "get": {
+                "tags": [
+                    "dataModel"
+                ],
+                "description": "Gets all available `DataModel` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data model resources and param **name** filters result list by name.",
+                "operationId": "getDataModels",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
+                    {
+                        "name": "name",
                         "in": "query",
-                        "description": "Status of networks to return",
+                        "description": "Name of data model to return",
                         "required": false,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns all `Network` resources based on the provided parameters.",
+                        "description": "Returns all `DataModel` resources based on the provided parameters.",
                         "schema": {
-                            "title": "ArrayOfNetworks",
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/Network"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataModelArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
                     }
                 }
             },
             "post": {
                 "tags": [
-                    "network"
+                    "dataModel"
                 ],
-                "summary": "Creates and adds a new network to the TraDE middleware",
-                "operationId": "addNetwork",
+                "summary": "Creates and adds a new data model to the TraDE middleware",
+                "operationId": "addDataModel",
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "body",
-                        "description": "Network object that needs to be added.",
-                        "required": false,
+                        "name": "dataModelData",
+                        "description": "The name and creating entity of the data model that will be created.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Network"
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "entity"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "entity": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Successfully created and added a new network",
+                        "description": "Successfully created and added a new data model",
                         "headers": {
                             "Location": {
                                 "type": "string"
                             }
                         },
                         "schema": {
-                            "$ref": "#/definitions/Network"
+                            "$ref": "#/definitions/DataModel"
                         }
                     },
                     "400": {
@@ -107,72 +458,36 @@
                 }
             }
         },
-        "/networks/{networkId}": {
-            "x-swagger-router-controller": "Network",
+        "/dataModels/{dataModelId}": {
+            "x-swagger-router-controller": "DataModel",
             "get": {
                 "tags": [
-                    "network"
+                    "dataModel"
                 ],
-                "summary": "Find a network by Id",
-                "operationId": "getNetworkById",
+                "summary": "Find a data model by Id",
+                "operationId": "getDataModelDirectly",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
+                        "name": "dataModelId",
+                        "description": "Id of the data model that needs to be fetched",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns a `Network` resource based on the provided parameters.",
+                        "description": "Returns a `DataModel` resource based on the provided parameters.",
                         "schema": {
-                            "$ref": "#/definitions/Network"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataModel"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
-                    },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "network"
-                ],
-                "summary": "Update an existing network",
-                "description": "",
-                "operationId": "updateNetwork",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be updated",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "Network resource that needs to be updated.",
-                        "required": false,
-                        "schema": {
-                            "$ref": "#/definitions/Network"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful updated existing network",
-                        "schema": {
-                            "$ref": "#/definitions/Network"
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -184,29 +499,23 @@
             },
             "delete": {
                 "tags": [
-                    "network"
+                    "dataModel"
                 ],
-                "summary": "Deletes a network",
-                "description": "Deletes a complete network from the TraDE middleware",
-                "operationId": "deleteNetwork",
+                "summary": "Deletes a data model and all related resources.",
+                "description": "Deletes a data model and all resources related to it from the TraDE middleware. This means that all data objects and their data elements defined through this data model as well as their instances will be deleted. Therefore, the deletion of a data model should be handled with care since it is one of the core artifacts used by the TraDE middleware.",
+                "operationId": "deleteDataModel",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
+                        "name": "dataModelId",
+                        "description": "Id of the data model that needs to be fetched",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Successfully deleted existing network",
-                        "schema": {
-                            "$ref": "#/definitions/Network"
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "204": {
+                        "description": "Successfully deleted data model"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -217,78 +526,90 @@
                 }
             }
         },
-        "/networks/{networkId}/nodes": {
-            "x-swagger-router-controller": "Node",
+        "/dataModels/{dataModelId}/serialized-model": {
+            "x-swagger-router-controller": "DataModel",
             "get": {
                 "tags": [
-                    "node"
+                    "dataModel"
                 ],
-                "description": "Gets all available `Node` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the nodes.\n",
-                "operationId": "getNodes",
+                "summary": "Provides the serialized data model",
+                "operationId": "downloadDataModel",
+                "produces": [
+                    "application/octet-stream"
+                ],
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
+                        "name": "dataModelId",
+                        "description": "Id of the data model that needs to be fetched",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "$ref": "#/parameters/limitParam"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns all `Node` resources based on the provided parameters.",
+                        "description": "The serialized data model",
                         "schema": {
-                            "title": "ArrayOfNodes",
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/Node"
+                            "type": "string",
+                            "format": "binary"
+                        },
+                        "headers": {
+                            "Content-Length": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "Content-Type": {
+                                "type": "string"
                             }
                         }
                     },
                     "404": {
-                        "description": "No nodes found with the specified query parameters"
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
             "post": {
                 "tags": [
-                    "node"
+                    "dataModel"
                 ],
-                "summary": "Add a new node to the network",
-                "operationId": "addNode",
+                "summary": "Upload a serialized data model to the TraDE middleware in order to make it available.",
+                "operationId": "uploadDataModel",
+                "consumes": [
+                    "application/octet-stream"
+                ],
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
+                        "name": "dataModelId",
+                        "description": "Id of the data model that needs to be fetched",
                         "required": true,
                         "type": "string"
                     },
                     {
+                        "in": "header",
+                        "name": "Content-Length",
+                        "description": "The size of the serialized data model passed as header",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
                         "in": "body",
-                        "name": "body",
-                        "description": "Node object that needs to be added.",
-                        "required": false,
+                        "name": "model",
+                        "description": "The serialized data model to upload.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Node"
+                            "type": "string",
+                            "format": "binary"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Successfully created and added a new node",
-                        "headers": {
-                            "Location": {
-                                "type": "string"
-                            }
-                        },
-                        "schema": {
-                            "title": "nodeId",
-                            "type": "string"
-                        }
+                    "204": {
+                        "description": "Successfully uploaded the data model to the TraDE middleware."
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
@@ -302,121 +623,45 @@
                 }
             }
         },
-        "/networks/{networkId}/nodes/{nodeId}": {
-            "x-swagger-router-controller": "Node",
+        "/dataModels/{dataModelId}/dataObjects": {
+            "x-swagger-router-controller": "DataObject",
             "get": {
                 "tags": [
-                    "node"
+                    "dataObject"
                 ],
-                "summary": "Find a node by Id",
-                "operationId": "getNode",
+                "description": "Gets all `DataObject` resources which belong the data model.\nOptional query parameter of **start** and **size** enable pagination of the collection of data object resources.",
+                "operationId": "getDataObjects",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
-                        "required": true,
-                        "type": "string"
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
                     },
                     {
                         "in": "path",
-                        "name": "nodeId",
-                        "description": "Id of the node that needs to be fetched",
+                        "name": "dataModelId",
+                        "description": "Id of the data model that needs to be fetched",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns a `Node` resource based on the provided parameters.",
+                        "description": "Returns all `DataObject` resources which belong the given data model.",
                         "schema": {
-                            "$ref": "#/definitions/Node"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObjectArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
-                    },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "node"
-                ],
-                "summary": "Update an existing node",
-                "description": "",
-                "operationId": "updateNode",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "nodeId",
-                        "description": "Id of the node that needs to be fetched",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "node",
-                        "description": "Node object that needs to be updated.",
-                        "required": false,
-                        "schema": {
-                            "$ref": "#/definitions/Node"
-                        }
-                    }
-                ],
-                "responses": {
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
-                    },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
-                    },
-                    "500": {
-                        "$ref": "#/responses/ErrorResponse"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "node"
-                ],
-                "summary": "Deletes a node",
-                "description": "Delete the node from the network",
-                "operationId": "deleteNode",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "networkId",
-                        "description": "Id of the network that needs to be fetched",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "nodeId",
-                        "description": "Id of the node that needs to be deleted",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
-                    },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
-                    },
-                    "500": {
-                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -427,11 +672,14 @@
                 "tags": [
                     "dataObject"
                 ],
-                "description": "Gets all available `DataObject` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data objects.\n",
-                "operationId": "getDataObject",
+                "description": "Gets all available `DataObject` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data object resources, param **name** filters result list by name and param **status** filters result list by status of the data objects.",
+                "operationId": "getAllDataObjects",
                 "parameters": [
                     {
-                        "$ref": "#/parameters/limitParam"
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
                     },
                     {
                         "name": "name",
@@ -452,11 +700,14 @@
                     "200": {
                         "description": "Returns all `DataObject` resources based on the provided parameters.",
                         "schema": {
-                            "title": "ArrayOfDataObjects",
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/DataObject"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObjectArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -473,11 +724,23 @@
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "body",
-                        "description": "DataObject object that needs to be added.",
-                        "required": false,
+                        "name": "dataObjectData",
+                        "description": "The name and creating entity of the data object that will be created.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataObject"
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "entity"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "entity": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 ],
@@ -523,7 +786,14 @@
                     "200": {
                         "description": "Returns a `DataObject` resource based on the provided parameters.",
                         "schema": {
-                            "$ref": "#/definitions/DataObject"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObject"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -538,8 +808,8 @@
                 "tags": [
                     "dataObject"
                 ],
-                "summary": "Update an existing dataObject",
-                "description": "",
+                "summary": "Update an existing dataObject. If the dataObject belongs to a dataModel the update request will be rejected, since data models are immutable resources.",
+                "description": "Update an existing dataObject",
                 "operationId": "updateDataObject",
                 "parameters": [
                     {
@@ -551,9 +821,9 @@
                     },
                     {
                         "in": "body",
-                        "name": "body",
-                        "description": "Data object resource that needs to be updated.",
-                        "required": false,
+                        "name": "dataObject",
+                        "description": "The updated data object resource. Only changes to the following fields are reflected **name** and creating **entity**. All other changes are ignored since the corresponding fields of the resource are internally set by the server or are immutable.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DataObject"
                         }
@@ -561,9 +831,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Returns the updated `DataObject` resource based on the provided modifications.",
                         "schema": {
-                            "$ref": "#/definitions/DataObject"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObject"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -581,8 +858,8 @@
                 "tags": [
                     "dataObject"
                 ],
-                "summary": "Deletes a dataObject",
-                "description": "Deletes a complete data object from the TraDE middleware",
+                "summary": "Deletes a dataObject. If the dataObject belongs to a dataModel the delete request will be rejected, since data models are immutable resources.",
+                "description": "Deletes a complete data object and its referenced data elements as well as all instances of conntected to both the data object and its data elements from the TraDE middleware",
                 "operationId": "deleteDataObject",
                 "parameters": [
                     {
@@ -594,11 +871,8 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "successful operation",
-                        "schema": {
-                            "$ref": "#/definitions/DataObject"
-                        }
+                    "204": {
+                        "description": "Data object and all associated resource are deleted successfully."
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
@@ -612,18 +886,61 @@
                 }
             }
         },
-        "/dataObjects/{dataObjectId}/pull": {
-            "x-swagger-router-controller": "DataObject",
+        "/dataObjects/{dataObjectId}/instances": {
+            "x-swagger-router-controller": "DataObjectInstance",
             "get": {
                 "tags": [
-                    "dataObject"
+                    "dataObjectInstance"
                 ],
-                "summary": "Reads data from a data object identified by Id",
-                "operationId": "pullDataObjectData",
-                "produces": [
-                    "application/octet-stream",
-                    "application/json"
+                "description": "Gets all available `DataObjectInstance` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data object instance resources and param **status** filters result list by status of the data object instances.",
+                "operationId": "getDataObjectInstances",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataObjectId",
+                        "description": "Id of the data object that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of data object instances to return",
+                        "required": false,
+                        "type": "string"
+                    }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "Returns all `DataObjectInstance` resources based on the provided parameters.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObjectInstanceArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "No data object instances found with the specified query parameters"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataObjectInstance"
+                ],
+                "summary": "Creates a data object instance for the specified dataObject. In addition a corresponding data element instance for all data elements of the specified dataObject are created.",
+                "operationId": "addDataObjectInstance",
                 "parameters": [
                     {
                         "in": "path",
@@ -633,93 +950,47 @@
                         "type": "string"
                     },
                     {
-                        "name": "dataElementName",
-                        "in": "query",
-                        "description": "Name of a DataElement",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "dataElementId",
-                        "in": "query",
-                        "description": "Id of a DataElement",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "sourceTraDE",
-                        "in": "query",
-                        "description": "URL of a remote TraDE middlware to pull the data object from",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Returns an archive of all data being attached to the data objects' data elements.",
-                        "schema": {
-                            "type": "string",
-                            "format": "binary"
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
-                    },
-                    "404": {
-                        "$ref": "#/responses/NotFoundResponse"
-                    },
-                    "500": {
-                        "$ref": "#/responses/ErrorResponse"
-                    }
-                }
-            }
-        },
-        "/dataObjects/{dataObjectId}/push": {
-            "x-swagger-router-controller": "DataObject",
-            "post": {
-                "tags": [
-                    "dataObject"
-                ],
-                "summary": "Pushes the data object identified by Id to the TraDE middleware",
-                "description": "",
-                "operationId": "pushDataObjectData",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "dataObjectId",
-                        "description": "Id of the data object to write to",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "dataElement",
-                        "in": "query",
-                        "description": "Name of a data element",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "targetTraDE",
-                        "in": "query",
-                        "description": "URL of a remote TraDE middleware to push the data object to",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
                         "in": "body",
-                        "name": "body",
-                        "description": "DataObject object to push.",
-                        "required": false,
+                        "name": "dataObjectInstanceData",
+                        "description": "The name and creating entity of the data object that will be created.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataObject"
+                            "type": "object",
+                            "required": [
+                                "owner",
+                                "correlationProperties"
+                            ],
+                            "properties": {
+                                "owner": {
+                                    "type": "string"
+                                },
+                                "createdFor": {
+                                    "type": "string"
+                                },
+                                "correlationProperties": {
+                                    "$ref": "#/definitions/CorrelationPropertyArray"
+                                }
+                            }
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Successfully pushed data",
+                    "201": {
+                        "description": "Successfully created and added a new data object instance",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
                         "schema": {
-                            "$ref": "#/definitions/DataObject"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObjectInstance"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -740,7 +1011,7 @@
                 "tags": [
                     "dataElement"
                 ],
-                "description": "Gets all available `DataElement` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data elements.\n",
+                "description": "Gets all available `DataElement` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data element resources, param **name** filters result list by name and param **status** filters result list by status of the data elements.",
                 "operationId": "getDataElements",
                 "parameters": [
                     {
@@ -751,7 +1022,17 @@
                         "type": "string"
                     },
                     {
-                        "$ref": "#/parameters/limitParam"
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Name of data elements to return",
+                        "required": false,
+                        "type": "string"
                     },
                     {
                         "name": "status",
@@ -765,11 +1046,14 @@
                     "200": {
                         "description": "Returns all `DataElement` resources based on the provided parameters.",
                         "schema": {
-                            "title": "ArrayOfDataElements",
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/DataElement"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElementArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "404": {
@@ -781,7 +1065,7 @@
                 "tags": [
                     "dataElement"
                 ],
-                "summary": "Add a new dataElement to the dataObject",
+                "summary": "Add a new dataElement to the dataObject. If the dataObject belongs to a dataModel the create request will be rejected, since data models are immutable resources.",
                 "operationId": "addDataElement",
                 "parameters": [
                     {
@@ -793,11 +1077,29 @@
                     },
                     {
                         "in": "body",
-                        "name": "body",
-                        "description": "DataElement object that needs to be added.",
-                        "required": false,
+                        "name": "dataElementData",
+                        "description": "The name and creating entity of the data element that will be created.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataElement"
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "entity"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "entity": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                },
+                                "contentType": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 ],
@@ -810,7 +1112,14 @@
                             }
                         },
                         "schema": {
-                            "$ref": "#/definitions/DataElement"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElement"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -825,35 +1134,88 @@
                 }
             }
         },
-        "/dataObjects/{dataObjectId}/dataElements/{dataElementId}": {
-            "x-swagger-router-controller": "DataElement",
+        "/dataObjectInstances": {
+            "x-swagger-router-controller": "DataObjectInstance",
             "get": {
                 "tags": [
-                    "dataElement"
+                    "dataObjectInstance"
                 ],
-                "summary": "Find a data element by Id",
-                "operationId": "getDataElement",
+                "description": "Get an available `DataObjectInstance` resource based on specified parameters.\nQuery parameters **dataModelName** and **dataObjectName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data object instance.",
+                "operationId": "queryDataObjectInstance",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "dataObjectId",
-                        "description": "Id of the data object that needs to be fetched",
+                        "name": "dataModelName",
+                        "in": "query",
+                        "description": "Name of the data model a data object instance should belong to.",
                         "required": true,
                         "type": "string"
                     },
                     {
+                        "name": "dataObjectName",
+                        "in": "query",
+                        "description": "The name of the data object the instance should belong to.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "correlationProperties",
+                        "in": "body",
+                        "description": "An array of correlation properties associated with the searched data object instance.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CorrelationPropertyArray"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns a `DataObjectInstance` resource based on the provided parameters.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObjectInstance"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "No data object instance found for the specified query parameters."
+                    }
+                }
+            }
+        },
+        "/dataObjectInstances/{instanceId}": {
+            "x-swagger-router-controller": "DataObjectInstance",
+            "get": {
+                "tags": [
+                    "dataObjectInstance"
+                ],
+                "summary": "Find a data object instance by Id",
+                "operationId": "getDataObjectInstance",
+                "parameters": [
+                    {
                         "in": "path",
-                        "name": "dataElementId",
-                        "description": "Id of the data element that needs to be fetched",
+                        "name": "instanceId",
+                        "description": "Id of the data object instance that needs to be fetched",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns a `DataElement` resource based on the provided parameters.",
+                        "description": "Returns a `DataObjectInstance` resource based on the provided parameters.",
                         "schema": {
-                            "$ref": "#/definitions/DataElement"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataObjectInstance"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -864,79 +1226,81 @@
                     }
                 }
             },
-            "put": {
+            "delete": {
                 "tags": [
-                    "dataElement"
+                    "dataObjectInstance"
                 ],
-                "summary": "Update an existing data element",
-                "description": "",
-                "operationId": "updateDataElement",
+                "summary": "Deletes a data object instance",
+                "description": "Deletes a complete data object instance and its referenced data element instances from the TraDE middleware",
+                "operationId": "deleteDataObjectInstance",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "dataObjectId",
-                        "description": "Id of the data object that needs to be fetched",
+                        "name": "instanceId",
+                        "description": "Id of the data object instance that needs to be fetched",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "dataElementId",
-                        "description": "Id of the data element that needs to be fetched",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "dataElement",
-                        "description": "DataElement object that needs to be updated.",
-                        "required": false,
-                        "schema": {
-                            "$ref": "#/definitions/DataElement"
-                        }
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "204": {
+                        "description": "Successfully deleted data object instance"
                     },
                     "404": {
-                        "description": "Data element not found"
+                        "description": "Invalid combination of data object and instance Ids"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/dataObjectInstances/{instanceId}/elementInstances": {
+            "x-swagger-router-controller": "DataElementInstance",
+            "get": {
                 "tags": [
-                    "dataElement"
+                    "dataElementInstance"
                 ],
-                "summary": "Deletes a data element",
-                "description": "Delete the data element from the data object",
-                "operationId": "deleteDataElement",
+                "description": "Gets all available `DataElementInstance` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data element instance resources and param **status** filters result list by status of the data element instances.",
+                "operationId": "getDataElementInstances",
                 "parameters": [
                     {
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
+                    {
                         "in": "path",
-                        "name": "dataObjectId",
-                        "description": "Id of the data object that needs to be fetched",
+                        "name": "instanceId",
+                        "description": "Id of the data object instance that needs to be fetched",
                         "required": true,
                         "type": "string"
                     },
                     {
-                        "in": "path",
-                        "name": "dataElementId",
-                        "description": "Id of the data element that needs to be deleted",
-                        "required": true,
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status of data element instances to return",
+                        "required": false,
                         "type": "string"
                     }
                 ],
                 "responses": {
-                    "404": {
-                        "description": "Invalid combination of data object and data element Ids"
+                    "200": {
+                        "description": "Returns all `DataElementInstance` resources based on the provided parameters.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElementInstanceArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
                     },
-                    "500": {
-                        "$ref": "#/responses/ErrorResponse"
+                    "404": {
+                        "description": "No data element instances found with the specified query parameters"
                     }
                 }
             }
@@ -947,11 +1311,21 @@
                 "tags": [
                     "dataElement"
                 ],
-                "description": "Gets all available `DataElement` resources.\nOptional query param of **limit** determines the limit of returned resources, param **name** filters result list by name and param **status** filters result list by status of the data elements.\n",
-                "operationId": "getDataElementsDirectly",
+                "description": "Gets all available `DataElement` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data element resources, param **name** filters result list by name and param **status** filters result list by status of the data elements.",
+                "operationId": "getAllDataElements",
                 "parameters": [
                     {
-                        "$ref": "#/parameters/limitParam"
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Name of data elements to return",
+                        "required": false,
+                        "type": "string"
                     },
                     {
                         "name": "status",
@@ -965,11 +1339,14 @@
                     "200": {
                         "description": "Returns all `DataElement` resources based on the provided parameters.",
                         "schema": {
-                            "title": "ArrayOfDataElements",
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/DataElement"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElementArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "404": {
@@ -999,7 +1376,14 @@
                     "200": {
                         "description": "Returns a `DataElement` resource based on the provided parameters.",
                         "schema": {
-                            "$ref": "#/definitions/DataElement"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElement"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "404": {
@@ -1011,9 +1395,9 @@
                 "tags": [
                     "dataElement"
                 ],
-                "summary": "Update an existing data element",
-                "description": "",
-                "operationId": "updateDataElementDirectly",
+                "summary": "Update an existing data element. If the parent dataObject belongs to a dataModel the update request will be rejected, since data models are immutable resources.",
+                "description": "Update an existing data element",
+                "operationId": "updateDataElement",
                 "parameters": [
                     {
                         "in": "path",
@@ -1025,19 +1409,60 @@
                     {
                         "in": "body",
                         "name": "dataElement",
-                        "description": "DataElement object that needs to be updated.",
-                        "required": false,
+                        "description": "The updated data element resource. Only changes to the following fields are reflected **name**, **type** and **contentType**. All other changes are ignored since the corresponding fields of the resource are internally set by the server or are immutable.",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/DataElement"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Returns the updated `DataElement` resource based on the provided modifications.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElement"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "$ref": "#/responses/NotFoundResponse"
+                        "description": "Data element not found"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "dataElement"
+                ],
+                "summary": "Deletes a data element. If the parent dataObject belongs to a dataModel the update request will be rejected, since data models are immutable resources.",
+                "description": "Deletes a complete data element and its referenced instances from the TraDE middleware",
+                "operationId": "deleteDataElement",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataElementId",
+                        "description": "Id of the data element that needs to be deleted",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted data element."
+                    },
+                    "404": {
+                        "description": "Invalid data element Id"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1045,19 +1470,21 @@
                 }
             }
         },
-        "/dataElements/{dataElementId}/pull": {
-            "x-swagger-router-controller": "DataElement",
+        "/dataElements/{dataElementId}/instances": {
+            "x-swagger-router-controller": "DataElementInstance",
             "get": {
                 "tags": [
-                    "dataElement"
+                    "dataElementInstance"
                 ],
-                "summary": "Pulls data from the data value associated to the data element identified by Id",
-                "operationId": "pullDataElementData",
-                "produces": [
-                    "application/octet-stream",
-                    "application/json"
-                ],
+                "description": "Gets all available `DataElementInstance` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data element instance resources and param **status** filters result list by status of the data element instances.",
+                "operationId": "getDataElementInstancesOfDataElement",
                 "parameters": [
+                    {
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
                     {
                         "in": "path",
                         "name": "dataElementId",
@@ -1066,92 +1493,122 @@
                         "type": "string"
                     },
                     {
-                        "name": "asReference",
+                        "name": "status",
                         "in": "query",
-                        "description": "If the data should be returned directly or a reference to the data value holding the data",
+                        "description": "Status of data element instances to return",
                         "required": false,
-                        "default": true,
-                        "type": "boolean"
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "The data attached to the data element",
+                        "description": "Returns all `DataElementInstance` resources based on the provided parameters.",
                         "schema": {
-                            "type": "string",
-                            "format": "binary"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElementInstanceArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
-                    },
-                    "303": {
-                        "description": "Redirect to the data value holding the requested data",
-                        "headers": {
-                            "Location": {
-                                "description": "The URL of the data value",
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "$ref": "#/responses/NotFoundResponse"
-                    },
-                    "500": {
-                        "$ref": "#/responses/ErrorResponse"
+                        "description": "No data element instances found with the specified query parameters"
                     }
                 }
             }
         },
-        "/dataElements/{dataElementId}/push": {
-            "x-swagger-router-controller": "DataElement",
-            "post": {
+        "/dataElementInstances": {
+            "x-swagger-router-controller": "DataElementInstance",
+            "get": {
                 "tags": [
-                    "dataElement"
+                    "dataElementInstance"
                 ],
-                "summary": "Pushes data to the TraDE middleware by attaching a new data value holding the provided data to the data element",
-                "operationId": "pushDataElementData",
+                "description": "Get an available `DataElementInstance` resource based on specified parameters.\nQuery parameters **dataModelName**, **dataObjectName** and **dataElementName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data element instance.",
+                "operationId": "queryDataElementInstance",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "dataElementId",
-                        "description": "Id of the data element to attach data to",
+                        "name": "dataModelName",
+                        "in": "query",
+                        "description": "Name of the data model a data element instance should belong to.",
                         "required": true,
                         "type": "string"
                     },
                     {
-                        "name": "replyReference",
+                        "name": "dataObjectName",
                         "in": "query",
-                        "description": "If the data value holding the pushed data or only a reference to it should be returned",
-                        "required": false,
-                        "default": true,
-                        "type": "boolean"
+                        "description": "The name of the data object the instance should belong to.",
+                        "required": true,
+                        "type": "string"
                     },
                     {
+                        "name": "dataElementName",
+                        "in": "query",
+                        "description": "The name of the data element the instance should belong to.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "correlationProperties",
                         "in": "body",
-                        "name": "data",
-                        "description": "The data to push.",
+                        "description": "An array of correlation properties associated with the searched data element instance.",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "binary"
+                            "$ref": "#/definitions/CorrelationPropertyArray"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully pushed data",
+                        "description": "Returns a `DataElementInstance` resource based on the provided parameters.",
                         "schema": {
-                            "$ref": "#/definitions/DataElement"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElementInstance"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
-                    "303": {
-                        "description": "Redirect to the data value holding the pushed data",
-                        "headers": {
-                            "Location": {
-                                "description": "The URL of the data value",
-                                "type": "string"
-                            }
+                    "404": {
+                        "description": "No data element instance found for the specified query parameters."
+                    }
+                }
+            }
+        },
+        "/dataElementInstances/{instanceId}": {
+            "x-swagger-router-controller": "DataElementInstance",
+            "get": {
+                "tags": [
+                    "dataElementInstance"
+                ],
+                "summary": "Find a data element instance by Id",
+                "operationId": "getDataElementInstance",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instanceId",
+                        "description": "Id of the data element instance that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns a `DataElementInstance` resource based on the provided parameters.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataElementInstance"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1159,6 +1616,108 @@
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/dataElementInstances/{instanceId}/dataValue": {
+            "x-swagger-router-controller": "DataValue",
+            "get": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Get the data value associated to the data element instance.",
+                "operationId": "getDataValue",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instanceId",
+                        "description": "Id of the data element instance that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the `DataValue` resource associated to the data element instance.",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataValue"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "dataValue"
+                ],
+                "summary": "Creates a new or associates an existing dataValue to the data element instance.",
+                "operationId": "setDataValue",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instanceId",
+                        "description": "Id of the data element instance that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "dataValueData",
+                        "description": "DataValue object that needs to be created or associated. In case of updating the associated data value providing the Id is enough. To create and associate a new DataValue, a name, type and who created the data value are required. The specification of a contentType is only required if the data type of the data value is binary.",
+                        "schema": {
+                            "$ref": "#/definitions/DataValue"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully associated a the specified data value",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataValue"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "201": {
+                        "description": "Successfully created and associated a new data value",
+                        "headers": {
+                            "Location": {
+                                "type": "string"
+                            }
+                        },
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataValue"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1172,16 +1731,26 @@
                 "tags": [
                     "dataValue"
                 ],
-                "description": "Gets all available `DataValue` resources.\nOptional query param of **limit** determines the limit of returned resources, and param **status** filters result list by status of the data values.\n",
+                "description": "Gets all available `DataValue` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data value resources, param **createdBy** filters result list by the creator and param **status** filters result list by status of the data values.",
                 "operationId": "getDataValuesDirectly",
                 "parameters": [
                     {
-                        "$ref": "#/parameters/limitParam"
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
                     },
                     {
                         "name": "status",
                         "in": "query",
                         "description": "Status of data values to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "createdBy",
+                        "in": "query",
+                        "description": "Name of data elements to return",
                         "required": false,
                         "type": "string"
                     }
@@ -1190,11 +1759,14 @@
                     "200": {
                         "description": "Returns all `DataValue` resources based on the provided parameters.",
                         "schema": {
-                            "title": "ArrayOfDataValue",
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/DataValue"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataValueArray"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "500": {
@@ -1211,10 +1783,30 @@
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "body",
-                        "description": "DataValue object that needs to be added.",
+                        "name": "dataValueData",
+                        "description": "The name, type and who created the data value are required. The specification of a contentType is only required if the data type is binary.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataValueRequest"
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "createdBy",
+                                "type"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "createdBy": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                },
+                                "contentType": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 ],
@@ -1260,7 +1852,14 @@
                     "200": {
                         "description": "Returns a `DataValue` resource based on the provided parameters.",
                         "schema": {
-                            "$ref": "#/definitions/DataValue"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataValue"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "404": {
@@ -1289,10 +1888,10 @@
                     {
                         "in": "body",
                         "name": "dataValue",
-                        "description": "DataValue object that needs to be updated.",
+                        "description": "The updated data value resource. Only changes to the following fields are reflected **name**, **type** and **contentType**. All other changes are ignored since the corresponding fields of the resource are internally set by the server or are immutable.",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataValueUpdateRequest"
+                            "$ref": "#/definitions/DataValue"
                         }
                     }
                 ],
@@ -1300,7 +1899,14 @@
                     "200": {
                         "description": "Returns the updated `DataValue` resource based on the provided modifications.",
                         "schema": {
-                            "$ref": "#/definitions/DataValue"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/DataValue"
+                                },
+                                {
+                                    "$ref": "#/definitions/LinkArray"
+                                }
+                            ]
                         }
                     },
                     "404": {
@@ -1316,7 +1922,7 @@
                     "dataValue"
                 ],
                 "summary": "Deletes a data value",
-                "description": "Deletes a data value and its associated data from the TraDE middleware",
+                "description": "Deletes a data value and its associated data from the TraDE middleware. All references from data element instances are invalidated accordingly.",
                 "operationId": "deleteDataValue",
                 "parameters": [
                     {
@@ -1328,11 +1934,8 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Successfully deleted data value",
-                        "schema": {
-                            "$ref": "#/definitions/DataValue"
-                        }
+                    "204": {
+                        "description": "Successfully deleted data value"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
@@ -1343,7 +1946,7 @@
                 }
             }
         },
-        "/dataValues/{dataValueId}/pull": {
+        "/dataValues/{dataValueId}/data": {
             "x-swagger-router-controller": "DataValue",
             "get": {
                 "tags": [
@@ -1387,10 +1990,7 @@
                         "$ref": "#/responses/ErrorResponse"
                     }
                 }
-            }
-        },
-        "/dataValues/{dataValueId}/push": {
-            "x-swagger-router-controller": "DataValue",
+            },
             "post": {
                 "tags": [
                     "dataValue"
@@ -1429,7 +2029,7 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "Successfully pushed data"
+                        "description": "Successfully pushed data to TraDE middleware."
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
@@ -1445,56 +2045,7 @@
         }
     },
     "definitions": {
-        "Network": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "href": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "nodes": {
-                    "title": "ArrayOfTraDENodes",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Node"
-                    }
-                }
-            }
-        },
-        "Node": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "href": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "dataObjects": {
-                    "title": "ArrayOfDataObjects",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DataObject"
-                    }
-                },
-                "dataElements": {
-                    "title": "ArrayOfDataElements",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DataElement"
-                    }
-                }
-            }
-        },
-        "DataObject": {
+        "DataDependencyGraph": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1508,24 +2059,65 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "DataDependencyGraphArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataDependencyGraph"
+            }
+        },
+        "DataModel": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "DataModelArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataModel"
+            }
+        },
+        "DataObject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "dataModelName": {
+                    "type": "string"
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/StatusEnum"
-                },
-                "dataElements": {
-                    "title": "ArrayOfDataElements",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DataElement"
-                    }
-                },
-                "instances": {
-                    "title": "ArrayOfDataObjectInstances",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DataObjectInstance"
-                    }
                 }
+            }
+        },
+        "DataObjectArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataObject"
             }
         },
         "DataObjectInstance": {
@@ -1543,16 +2135,18 @@
                 "createdFor": {
                     "type": "string"
                 },
+                "correlationProperties": {
+                    "$ref": "#/definitions/CorrelationPropertyArray"
+                },
                 "status": {
                     "$ref": "#/definitions/InstanceStatusEnum"
-                },
-                "elementInstances": {
-                    "title": "ArrayOfDataElementInstances",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DataElementInstance"
-                    }
                 }
+            }
+        },
+        "DataObjectInstanceArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataObjectInstance"
             }
         },
         "DataElement": {
@@ -1581,14 +2175,13 @@
                 },
                 "contentType": {
                     "type": "string"
-                },
-                "instances": {
-                    "title": "ArrayOfDataElementInstances",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DataElementInstance"
-                    }
                 }
+            }
+        },
+        "DataElementArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataElement"
             }
         },
         "DataElementInstance": {
@@ -1606,12 +2199,18 @@
                 "createdFor": {
                     "type": "string"
                 },
+                "correlationProperties": {
+                    "$ref": "#/definitions/CorrelationPropertyArray"
+                },
                 "status": {
                     "$ref": "#/definitions/InstanceStatusEnum"
-                },
-                "value": {
-                    "$ref": "#/definitions/DataValue"
                 }
+            }
+        },
+        "DataElementInstanceArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataElementInstance"
             }
         },
         "DataValue": {
@@ -1652,33 +2251,75 @@
                 }
             }
         },
-        "DataValueRequest": {
+        "DataValueArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/DataValue"
+            }
+        },
+        "CorrelationProperty": {
             "type": "object",
             "properties": {
-                "name": {
+                "key": {
                     "type": "string"
                 },
-                "createdBy": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "contentType": {
+                "value": {
                     "type": "string"
                 }
             }
         },
-        "DataValueUpdateRequest": {
+        "CorrelationPropertyArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/CorrelationProperty"
+            }
+        },
+        "TransformationMethod": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "entity": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
-                "type": {
+                "todo": {
                     "type": "string"
-                },
-                "contentType": {
+                }
+            }
+        },
+        "TransformationMethodArray": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/TransformationMethod"
+            }
+        },
+        "Transformation": {
+            "type": "object",
+            "properties": {
+                "todo": {
+                    "type": "string"
+                }
+            }
+        },
+        "TransformationTask": {
+            "type": "object",
+            "properties": {
+                "todo": {
+                    "type": "string"
+                }
+            }
+        },
+        "TransformationResult": {
+            "type": "object",
+            "properties": {
+                "todo": {
                     "type": "string"
                 }
             }
@@ -1697,6 +2338,7 @@
             "default": "created",
             "enum": [
                 "created",
+                "initialized",
                 "archived"
             ]
         },
@@ -1755,16 +2397,62 @@
                     "type": "string"
                 }
             }
+        },
+        "Link": {
+            "type": "object",
+            "required": [
+                "href",
+                "rel"
+            ],
+            "properties": {
+                "href": {
+                    "type": "string"
+                },
+                "rel": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "hreflang": {
+                    "type": "string"
+                },
+                "length": {
+                    "type": "string"
+                }
+            }
+        },
+        "LinkArray": {
+            "description": "An array of links which enable navigation, e.g., to support pagination of collection resources",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Link"
+            }
         }
     },
     "parameters": {
-        "limitParam": {
-            "name": "limit",
+        "startParam": {
+            "name": "start",
             "in": "query",
-            "description": "Limit of returned objects",
+            "description": "Start index of returned collection of resources for pagination.",
             "required": false,
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "default": 0,
+            "minimum": 0
+        },
+        "sizeParam": {
+            "name": "size",
+            "in": "query",
+            "description": "Size of the returned sub-collection of resources for pagination.",
+            "required": false,
+            "type": "integer",
+            "format": "int32",
+            "default": 15,
+            "minimum": 0
         }
     },
     "responses": {
