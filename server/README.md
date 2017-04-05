@@ -1,16 +1,25 @@
-# Code Generation with Swagger and 'org.detoeuf.swagger-codegen' Gradle Plugin
-Due to missing support for configuration of the code generation process, we are copying all generated API-related files 
-(except the model and factory classes) from 'build/generated-sources/swagger' to 
-'src/main/java/io/swagger/trade/server/jersey/api' in order to enable their manual adaptation.
+# Code Generation with Swagger and Gradle
+We are using the **org.detoeuf.swagger-codegen** Gradle plugin to enable the generation of server code based on a 
+provided Swagger specification (`swagger.json`).
+All generated API-related files are placed under `build/generated-sources/swagger`. From there the classes 
+contained in the `factories` and `ìmpl` packages located under 
 
-After changing the API specification and regenerating the resulting API Java classes all changes have to be 
-integrated with the existing code base manually.
+`build/generated-sources/swagger/src/main/java/io/swagger/trade/server/jersey/api`
 
-The following manual adaptations are done at the moment:
+are manually copied once to `src/main/java` in order to enable their manual extension and adaptation.
 
-#### Supporting `UriInfo` for dynamic URL building on Resources 
+After changing the API specification and regenerating the resulting API Java classes all breaking changes 
+in the copied classes have to be integrated with the existing/generated code base manually.
+All other generated model and API-related classes can be used and are compiled as they are.
+
+#### Supporting `UriInfo` for dynamic URL building on Resources through customized *.mustache files
+In order to enable the dynamic building of URLs (href, links, etc.) we added customized *.mustache (`/templates/*
+.mustache`) that will be used during code generation to add corresponding UriInfo parameters to all relevant method 
+signatures:
+
 * `, @Context UriInfo uriInfo` is added to all method signatures in all 'xxxApi' files 
-(`src/main/java/io/swagger/trade/server/jersey/api`) and `uriInfo` has to be forwarded in `delegator` calls (e.g., `delegate.addDataValue(body,securityContext,uriInfo);`)
+(`build/generated-sources/swagger/../src/main/java/io/swagger/trade/server/jersey/api`) and `uriInfo` has to be 
+forwarded in `delegator` calls (e.g., `delegate.addDataValue(body,securityContext,uriInfo);`)
 
   Example: 
   ```
@@ -34,13 +43,13 @@ The following manual adaptations are done at the moment:
   ``` 
 
 * `, UriInfo uriInfo` is added to all method signatures in all
-   * 'xxxApiService' files (`src/main/java/io/swagger/trade/server/jersey/api`)
+   * 'xxxApiService' files (`build/generated-sources/swagger/../src/main/java/io/swagger/trade/server/jersey/api`)
      
      Example: 
        ```
        public abstract Response addDataValue(DataValue body,SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException;
        ```
-   * and 'xxxApiServiceImpl' files (`src/main/java/io/swagger/trade/server/jersey/api/impl`)
+   * and 'xxxApiServiceImpl' files (`build/generated-sources/swagger/../src/main/java/io/swagger/trade/server/jersey/api/impl`)
      
      Example: 
        ```

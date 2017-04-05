@@ -93,6 +93,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
 
                 result.getDataValue().setHref(valueUri.toASCIIString());
 
+                // TODO: Set links to related data element instances!?
                 result.setLinks(createDataValueLinks(uriInfo));
 
                 response = Response.ok().entity(result).build();
@@ -112,13 +113,26 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response getDataValuesDirectly(@Min(0) Integer start, @Min(0) Integer size, String status, String createdBy, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataValuesDirectly(@Min(1) Integer start, @Min(1) Integer size, String status, String
+            createdBy, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataValue> dataValues = null;
+            List<org.trade.core.model.data.DataValue> dataValues = DataManager.getInstance().getAllDataValues(status, createdBy);
+            int filteredListSize = dataValues.size();
 
-            dataValues = DataManager.getInstance().getAllDataValues(start, size, status, createdBy);
+            // Check if the start index and the size are in still the range of the filtered result list, if not
+            // respond the whole filtered result list
+            if (start > 0 && size > 0 && start <= dataValues.size()) {
+                // Calculate the two index
+                int toIndex = start-1 + size;
+                // Check if the index is still in bounds
+                if (toIndex > dataValues.size()) {
+                    toIndex = dataValues.size();
+                }
+                // Decrease start by one since the API starts counting indexes from 1
+                dataValues = dataValues.subList(start-1, toIndex);
+            }
 
             DataValueArrayWithLinks resultList = new DataValueArrayWithLinks();
             resultList.setDataValues(new DataValueArray());
@@ -134,12 +148,13 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
 
                 result.getDataValue().setHref(valueUri.toASCIIString());
 
+                // TODO: Set links to related data element instances!?
                 result.setLinks(createDataValueLinks(uriInfo));
 
                 resultList.getDataValues().add(result);
             }
 
-            resultList.setLinks(createPaginationLinks(uriInfo));
+            resultList.setLinks(createPaginationLinks(uriInfo, start, size, filteredListSize));
 
             response = Response.ok().entity(resultList).build();
         } catch (Exception e) {
@@ -230,6 +245,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
 
                 result.getDataValue().setHref(valueUri.toASCIIString());
 
+                // TODO: Set links to realted data element instances!?
                 result.setLinks(createDataValueLinks(uriInfo));
 
                 response = Response.ok().entity(result).build();
@@ -280,15 +296,49 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         LinkArray links = new LinkArray();
 
 
-
         return links;
     }
 
-    private LinkArray createPaginationLinks(UriInfo uriInfo) {
-        // TODO: Add links to paginate through the collection
+    private LinkArray createPaginationLinks(UriInfo uriInfo, Integer start, Integer size, Integer sizeOfCollection) {
         LinkArray links = new LinkArray();
 
+        UriBuilder builder = uriInfo.getAbsolutePathBuilder();
 
+        URI nextUri = null;
+        if (start + size <= sizeOfCollection) {
+            // Check if there are enough elements after the current selection, else we do not show a next link since
+            // everything available is already presented through the current response.
+            nextUri = builder.replaceQueryParam("start", start + size).replaceQueryParam("size", size).build();
+        }
+
+        if (nextUri != null) {
+            Link next = new Link();
+            next.setHref(nextUri.toASCIIString());
+            next.setRel("next");
+            next.setTitle("Provides the next data values of the collection matching the defined " +
+                    "filter values.");
+            links.add(next);
+        }
+
+        URI previousUri = null;
+        if (start - size > 0) {
+            // Check if there are enough elements before the current selection
+            previousUri = builder.replaceQueryParam("start", start - size).replaceQueryParam("size", size).build();
+        } else {
+            // Start from the beginning, if the current start value is not already the first index
+            if (start > 0 && start != 1) {
+                previousUri = builder.replaceQueryParam("start", 1).build();
+            }
+        }
+
+        if (previousUri != null) {
+            Link prev = new Link();
+            prev.setHref(previousUri.toASCIIString());
+            prev.setRel("prev");
+            prev.setTitle("Provides the previous data values of the collection matching the defined " +
+                    "filter values.");
+            links.add(prev);
+        }
 
         return links;
     }

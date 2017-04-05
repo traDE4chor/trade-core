@@ -54,7 +54,7 @@ public class DataManager {
         return this.dataValues.get(dataValueId);
     }
 
-    public List<DataValue> getAllDataValues(Integer start, Integer size, String status, String createdBy) {
+    public List<DataValue> getAllDataValues(String status, String createdBy) {
         Stream<DataValue> stream = dataValues.values().stream();
 
         if (status != null && !status.isEmpty()) {
@@ -66,19 +66,6 @@ public class DataManager {
         }
 
         List<DataValue> result = stream.collect(Collectors.toList());
-
-        // Check if the start index and the size are in still the range of the filtered result list, if not respond an
-        // empty list
-        if (start > 0 && size > 0 && start < result.size()) {
-            // Calculate the two index
-            int toIndex = start-1 + size;
-            // Check if the index is still in bounds
-            if (toIndex > result.size()) {
-                toIndex = result.size();
-            }
-            // Decrease start by one since the API starts counting indexes from 1
-            result = result.subList(start-1, toIndex);
-        }
 
         // Return an unmodifiable copy of the list
         return Collections.unmodifiableList(result);
