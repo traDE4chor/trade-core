@@ -68,6 +68,10 @@ subprojects {
     sourceCompatibility = 1.8
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.3'
+}
+
 task integrationTest(type: Test) {
     testClassesDir = sourceSets.integrationTest.output.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath

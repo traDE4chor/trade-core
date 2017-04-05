@@ -39,7 +39,6 @@ import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.DataValue;
 import org.trade.core.utils.TraDEProperties;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -139,7 +138,7 @@ public class TraDENodeIT {
             }
 
             if (dvKeys.isEmpty()) {
-                DataValue value = new DataValue("hahnml", "simA");
+                DataValue value = new DataValue("hahnml");
 
                 try {
                     InputStream in = getClass().getResourceAsStream("/data.dat");

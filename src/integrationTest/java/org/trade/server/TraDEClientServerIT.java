@@ -22,8 +22,8 @@ import com.mongodb.client.MongoDatabase;
 import io.swagger.trade.client.jersey.ApiException;
 import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataValue;
-import io.swagger.trade.client.jersey.model.DataValueRequest;
-import io.swagger.trade.client.jersey.model.DataValueUpdateRequest;
+import io.swagger.trade.client.jersey.model.DataValueData;
+import io.swagger.trade.client.jersey.model.DataValueWithLinks;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,7 +32,6 @@ import org.trade.core.utils.TraDEProperties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * Created by hahnml on 31.01.2017.
@@ -65,7 +64,7 @@ public class TraDEClientServerIT {
     }
 
     @Test
-    public void dataValueApiRoundTripTest() {
+    public void dataValueApiRoundTripTest() throws Exception {
         DataValueTestHelper helper = new DataValueTestHelper(dvApiInstance);
         helper.addDataValues();
 
@@ -83,7 +82,7 @@ public class TraDEClientServerIT {
     @Test
     public void shouldRejectAddDataValueRequestTest() {
         // Try to add a new data value without 'createdBy' value
-        DataValueRequest request = new DataValueRequest();
+        DataValueData request = new DataValueData();
 
         request.setName("inputData");
         request.setType("binary");
@@ -102,8 +101,7 @@ public class TraDEClientServerIT {
     public void shouldRejectDeleteDataValueRequestTest() {
         try {
             // Try to delete not existing data value
-            DataValue result = dvApiInstance.deleteDataValue("Not-Existing-Id");
-            assertNull(result);
+            dvApiInstance.deleteDataValue("Not-Existing-Id");
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -113,7 +111,7 @@ public class TraDEClientServerIT {
 
     @Test
     public void updateDataValueTest() {
-        DataValueRequest request = new DataValueRequest();
+        DataValueData request = new DataValueData();
 
         request.setName("inputData");
         request.setCreatedBy("hahnml");
@@ -123,24 +121,26 @@ public class TraDEClientServerIT {
         try {
             DataValue result = dvApiInstance.addDataValue(request);
 
-            DataValueUpdateRequest updateRequest = new DataValueUpdateRequest();
+            DataValue updateRequest = new DataValue();
             updateRequest.setName("changedName");
             updateRequest.setContentType("changedContentType");
             updateRequest.setType("changedType");
 
-            DataValue updated = dvApiInstance.updateDataValueDirectly(result.getId(), updateRequest);
+            dvApiInstance.updateDataValueDirectly(result.getId(), updateRequest);
+
+            DataValueWithLinks updated = dvApiInstance.getDataValueDirectly(result.getId());
             // Check unchanged properties
-            assertEquals(result.getId(), updated.getId());
-            assertEquals(result.getStatus(), updated.getStatus());
-            assertEquals(result.getCreated(), updated.getCreated());
-            assertEquals(result.getSize(), updated.getSize());
-            assertEquals(result.getCreatedBy(), updated.getCreatedBy());
+            assertEquals(result.getId(), updated.getDataValue().getId());
+            assertEquals(result.getStatus(), updated.getDataValue().getStatus());
+            assertEquals(result.getCreated(), updated.getDataValue().getCreated());
+            assertEquals(result.getSize(), updated.getDataValue().getSize());
+            assertEquals(result.getCreatedBy(), updated.getDataValue().getCreatedBy());
 
             // Check changed properties
-            assertNotEquals(result.getLastModified(), updated.getLastModified());
-            assertNotEquals(result.getName(), updated.getName());
-            assertNotEquals(result.getContentType(), updated.getContentType());
-            assertNotEquals(result.getType(), updated.getType());
+            assertNotEquals(result.getLastModified(), updated.getDataValue().getLastModified());
+            assertNotEquals(result.getName(), updated.getDataValue().getName());
+            assertNotEquals(result.getContentType(), updated.getDataValue().getContentType());
+            assertNotEquals(result.getType(), updated.getDataValue().getType());
 
             dvApiInstance.deleteDataValue(result.getId());
         } catch (ApiException e) {

@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'org.detoeuf.swagger-codegen' version '1.6.3'
+    id 'org.detoeuf.swagger-codegen' version '1.7.1'
     id 'java'
 }
 
@@ -9,7 +9,8 @@ task generateClient {
     swagger {
         inputSpec = project.file('src/main/resources/swagger.json').absolutePath
 
-        language = 'java'
+        outputDir = project.file("${project.buildDir.path}/generated-sources/swagger").absolutePath
+        lang = 'java'
 
         additionalProperties = [
                 'invokerPackage'   : 'io.swagger.trade.client.jersey',

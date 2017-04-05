@@ -18,7 +18,7 @@ package io.swagger.trade.server.jersey.api.util;
 
 import de.slub.urn.URNSyntaxException;
 import io.swagger.trade.server.jersey.model.DataValue;
-import io.swagger.trade.server.jersey.model.DataValueRequest;
+import io.swagger.trade.server.jersey.model.DataValueData;
 import io.swagger.trade.server.jersey.model.StatusEnum;
 
 /**
@@ -52,10 +52,9 @@ public class ResourceTransformationUtils {
         return value;
     }
 
-    public static org.trade.core.model.data.DataValue resource2Model(DataValueRequest dataValue) throws
+    public static org.trade.core.model.data.DataValue resource2Model(DataValueData dataValue) throws
             URNSyntaxException {
-        org.trade.core.model.data.DataValue value = new org.trade.core.model.data.DataValue(dataValue.getCreatedBy(),
-                null);
+        org.trade.core.model.data.DataValue value = new org.trade.core.model.data.DataValue(dataValue.getCreatedBy());
 
         value.setHumanReadableName(dataValue.getName());
         value.setContentType(dataValue.getContentType());

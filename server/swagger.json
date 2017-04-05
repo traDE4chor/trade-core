@@ -53,18 +53,11 @@
                     "200": {
                         "description": "Returns all `DataDependencyGraph` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataDependencyGraphArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataDependencyGraphArrayWithLinks"
                         }
                     },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -106,14 +99,7 @@
                             }
                         },
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataDependencyGraph"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataDependencyGraphWithLinks"
                         }
                     },
                     "400": {
@@ -146,14 +132,7 @@
                     "200": {
                         "description": "Returns a `DataDependencyGraph` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataDependencyGraph"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataDependencyGraphWithLinks"
                         }
                     },
                     "404": {
@@ -311,18 +290,14 @@
                     "200": {
                         "description": "Returns the `DataModel` resource associated to the data dependency graph.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataModel"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataModelWithLinks"
                         }
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -361,6 +336,9 @@
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
                     },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
                     }
@@ -394,18 +372,11 @@
                     "200": {
                         "description": "Returns all `DataModel` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataModelArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataModelArrayWithLinks"
                         }
                     },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -480,14 +451,7 @@
                     "200": {
                         "description": "Returns a `DataModel` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataModel"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataModelWithLinks"
                         }
                     },
                     "404": {
@@ -651,18 +615,14 @@
                     "200": {
                         "description": "Returns all `DataObject` resources which belong the given data model.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObjectArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectArrayWithLinks"
                         }
                     },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -701,18 +661,11 @@
                     "200": {
                         "description": "Returns all `DataObject` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObjectArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectArrayWithLinks"
                         }
                     },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -787,21 +740,14 @@
                     "200": {
                         "description": "Returns a `DataObject` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObject"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectWithLinks"
                         }
-                    },
-                    "400": {
-                        "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -834,14 +780,7 @@
                     "200": {
                         "description": "Returns the updated `DataObject` resource based on the provided modifications.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObject"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectWithLinks"
                         }
                     },
                     "400": {
@@ -921,18 +860,18 @@
                     "200": {
                         "description": "Returns all `DataObjectInstance` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObjectInstanceArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectInstanceArrayWithLinks"
                         }
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
                     "404": {
-                        "description": "No data object instances found with the specified query parameters"
+                        "description": "No data object instances found with the specified query parameters",
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -984,14 +923,7 @@
                             }
                         },
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObjectInstance"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectInstanceWithLinks"
                         }
                     },
                     "400": {
@@ -1047,18 +979,18 @@
                     "200": {
                         "description": "Returns all `DataElement` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElementArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementArrayWithLinks"
                         }
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
                     "404": {
-                        "description": "No data elements found with the specified query parameters"
+                        "description": "No data elements found with the specified query parameters",
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -1113,14 +1045,7 @@
                             }
                         },
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElement"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementWithLinks"
                         }
                     },
                     "400": {
@@ -1172,18 +1097,11 @@
                     "200": {
                         "description": "Returns a `DataObjectInstance` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObjectInstance"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectInstanceWithLinks"
                         }
                     },
-                    "404": {
-                        "description": "No data object instance found for the specified query parameters."
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -1209,14 +1127,7 @@
                     "200": {
                         "description": "Returns a `DataObjectInstance` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataObjectInstance"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataObjectInstanceWithLinks"
                         }
                     },
                     "400": {
@@ -1224,6 +1135,9 @@
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -1248,7 +1162,8 @@
                         "description": "Successfully deleted data object instance"
                     },
                     "404": {
-                        "description": "Invalid combination of data object and instance Ids"
+                        "description": "Invalid combination of data object and instance Ids",
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1290,18 +1205,18 @@
                     "200": {
                         "description": "Returns all `DataElementInstance` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElementInstanceArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementInstanceArrayWithLinks"
                         }
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
                     "404": {
-                        "description": "No data element instances found with the specified query parameters"
+                        "description": "No data element instances found with the specified query parameters",
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -1340,18 +1255,11 @@
                     "200": {
                         "description": "Returns all `DataElement` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElementArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementArrayWithLinks"
                         }
                     },
-                    "404": {
-                        "description": "No data elements found with the specified query parameters"
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -1377,18 +1285,15 @@
                     "200": {
                         "description": "Returns a `DataElement` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElement"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementWithLinks"
                         }
                     },
                     "404": {
-                        "description": "Data element not found"
+                        "description": "Data element not found",
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -1421,21 +1326,15 @@
                     "200": {
                         "description": "Returns the updated `DataElement` resource based on the provided modifications.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElement"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementWithLinks"
                         }
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Data element not found"
+                        "description": "Data element not found",
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1463,7 +1362,8 @@
                         "description": "Successfully deleted data element."
                     },
                     "404": {
-                        "description": "Invalid data element Id"
+                        "description": "Invalid data element Id",
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1505,18 +1405,15 @@
                     "200": {
                         "description": "Returns all `DataElementInstance` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElementInstanceArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementInstanceArrayWithLinks"
                         }
                     },
                     "404": {
-                        "description": "No data element instances found with the specified query parameters"
+                        "description": "No data element instances found with the specified query parameters",
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -1565,18 +1462,11 @@
                     "200": {
                         "description": "Returns a `DataElementInstance` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElementInstance"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementInstanceWithLinks"
                         }
                     },
-                    "404": {
-                        "description": "No data element instance found for the specified query parameters."
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -1602,14 +1492,7 @@
                     "200": {
                         "description": "Returns a `DataElementInstance` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataElementInstance"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataElementInstanceWithLinks"
                         }
                     },
                     "400": {
@@ -1617,6 +1500,9 @@
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             }
@@ -1642,18 +1528,14 @@
                     "200": {
                         "description": "Returns the `DataValue` resource associated to the data element instance.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataValue"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataValueWithLinks"
                         }
                     },
                     "404": {
                         "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
                     }
                 }
             },
@@ -1682,21 +1564,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully associated a the specified data value",
+                        "description": "Successfully associated the specified data value",
                         "headers": {
                             "Location": {
                                 "type": "string"
                             }
                         },
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataValue"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataValueWithLinks"
                         }
                     },
                     "201": {
@@ -1707,18 +1582,14 @@
                             }
                         },
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataValue"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataValueWithLinks"
                         }
                     },
                     "400": {
                         "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1751,7 +1622,7 @@
                     {
                         "name": "createdBy",
                         "in": "query",
-                        "description": "Name of data elements to return",
+                        "description": "Name of the data element to which instance a data value belongs",
                         "required": false,
                         "type": "string"
                     }
@@ -1760,14 +1631,7 @@
                     "200": {
                         "description": "Returns all `DataValue` resources based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataValueArray"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataValueArrayWithLinks"
                         }
                     },
                     "500": {
@@ -1853,14 +1717,7 @@
                     "200": {
                         "description": "Returns a `DataValue` resource based on the provided parameters.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataValue"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataValueWithLinks"
                         }
                     },
                     "404": {
@@ -1900,14 +1757,7 @@
                     "200": {
                         "description": "Returns the updated `DataValue` resource based on the provided modifications.",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/DataValue"
-                                },
-                                {
-                                    "$ref": "#/definitions/LinkArray"
-                                }
-                            ]
+                            "$ref": "#/definitions/DataValueWithLinks"
                         }
                     },
                     "404": {
@@ -2063,10 +1913,32 @@
                 }
             }
         },
+        "DataDependencyGraphWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataDependencyGraph": {
+                    "$ref": "#/definitions/DataDependencyGraph"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataDependencyGraphArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataDependencyGraph"
+                "$ref": "#/definitions/DataDependencyGraphWithLinks"
+            }
+        },
+        "DataDependencyGraphArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataDependencyGraphs": {
+                    "$ref": "#/definitions/DataDependencyGraphArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "DataModel": {
@@ -2086,10 +1958,32 @@
                 }
             }
         },
+        "DataModelWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataModel": {
+                    "$ref": "#/definitions/DataModel"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataModelArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataModel"
+                "$ref": "#/definitions/DataModelWithLinks"
+            }
+        },
+        "DataModelArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataModels": {
+                    "$ref": "#/definitions/DataModelArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "DataObject": {
@@ -2115,10 +2009,32 @@
                 }
             }
         },
+        "DataObjectWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataObject": {
+                    "$ref": "#/definitions/DataObject"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataObjectArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataObject"
+                "$ref": "#/definitions/DataObjectWithLinks"
+            }
+        },
+        "DataObjectArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataObjects": {
+                    "$ref": "#/definitions/DataObjectArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "DataObjectInstance": {
@@ -2144,10 +2060,32 @@
                 }
             }
         },
+        "DataObjectInstanceWithLinks": {
+            "type": "object",
+            "properties": {
+                "instance": {
+                    "$ref": "#/definitions/DataObjectInstance"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataObjectInstanceArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataObjectInstance"
+                "$ref": "#/definitions/DataObjectInstanceWithLinks"
+            }
+        },
+        "DataObjectInstanceArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "instances": {
+                    "$ref": "#/definitions/DataObjectInstanceArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "DataElement": {
@@ -2179,10 +2117,32 @@
                 }
             }
         },
+        "DataElementWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataElement": {
+                    "$ref": "#/definitions/DataElement"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataElementArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataElement"
+                "$ref": "#/definitions/DataElementWithLinks"
+            }
+        },
+        "DataElementArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataElements": {
+                    "$ref": "#/definitions/DataElementArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "DataElementInstance": {
@@ -2208,10 +2168,32 @@
                 }
             }
         },
+        "DataElementInstanceWithLinks": {
+            "type": "object",
+            "properties": {
+                "instance": {
+                    "$ref": "#/definitions/DataElementInstance"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataElementInstanceArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataElementInstance"
+                "$ref": "#/definitions/DataElementInstanceWithLinks"
+            }
+        },
+        "DataElementInstanceArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "instances": {
+                    "$ref": "#/definitions/DataElementInstanceArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "DataValue": {
@@ -2252,10 +2234,32 @@
                 }
             }
         },
+        "DataValueWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataValue": {
+                    "$ref": "#/definitions/DataValue"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "DataValueArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/DataValue"
+                "$ref": "#/definitions/DataValueWithLinks"
+            }
+        },
+        "DataValueArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "dataValues": {
+                    "$ref": "#/definitions/DataValueArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "CorrelationProperty": {
@@ -2295,10 +2299,32 @@
                 }
             }
         },
+        "TransformationMethodWithLinks": {
+            "type": "object",
+            "properties": {
+                "method": {
+                    "$ref": "#/definitions/TransformationMethod"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "TransformationMethodArray": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/TransformationMethod"
+                "$ref": "#/definitions/TransformationMethodWithLinks"
+            }
+        },
+        "TransformationMethodArrayWithLinks": {
+            "type": "object",
+            "properties": {
+                "methods": {
+                    "$ref": "#/definitions/TransformationMethodArray"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
             }
         },
         "Transformation": {
@@ -2306,6 +2332,17 @@
             "properties": {
                 "todo": {
                     "type": "string"
+                }
+            }
+        },
+        "TransformationWithLinks": {
+            "type": "object",
+            "properties": {
+                "transformation": {
+                    "$ref": "#/definitions/Transformation"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
                 }
             }
         },
@@ -2317,11 +2354,33 @@
                 }
             }
         },
+        "TransformationTaskWithLinks": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "$ref": "#/definitions/TransformationTask"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
+                }
+            }
+        },
         "TransformationResult": {
             "type": "object",
             "properties": {
                 "todo": {
                     "type": "string"
+                }
+            }
+        },
+        "TransformationResultWithLinks": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/TransformationResult"
+                },
+                "links": {
+                    "$ref": "#/definitions/LinkArray"
                 }
             }
         },
@@ -2442,8 +2501,8 @@
             "required": false,
             "type": "integer",
             "format": "int32",
-            "default": 0,
-            "minimum": 0
+            "default": 1,
+            "minimum": 1
         },
         "sizeParam": {
             "name": "size",
@@ -2452,8 +2511,8 @@
             "required": false,
             "type": "integer",
             "format": "int32",
-            "default": 15,
-            "minimum": 0
+            "default": 50,
+            "minimum": 1
         }
     },
     "responses": {

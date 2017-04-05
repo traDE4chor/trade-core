@@ -31,13 +31,10 @@ import org.trade.core.model.data.DataValue;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 
 /**
  * Created by hahnml on 22.11.2016.
@@ -151,7 +148,7 @@ public class TraDENode {
             }
 
             if (dvKeys.isEmpty()) {
-                DataValue value = new DataValue("hahnml", "simA");
+                DataValue value = new DataValue("hahnml");
 
                 try {
                     // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
@@ -166,7 +163,7 @@ public class TraDENode {
 
                 dataValues.set(value.getIdentifier(), value);
 
-                value = new DataValue("hahnml", "simA");
+                value = new DataValue("hahnml");
 
                 try {
                     // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
@@ -193,7 +190,6 @@ public class TraDENode {
                 DataValue value = (DataValue) instance.getMap("dataValues").get(key);
                 System.out.println("### DataValue ###");
                 System.out.println("Owner: " + value.getOwner());
-                System.out.println("CreatedFor: " + value.getCreatedFor());
                 System.out.println("Identifier: " + value.getIdentifier());
                 System.out.println("URN: " + value.getUrn().toString());
                 System.out.println("Timestamp: " + value.getCreationTimestamp());

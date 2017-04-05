@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'org.detoeuf.swagger-codegen' version '1.6.3'
+    id 'org.detoeuf.swagger-codegen' version '1.7.1'
     id 'java'
 }
 
@@ -9,7 +9,8 @@ task generateSources {
     swagger {
         inputSpec = project.file('swagger.json').absolutePath
 
-        language = 'jaxrs'
+        outputDir = project.file("${project.buildDir.path}/generated-sources/swagger").absolutePath
+        lang = 'jaxrs'
 
         additionalProperties = [
                 'invokerPackage'   : 'io.swagger.trade.server.jersey',
@@ -18,7 +19,8 @@ task generateSources {
                 'library'          : 'jersey2',
                 'jackson'          : 'true',
                 'serializableModel': 'true',
-                'dateLibrary'      : 'java7'
+                'dateLibrary'      : 'java7',
+                'templateDir'      : project.file('templates').absolutePath
         ]
     }
 }
@@ -36,26 +38,18 @@ task copySwaggerFile(type: Copy) {
     filter(ReplaceTokens, tokens: [port_number:httpPort])
 }
 
-configurations {
-    api
-}
-
 // Create a new source set for the generated API classes
 sourceSets {
-    api
+    main {
+        java {
+            srcDirs = ['src/main/java', "${project.buildDir.path}/generated-sources/swagger/src/gen/java"]
+            exclude 'io/swagger/trade/server/jersey/api/JacksonJsonProvider.java'
+        }
+    }
 }
-// Disable compiling api source set, since the used classes are compiled through 'compileJava' at once
-compileApiJava.enabled = false
-// Make these classes visible to the ones copied manually to the main source set
-sourceSets.api.java.srcDirs += "${project.buildDir.path}/generated-sources/swagger/src/gen/java"
-sourceSets.api.java.srcDirs += "${project.buildDir.path}/generated-sources/swagger/src/main/java"
 
-// Add the non-adapted, generated API source files to the list of sources to compile
 compileJava {
     dependsOn generateSources, copySwaggerFile
-    source += fileTree(dir: "${project.buildDir.path}/generated-sources/swagger/src/",
-            includes: ['gen/java/io/swagger/trade/server/jersey/model/**',
-                       'main/java/io/swagger/trade/server/jersey/api/factories/**'])
 }
 
 ext {
@@ -65,15 +59,6 @@ ext {
 }
 
 dependencies {
-    // Add a dependency from the main source set to the api source set
-    compile sourceSets.api.output
-
-    // Add all api dependencies to the main source set
-    compile configurations.api
-
-    // Add all api dependencies also to the api source set
-    apiCompile configurations.api
-
     compile project (':utils'), project(':dataManagement')
 
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.14.v20161028'
@@ -93,12 +78,11 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jackson_version"
     compile "com.brsanthu:migbase64:2.2"
 
-    // Add dependencies required by API and MAIN Java classes
-    api group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
-    api group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: "$swagger_version"
-    api "io.swagger:swagger-annotations:$swagger_version"
-    api "org.glassfish.jersey.media:jersey-media-multipart:$jersey_version"
-    api group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: "$jackson_version"
-    api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "$jackson_version"
-    api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$jackson_version"
+    compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+    compile group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: "$swagger_version"
+    compile "io.swagger:swagger-annotations:$swagger_version"
+    compile "org.glassfish.jersey.media:jersey-media-multipart:$jersey_version"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: "$jackson_version"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "$jackson_version"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$jackson_version"
 }

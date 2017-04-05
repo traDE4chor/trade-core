@@ -23,12 +23,12 @@ import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
 import org.trade.core.data.management.DataManager;
 
+import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,14 +36,13 @@ import java.util.List;
 public class DataValuesApiServiceImpl extends DataValuesApiService {
 
     @Override
-    public Response addDataValue(DataValueRequest body, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response addDataValue(DataValueData dataValueData, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataValue value = null;
         try {
             // Check if createdBy is specified since this is a mandatory attribute because it can not be changed
             // after creation of the data value
-            if (body.getCreatedBy() == null || body.getCreatedBy().isEmpty()) {
+            if (dataValueData.getCreatedBy() == null || dataValueData.getCreatedBy().isEmpty()) {
                 response = Response.status(Response.Status.BAD_REQUEST).entity(new InvalidInput()
                         .message("The 'createdBy' attribute in parameter 'body' is required but missing in the " +
                                 "processed request.").example("{\n" +
@@ -54,9 +53,9 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                                 "}"))
                         .build();
             } else {
-                value = DataManager.getInstance().registerDataValue
+                org.trade.core.model.data.DataValue value = DataManager.getInstance().registerDataValue
                         (ResourceTransformationUtils.resource2Model
-                                (body));
+                                (dataValueData));
 
                 DataValue result = ResourceTransformationUtils.model2Resource(value);
 
@@ -84,12 +83,17 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
 
         try {
             if (value != null) {
-                DataValue result = ResourceTransformationUtils.model2Resource(value);
+                DataValueWithLinks result = new DataValueWithLinks();
 
+                result.setDataValue(ResourceTransformationUtils.model2Resource(value));
+
+                // Set HREF and links to related resources
                 UriBuilder builder = uriInfo.getAbsolutePathBuilder();
                 URI valueUri = builder.build();
 
-                result.setHref(valueUri.toASCIIString());
+                result.getDataValue().setHref(valueUri.toASCIIString());
+
+                result.setLinks(createDataValueLinks(uriInfo));
 
                 response = Response.ok().entity(result).build();
             } else {
@@ -108,26 +112,34 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response getDataValuesDirectly(Integer limit, String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataValuesDirectly(@Min(0) Integer start, @Min(0) Integer size, String status, String createdBy, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
             List<org.trade.core.model.data.DataValue> dataValues = null;
 
-            dataValues = DataManager.getInstance().getAllDataValues(limit, status);
+            dataValues = DataManager.getInstance().getAllDataValues(start, size, status, createdBy);
 
-            List<DataValue> resultList = new ArrayList<>();
+            DataValueArrayWithLinks resultList = new DataValueArrayWithLinks();
+            resultList.setDataValues(new DataValueArray());
             for (org.trade.core.model.data.DataValue dataValue : dataValues) {
 
-                DataValue result = ResourceTransformationUtils.model2Resource(dataValue);
+                DataValueWithLinks result = new DataValueWithLinks();
 
+                result.setDataValue(ResourceTransformationUtils.model2Resource(dataValue));
+
+                // Set HREF and links to related resources
                 UriBuilder builder = uriInfo.getAbsolutePathBuilder();
-                URI valueUri = builder.path(result.getId()).build();
+                URI valueUri = builder.path(result.getDataValue().getId()).build();
 
-                result.setHref(valueUri.toASCIIString());
+                result.getDataValue().setHref(valueUri.toASCIIString());
 
-                resultList.add(result);
+                result.setLinks(createDataValueLinks(uriInfo));
+
+                resultList.getDataValues().add(result);
             }
+
+            resultList.setLinks(createPaginationLinks(uriInfo));
 
             response = Response.ok().entity(resultList).build();
         } catch (Exception e) {
@@ -140,7 +152,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response pullDataValue(String dataValueId, SecurityContext securityContext) throws NotFoundException {
+    public Response pullDataValue(String dataValueId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
@@ -165,7 +177,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response pushDataValue(String dataValueId, Long contentLength, byte[] data, SecurityContext securityContext) throws NotFoundException {
+    public Response pushDataValue(String dataValueId, Long contentLength, byte[] data, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
@@ -198,8 +210,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response updateDataValueDirectly(String dataValueId, DataValueUpdateRequest dataValue, SecurityContext
-            securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response updateDataValueDirectly(String dataValueId, DataValue dataValue, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
@@ -209,12 +220,17 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 org.trade.core.model.data.DataValue value = DataManager.getInstance().updateDataValue(
                         dataValueId, dataValue.getName(), dataValue.getContentType(), dataValue.getType());
 
-                DataValue result = ResourceTransformationUtils.model2Resource(value);
+                DataValueWithLinks result = new DataValueWithLinks();
 
+                result.setDataValue(ResourceTransformationUtils.model2Resource(value));
+
+                // Set HREF and links to related resources
                 UriBuilder builder = uriInfo.getAbsolutePathBuilder();
                 URI valueUri = builder.build();
 
-                result.setHref(valueUri.toASCIIString());
+                result.getDataValue().setHref(valueUri.toASCIIString());
+
+                result.setLinks(createDataValueLinks(uriInfo));
 
                 response = Response.ok().entity(result).build();
             } else {
@@ -233,7 +249,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response deleteDataValue(String dataValueId, SecurityContext securityContext) throws NotFoundException {
+    public Response deleteDataValue(String dataValueId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
@@ -243,9 +259,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 org.trade.core.model.data.DataValue value = DataManager.getInstance().deleteDataValue(
                         dataValueId);
 
-                DataValue result = ResourceTransformationUtils.model2Resource(value);
-
-                response = Response.ok().entity(result).build();
+                response = Response.ok().build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                         .singletonList(dataValueId)).message("A Data Value with ID='" + dataValueId + "' is " +
@@ -259,5 +273,23 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         }
 
         return response;
+    }
+
+    private LinkArray createDataValueLinks(UriInfo uriInfo) {
+        // TODO: Add links to data element instances that use this data value, etc.!
+        LinkArray links = new LinkArray();
+
+
+
+        return links;
+    }
+
+    private LinkArray createPaginationLinks(UriInfo uriInfo) {
+        // TODO: Add links to paginate through the collection
+        LinkArray links = new LinkArray();
+
+
+
+        return links;
     }
 }

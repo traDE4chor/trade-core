@@ -17,9 +17,9 @@
 package io.swagger.trade.server.jersey.api.impl;
 
 import io.swagger.trade.server.jersey.api.ApiResponseMessage;
-import io.swagger.trade.server.jersey.api.DataElementsApiService;
+import io.swagger.trade.server.jersey.api.DataModelsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
-import io.swagger.trade.server.jersey.model.DataElement;
+import io.swagger.trade.server.jersey.model.DataModelData;
 
 import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
@@ -27,29 +27,39 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-04-04T17:08:04.791+02:00")
-public class DataElementsApiServiceImpl extends DataElementsApiService {
+public class DataModelsApiServiceImpl extends DataModelsApiService {
     @Override
-    public Response deleteDataElement(String dataElementId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response addDataModel(DataModelData dataModelData, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getAllDataElements( @Min(0) Integer start,  @Min(0) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response deleteDataModel(String dataModelId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataElementDirectly(String dataElementId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response downloadDataModel(String dataModelId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataElementInstancesOfDataElement(String dataElementId,  @Min(0) Integer start,  @Min(0) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataModelDirectly(String dataModelId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response updateDataElement(String dataElementId, DataElement dataElement, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataModels( @Min(0) Integer start,  @Min(0) Integer size,  String name, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+        // do some magic!
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+    @Override
+    public Response getDataObjects(String dataModelId,  @Min(0) Integer start,  @Min(0) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+        // do some magic!
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+    @Override
+    public Response uploadDataModel(String dataModelId, Long contentLength, byte[] model, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

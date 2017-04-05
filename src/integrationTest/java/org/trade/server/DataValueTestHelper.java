@@ -19,13 +19,14 @@ package org.trade.server;
 import io.swagger.trade.client.jersey.ApiException;
 import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataValue;
-import io.swagger.trade.client.jersey.model.DataValueRequest;
+import io.swagger.trade.client.jersey.model.DataValueArrayWithLinks;
+import io.swagger.trade.client.jersey.model.DataValueData;
+import io.swagger.trade.client.jersey.model.DataValueWithLinks;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -44,10 +45,10 @@ public class DataValueTestHelper {
         dvApiInstance = apiInstance;
     }
 
-    public void addDataValues() {
+    public void addDataValues() throws ApiException {
         try {
             // Add a new data value
-            DataValueRequest value1 = new DataValueRequest();
+            DataValueData value1 = new DataValueData();
 
             value1.setName("inputData");
             value1.setCreatedBy("hahnml");
@@ -67,7 +68,7 @@ public class DataValueTestHelper {
             assertNotNull(result1.getStatus());
 
             // Add another data value
-            DataValueRequest value2 = new DataValueRequest();
+            DataValueData value2 = new DataValueData();
 
             value2.setName("video");
             value2.setCreatedBy("anotherUser");
@@ -87,7 +88,7 @@ public class DataValueTestHelper {
             assertNotNull(result2.getStatus());
 
             // Add another data value
-            DataValueRequest value3 = new DataValueRequest();
+            DataValueData value3 = new DataValueData();
 
             value3.setName("simpleStringValue");
             value3.setCreatedBy("hahnml");
@@ -99,64 +100,81 @@ public class DataValueTestHelper {
             assertNotNull(result3);
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#addDataValue");
-            e.printStackTrace();
+            throw e;
         }
     }
 
-    public void getDataValues() {
+    public void getDataValues() throws ApiException {
         try {
-            List<DataValue> result = dvApiInstance.getDataValuesDirectly(null, null);
+            DataValueArrayWithLinks result = dvApiInstance.getDataValuesDirectly(null, null, null, null);
             assertNotNull(result);
-            assertEquals(3, result.size());
+            assertNotNull(result.getLinks());
+            assertEquals(3, result.getDataValues().size());
 
-            result = dvApiInstance.getDataValuesDirectly(1, null);
+            result = dvApiInstance.getDataValuesDirectly(null, 1, null, null);
             assertNotNull(result);
-            assertEquals(1, result.size());
+            assertNotNull(result.getLinks());
+            assertEquals(1, result.getDataValues().size());
 
-            result = dvApiInstance.getDataValuesDirectly(null, "created");
+            result = dvApiInstance.getDataValuesDirectly(1, 2, null, null);
             assertNotNull(result);
-            assertEquals(3, result.size());
+            assertNotNull(result.getLinks());
+            assertEquals(2, result.getDataValues().size());
 
-            result = dvApiInstance.getDataValuesDirectly(200, "nonExistingState");
+            result = dvApiInstance.getDataValuesDirectly(null, null, "created", null);
             assertNotNull(result);
-            assertEquals(0, result.size());
+            assertNotNull(result.getLinks());
+            assertEquals(3, result.getDataValues().size());
+
+            result = dvApiInstance.getDataValuesDirectly(200, 200, "nonExistingState", null);
+            assertNotNull(result);
+            assertNotNull(result.getLinks());
+            assertEquals(0, result.getDataValues().size());
+
+            result = dvApiInstance.getDataValuesDirectly(0, null, null, "hahnml");
+            assertNotNull(result);
+            assertNotNull(result.getLinks());
+            assertEquals(2, result.getDataValues().size());
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#getDataValuesDirectly");
-            e.printStackTrace();
+            throw e;
         }
     }
 
-    public void getDataValue() {
+    public void getDataValue() throws ApiException {
         try {
-            DataValue result = dvApiInstance.getDataValueDirectly(idOfDataValue1);
+            DataValueWithLinks result = dvApiInstance.getDataValueDirectly(idOfDataValue1);
             assertNotNull(result);
-            assertEquals(idOfDataValue1, result.getId());
+            assertEquals(idOfDataValue1, result.getDataValue().getId());
 
             result = dvApiInstance.getDataValueDirectly(idOfDataValue2);
             assertNotNull(result);
-            assertEquals(idOfDataValue2, result.getId());
+            assertEquals(idOfDataValue2, result.getDataValue().getId());
 
             result = dvApiInstance.getDataValueDirectly(idOfDataValue3);
             assertNotNull(result);
-            assertEquals(idOfDataValue3, result.getId());
+            assertEquals(idOfDataValue3, result.getDataValue().getId());
 
-            result = dvApiInstance.getDataValueDirectly("aNonExistingId");
-            assertNull(result);
+            try {
+                dvApiInstance.getDataValueDirectly("aNonExistingId");
+            } catch (ApiException e) {
+                assertEquals(404, e.getCode());
+            }
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#getDataValueDirectly");
-            e.printStackTrace();
+            throw e;
         }
     }
 
-    public void pushDataValues() {
+    public void pushDataValues() throws Exception {
         try {
-            OffsetDateTime oldTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getLastModified();
+            OffsetDateTime oldTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getDataValue().getLastModified();
             byte[] data1 = getData("data.dat");
 
             // Push data to first data value
             dvApiInstance.pushDataValue(idOfDataValue1, new Long(data1.length), data1);
 
-            OffsetDateTime newTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getLastModified();
+            OffsetDateTime newTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getDataValue().getLastModified();
             // Check if the lastModified property is updated
             assertNotEquals(oldTime, newTime);
 
@@ -169,20 +187,20 @@ public class DataValueTestHelper {
             byte[] simpleData = "some data".getBytes();
             dvApiInstance.pushDataValue(idOfDataValue2, 9L, simpleData);
             // Check if the data is successfully updated
-            assertEquals(simpleData.length, dvApiInstance.getDataValueDirectly(idOfDataValue2).getSize().intValue());
+            assertEquals(simpleData.length, dvApiInstance.getDataValueDirectly(idOfDataValue2).getDataValue().getSize().intValue());
 
             // Push data to third data value
             String data = "test value";
             dvApiInstance.pushDataValue(idOfDataValue3, new Long(data.length()), data.getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+           throw e;
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#pushDataValue");
-            e.printStackTrace();
+            throw e;
         }
     }
 
-    public void pullDataValues() {
+    public void pullDataValues() throws ApiException {
         try {
             // Pull data from first data value
             byte[] result1 = dvApiInstance.pullDataValue(idOfDataValue1);
@@ -198,29 +216,27 @@ public class DataValueTestHelper {
             assertEquals("test value", new String(result3));
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#pullDataValue");
-            e.printStackTrace();
+            throw e;
         }
     }
 
-    public void deleteDataValues() {
+    public void deleteDataValues() throws ApiException {
         try {
             // Delete first data value
-            DataValue result = dvApiInstance.deleteDataValue(idOfDataValue1);
-            assertNotNull(result);
-            assertEquals(idOfDataValue1, result.getId());
+            dvApiInstance.deleteDataValue(idOfDataValue1);
 
             // Delete second data value
-            result = dvApiInstance.deleteDataValue(idOfDataValue2);
-            assertNotNull(result);
-            assertEquals(idOfDataValue2, result.getId());
+            dvApiInstance.deleteDataValue(idOfDataValue2);
 
             // Delete third data value
-            result = dvApiInstance.deleteDataValue(idOfDataValue3);
+            dvApiInstance.deleteDataValue(idOfDataValue3);
+
+            DataValueArrayWithLinks result = dvApiInstance.getDataValuesDirectly(null, null, null, null);
             assertNotNull(result);
-            assertEquals(idOfDataValue3, result.getId());
+            assertEquals(0, result.getDataValues().size());
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#deleteDataValue");
-            e.printStackTrace();
+            throw e;
         }
     }
 

@@ -81,8 +81,6 @@ public class DataValue extends BaseResource implements Serializable {
 
     private String owner = "";
 
-    private String createdFor = "";
-
     private String state = "created";
 
     private String type = null;
@@ -93,13 +91,12 @@ public class DataValue extends BaseResource implements Serializable {
 
     private long size = 0L;
 
-    public DataValue(String owner, String createdFor) throws URNSyntaxException {
+    public DataValue(String owner) throws URNSyntaxException {
         props = new TraDEProperties();
 
         this.name = UUID.randomUUID().toString();
 
         this.owner = owner;
-        this.createdFor = createdFor;
 
         if (owner != null) {
             this.urn = URN.newInstance(ModelUtils.DATA_URN_NAMESPACE_ID, owner + ModelUtils
@@ -138,10 +135,6 @@ public class DataValue extends BaseResource implements Serializable {
 
     public String getOwner() {
         return owner;
-    }
-
-    public String getCreatedFor() {
-        return createdFor;
     }
 
     public String getState() {

@@ -18,7 +18,12 @@ package org.trade.core.data.management;
 
 import org.trade.core.model.data.DataValue;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by hahnml on 25.10.2016.
@@ -28,7 +33,7 @@ public class DataManager {
     private static DataManager instance = new DataManager();
 
     // TODO: Use Hazelcast, etc. instead of local maps
-    private HashMap<String, DataValue> dataValues = new HashMap<>();
+    private HashMap<String, DataValue> dataValues = new LinkedHashMap<>();
 
     private DataManager() {
         // Block instantiation
@@ -49,38 +54,30 @@ public class DataManager {
         return this.dataValues.get(dataValueId);
     }
 
-    public List<DataValue> getAllDataValues(Integer limit, String status) {
-        List<DataValue> result = new ArrayList<>();
+    public List<DataValue> getAllDataValues(Integer start, Integer size, String status, String createdBy) {
+        Stream<DataValue> stream = dataValues.values().stream();
 
-        String statusFilter = "";
         if (status != null && !status.isEmpty()) {
-            statusFilter = status;
+            stream = stream.filter(d -> (d.getState() != null && d.getState().equals(status)));
         }
 
-        if (limit != null) {
-            // If a limit is specified, add the first 'n' data values to the result list, where n <= limit.
-            Iterator<DataValue> iter = dataValues.values().iterator();
-            while (result.size() < limit && iter.hasNext()) {
-                DataValue value = iter.next();
-                if (statusFilter.isEmpty()) {
-                    result.add(value);
-                } else {
-                    if (value.getState().equals(statusFilter)) {
-                        result.add(value);
-                    }
-                }
+        if (createdBy != null && !createdBy.isEmpty()) {
+            stream = stream.filter(d -> (d.getOwner() != null && d.getOwner().equals(createdBy)));
+        }
+
+        List<DataValue> result = stream.collect(Collectors.toList());
+
+        // Check if the start index and the size are in still the range of the filtered result list, if not respond an
+        // empty list
+        if (start > 0 && size > 0 && start < result.size()) {
+            // Calculate the two index
+            int toIndex = start-1 + size;
+            // Check if the index is still in bounds
+            if (toIndex > result.size()) {
+                toIndex = result.size();
             }
-        } else {
-            // If there is no limit, then add all available data values
-            for (DataValue value : dataValues.values()) {
-                if (statusFilter.isEmpty()) {
-                    result.add(value);
-                } else {
-                    if (value.getState().equals(statusFilter)) {
-                        result.add(value);
-                    }
-                }
-            }
+            // Decrease start by one since the API starts counting indexes from 1
+            result = result.subList(start-1, toIndex);
         }
 
         // Return an unmodifiable copy of the list

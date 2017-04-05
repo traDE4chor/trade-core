@@ -17,12 +17,10 @@
 package io.swagger.trade.server.jersey.api.impl;
 
 import io.swagger.trade.server.jersey.api.ApiResponseMessage;
-import io.swagger.trade.server.jersey.api.DataObjectsApiService;
+import io.swagger.trade.server.jersey.api.DataDependencyGraphsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
-import io.swagger.trade.server.jersey.model.DataElementData;
-import io.swagger.trade.server.jersey.model.DataObject;
-import io.swagger.trade.server.jersey.model.DataObjectData;
-import io.swagger.trade.server.jersey.model.DataObjectInstanceData;
+import io.swagger.trade.server.jersey.model.DataDependencyGraphData;
+import io.swagger.trade.server.jersey.model.DataModel;
 
 import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
@@ -30,49 +28,44 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-04-04T17:08:04.791+02:00")
-public class DataObjectsApiServiceImpl extends DataObjectsApiService {
+public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiService {
     @Override
-    public Response addDataElement(String dataObjectId, DataElementData dataElementData, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response addDataDependencyGraph(DataDependencyGraphData dataDependencyGraphData, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response addDataObject(DataObjectData dataObjectData, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response deleteDataDependencyGraph(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response addDataObjectInstance(String dataObjectId, DataObjectInstanceData dataObjectInstanceData, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response downloadGraphModel(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response deleteDataObject(String dataObjectId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataDependencyGraphDirectly(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getAllDataObjects( @Min(0) Integer start,  @Min(0) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataDependencyGraphs( @Min(0) Integer start,  @Min(0) Integer size,  String name, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataElements(String dataObjectId,  @Min(0) Integer start,  @Min(0) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataModel(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataObjectById(String dataObjectId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response setDataModel(String graphId, DataModel dataModel, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataObjectInstances(String dataObjectId,  @Min(0) Integer start,  @Min(0) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
-    }
-    @Override
-    public Response updateDataObject(String dataObjectId, DataObject dataObject, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response uploadGraphModel(String graphId, Long contentLength, byte[] graph, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

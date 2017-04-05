@@ -109,7 +109,7 @@ public class TraDEServer {
         ServletHolder apiServlet = apiContext.addServlet(ServletContainer.class, "/api/*");
         apiServlet.setInitOrder(1);
         apiServlet.setInitParameter("jersey.config.server.provider.packages", "io.swagger.jaxrs.listing;" +
-                "io.swagger.jaxrs.json;io.swagger.sample.resource;io.swagger.trade.server.jersey.api");
+                "io.swagger.jaxrs.json;io.swagger.sample.resource;io.swagger.trade.server.jersey.api;org.trade.core.server");
         apiServlet.setInitParameter("jersey.config.server.provider.classnames",
                 "org.glassfish.jersey.media.multipart.MultiPartFeature;org.glassfish.jersey.jackson.JacksonFeature;" +
                         "org.trade.core.server.jackson.CustomObjectMapperProvider");
