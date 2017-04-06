@@ -57,7 +57,7 @@ public class DEInstanceTest {
 
     @Test
     public void testURNGeneration() throws Exception {
-        DEInstance inst = new DEInstance(elm.getUrn(), "owner", "createdFor");
+        DEInstance inst = new DEInstance(elm.getUrn(), "owner");
 
         assertEquals(entity, inst.getUrn().getNamespaceIdentifier
                 ());

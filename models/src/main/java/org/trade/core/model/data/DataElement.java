@@ -297,18 +297,17 @@ public class DataElement extends BaseResource implements Serializable {
     /**
      * Instantiates the data element and returns the created instance.
      *
-     * @param owner      the owner of the instance (entity that triggers the instantiation)
-     * @param createdFor the resource for which the instance is created, e.g., for example an instance ID of a
-     *                   workflow (information is used for correlation)
+     * @param createdBy      the entity that triggers the instantiation of the data element. For example, an instance
+     *                       ID of a workflow or the name of human user can be used.
      * @return the created instance of the data element
      * @throws LifeCycleException If the data element is in a state which does not allow its instantiation.
      */
-    public DEInstance instantiate(String owner, String createdFor) throws LifeCycleException {
+    public DEInstance instantiate(String createdBy) throws LifeCycleException {
         DEInstance result = null;
 
         if (this.isReady()) {
             try {
-                result = new DEInstance(this.getUrn(), owner, createdFor);
+                result = new DEInstance(this.getUrn(), createdBy);
             } catch (URNSyntaxException e) {
                 logger.error("Instantiation of data element '{}' caused an exception during URN creation.", this.getUrn
                         ());

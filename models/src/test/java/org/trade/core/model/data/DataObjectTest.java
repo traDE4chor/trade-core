@@ -128,7 +128,7 @@ public class DataObjectTest {
     public void instantiationOfDataObjectShouldCauseException() throws Exception {
         DataObject obj = new DataObject("modelA", "inputData");
 
-        DOInstance inst = obj.instantiate("owner", "createdFor");
+        DOInstance inst = obj.instantiate("owner");
     }
 
     @Test
@@ -140,7 +140,7 @@ public class DataObjectTest {
 
         obj.addDataElement(elm);
 
-        DOInstance inst = obj.instantiate("owner", "createdFor");
+        DOInstance inst = obj.instantiate("owner");
 
         assertNotNull(inst);
     }

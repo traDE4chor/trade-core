@@ -63,15 +63,12 @@ public class DEInstance extends BaseResource implements Serializable {
 
     private String instanceID = null;
 
-    private String owner = "";
-
-    private String createdFor = "";
+    private String createdBy = "";
 
     private String state = "";
 
-    public DEInstance(URN dataElementURN, String owner, String createdFor) throws URNSyntaxException {
-        this.owner = owner;
-        this.createdFor = createdFor;
+    public DEInstance(URN dataElementURN, String createdBy) throws URNSyntaxException {
+        this.createdBy = createdBy;
 
         this.instanceID = UUID.randomUUID().toString();
 
@@ -106,20 +103,8 @@ public class DEInstance extends BaseResource implements Serializable {
         return instanceID;
     }
 
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public String getCreatedFor() {
-        return createdFor;
-    }
-
-    public void setCreatedFor(String createdFor) {
-        this.createdFor = createdFor;
+    public String getCreatedBy() {
+        return createdBy;
     }
 
     public String getState() {

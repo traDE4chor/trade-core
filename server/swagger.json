@@ -867,7 +867,6 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "No data object instances found with the specified query parameters",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -892,19 +891,16 @@
                     {
                         "in": "body",
                         "name": "dataObjectInstanceData",
-                        "description": "The name and creating entity of the data object that will be created.",
+                        "description": "The creating entity and correlation properties of the data object instance that will be created.",
                         "required": true,
                         "schema": {
                             "type": "object",
                             "required": [
-                                "owner",
+                                "createdBy",
                                 "correlationProperties"
                             ],
                             "properties": {
-                                "owner": {
-                                    "type": "string"
-                                },
-                                "createdFor": {
+                                "createdBy": {
                                     "type": "string"
                                 },
                                 "correlationProperties": {
@@ -986,7 +982,6 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "No data elements found with the specified query parameters",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -1162,7 +1157,6 @@
                         "description": "Successfully deleted data object instance"
                     },
                     "404": {
-                        "description": "Invalid combination of data object and instance Ids",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -1212,7 +1206,49 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "No data element instances found with the specified query parameters",
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
+        },
+        "/dataObjectInstances/{instanceId}/elementInstances&{dataElementName}": {
+            "x-swagger-router-controller": "DataElementInstance",
+            "get": {
+                "tags": [
+                    "dataElementInstance"
+                ],
+                "summary": "Get a data element instance from a data object instance by the name of the corresponding data element",
+                "operationId": "getDataElementInstanceByDataElementName",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "instanceId",
+                        "description": "Id of the data object instance that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataElementName",
+                        "description": "The name of the data element for which we want to get the instance from the current data object instance",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns a `DataElementInstance` resource based on the provided parameters.",
+                        "schema": {
+                            "$ref": "#/definitions/DataElementInstanceWithLinks"
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidInputResponse"
+                    },
+                    "404": {
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -1289,7 +1325,6 @@
                         }
                     },
                     "404": {
-                        "description": "Data element not found",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -1333,7 +1368,6 @@
                         "$ref": "#/responses/InvalidInputResponse"
                     },
                     "404": {
-                        "description": "Data element not found",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -1362,7 +1396,6 @@
                         "description": "Successfully deleted data element."
                     },
                     "404": {
-                        "description": "Invalid data element Id",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -1409,7 +1442,6 @@
                         }
                     },
                     "404": {
-                        "description": "No data element instances found with the specified query parameters",
                         "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
@@ -2046,10 +2078,10 @@
                 "href": {
                     "type": "string"
                 },
-                "owner": {
+                "createdBy": {
                     "type": "string"
                 },
-                "createdFor": {
+                "dataObjectName": {
                     "type": "string"
                 },
                 "correlationProperties": {
@@ -2154,10 +2186,10 @@
                 "href": {
                     "type": "string"
                 },
-                "owner": {
+                "createdBy": {
                     "type": "string"
                 },
-                "createdFor": {
+                "dataElementName": {
                     "type": "string"
                 },
                 "correlationProperties": {

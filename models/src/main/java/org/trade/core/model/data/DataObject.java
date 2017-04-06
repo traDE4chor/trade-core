@@ -412,18 +412,17 @@ public class DataObject extends BaseResource implements Serializable {
     /**
      * Instantiates the data object and returns the created instance.
      *
-     * @param owner      the owner of the instance (entity that triggers the instantiation)
-     * @param createdFor the resource for which the instance is created, e.g., for example an instance ID of a
-     *                   workflow (information is used for correlation)
+     * @param createdBy      the entity that triggers the instantiation of the data object. For example, an instance
+     *                       ID of a workflow or the name of human user can be used.
      * @return the created instance of the data object
      * @throws LifeCycleException If the data object is in a state which does not allow its instantiation.
      */
-    public DOInstance instantiate(String owner, String createdFor) throws LifeCycleException {
+    public DOInstance instantiate(String createdBy) throws LifeCycleException {
         DOInstance result = null;
 
         if (this.isReady()) {
             try {
-                result = new DOInstance(this.getUrn(), owner, createdFor);
+                result = new DOInstance(this.getUrn(), createdBy);
             } catch (URNSyntaxException e) {
                 logger.error("Instantiation of data object '{}' caused an exception during URN creation.", this.getUrn
                         ());

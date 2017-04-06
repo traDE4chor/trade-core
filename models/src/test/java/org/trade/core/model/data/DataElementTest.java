@@ -64,7 +64,7 @@ public class DataElementTest {
     public void instantiationOfDataElementShouldCauseException() throws Exception {
         DataElement elm = new DataElement(obj);
 
-        elm.instantiate("owner", "createdFor");
+        elm.instantiate("owner");
     }
 
     @Test
@@ -72,7 +72,7 @@ public class DataElementTest {
         DataElement elm = new DataElement(obj);
         elm.initialize();
 
-        DEInstance inst = elm.instantiate("owner", "createdFor");
+        DEInstance inst = elm.instantiate("owner");
 
         assertNotNull(inst);
     }

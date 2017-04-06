@@ -46,7 +46,7 @@ public class DOInstanceTest {
 
     @Test
     public void testURNGeneration() throws Exception {
-        DOInstance inst = new DOInstance(obj.getUrn(), "owner", "createdFor");
+        DOInstance inst = new DOInstance(obj.getUrn(), "owner");
 
         assertEquals(entity, inst.getUrn().getNamespaceIdentifier
                 ());
