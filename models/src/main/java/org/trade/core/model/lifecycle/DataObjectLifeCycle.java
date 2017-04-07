@@ -17,7 +17,7 @@
 package org.trade.core.model.lifecycle;
 
 import org.trade.core.model.data.DataObject;
-import org.trade.core.model.lifecycle.actions.DOLogAction;
+import org.trade.core.model.lifecycle.actions.DataObjectLogAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.FSM;
@@ -33,7 +33,7 @@ public class DataObjectLifeCycle {
 
     // defining states
     public enum States {
-        INITIAL, READY, ARCHIVED, DELETED
+        INITIAL, READY, ARCHIVED, DELETED;
     }
 
     // defining events
@@ -58,7 +58,7 @@ public class DataObjectLifeCycle {
     private void buildFSM() {
         FSM.FSMBuilder<DataObject> fsmBuilder = FSM.FSMBuilder.newBuilder(DataObject.class);
 
-        DOLogAction action = new DOLogAction();
+        DataObjectLogAction action = new DataObjectLogAction();
 
         fsmBuilder.
                 buildState(States.INITIAL.name(), true)

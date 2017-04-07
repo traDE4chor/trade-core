@@ -16,7 +16,7 @@
 
 package org.trade.core.model.data;
 
-import org.trade.core.model.data.instance.DOInstance;
+import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
@@ -94,7 +94,6 @@ public class DataObjectTest {
 
         assertNull(obj.getDataElements());
         assertEquals(obj.getState(), DataObjectLifeCycle.States.DELETED.name());
-        assertNull(elm.getUrn());
         assertEquals(elm.getState(), DataElementLifeCycle.States.DELETED.name());
     }
 
@@ -116,7 +115,7 @@ public class DataObjectTest {
         ObjectInputStream ois = new ObjectInputStream(bais);
         DataObject obj2 = (DataObject) ois.readObject();
 
-        assertEquals(obj.getUrn(), obj2.getUrn());
+        assertEquals(obj.getIdentifier(), obj2.getIdentifier());
         assertEquals(obj.getState(), obj2.getState());
 
         obj2.archive();
@@ -128,7 +127,7 @@ public class DataObjectTest {
     public void instantiationOfDataObjectShouldCauseException() throws Exception {
         DataObject obj = new DataObject("modelA", "inputData");
 
-        DOInstance inst = obj.instantiate("owner");
+        DataObjectInstance inst = obj.instantiate("owner");
     }
 
     @Test
@@ -140,7 +139,7 @@ public class DataObjectTest {
 
         obj.addDataElement(elm);
 
-        DOInstance inst = obj.instantiate("owner");
+        DataObjectInstance inst = obj.instantiate("owner");
 
         assertNotNull(inst);
     }

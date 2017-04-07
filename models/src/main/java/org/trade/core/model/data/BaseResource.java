@@ -21,6 +21,7 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Version;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Created by hahnml on 22.11.2016.
@@ -35,17 +36,22 @@ public abstract class BaseResource implements Serializable {
     @Version
     private Long version;
 
-    protected String identifier = null;
+    protected String identifier = UUID.randomUUID().toString();
 
+    /**
+     * Provides the identifier of the model object.
+     *
+     * @return The UUID which identifies the model object.
+     */
     public String getIdentifier() {
         return identifier;
     }
 
-    public ObjectId getId() {
+    public ObjectId getDatabaseId() {
         return this.id;
     }
 
-    public void setId(ObjectId id) {
+    public void setDatabaseId(ObjectId id) {
         this.id = id;
     }
 

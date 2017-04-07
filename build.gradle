@@ -34,7 +34,9 @@ dependencies {
     integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.5'
     integrationTestCompile project(path: ':utils', configuration: 'testOutput')
 
-    compile project(':models'), project(':persistence'), project(':utils'), project(':server'), project(':client')
+    compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
+
+    compile project(':models'), project(':utils'), project(':server'), project(':client')
 }
 
 // Summarized configurations, dependencies which are required in common by all sub projects
@@ -51,8 +53,6 @@ subprojects {
     }
 
     dependencies {
-        compile group: 'de.slub-dresden', name: 'urnlib', version: '1.1.0'
-
         // Logging dependencies using slf4j API and Logback
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21'
         compile group: 'ch.qos.logback', name: 'logback-core', version: '1.1.7'

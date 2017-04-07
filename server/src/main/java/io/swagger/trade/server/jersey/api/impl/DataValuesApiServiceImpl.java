@@ -16,7 +16,6 @@
 
 package io.swagger.trade.server.jersey.api.impl;
 
-import de.slub.urn.URNSyntaxException;
 import io.swagger.trade.server.jersey.api.DataValuesApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
@@ -66,7 +65,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
 
                 response = Response.created(valueUri).entity(result).build();
             }
-        } catch (URNSyntaxException e) {
+        } catch (Exception e) {
             e.printStackTrace();
 
             response = Response.serverError().entity(e.getMessage()).build();

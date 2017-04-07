@@ -8,4 +8,6 @@ include 'models'
 include 'server'
 include 'utils'
 include 'client'
+include 'notification'
+include 'transformation'
 

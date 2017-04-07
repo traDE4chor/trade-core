@@ -45,7 +45,7 @@ public class DataManager {
 
 
     public DataValue registerDataValue(DataValue body) {
-        this.dataValues.put(body.getName(), body);
+        this.dataValues.put(body.getIdentifier(), body);
 
         return body;
     }
@@ -58,7 +58,7 @@ public class DataManager {
         Stream<DataValue> stream = dataValues.values().stream();
 
         if (status != null && !status.isEmpty()) {
-            stream = stream.filter(d -> (d.getState() != null && d.getState().equals(status)));
+            stream = stream.filter(d -> (d.getState() != null && d.getState().toUpperCase().equals(status.toUpperCase())));
         }
 
         if (createdBy != null && !createdBy.isEmpty()) {
@@ -81,8 +81,8 @@ public class DataManager {
         if (this.dataValues.containsKey(dataValueId)) {
             DataValue value = this.dataValues.get(dataValueId);
 
-            if (name != null && !name.isEmpty() && !name.equals(value.getHumanReadableName())) {
-                value.setHumanReadableName(name);
+            if (name != null && !name.isEmpty() && !name.equals(value.getName())) {
+                value.setName(name);
             }
             if (type != null && !type.isEmpty() && !type.equals(value.getType())) {
                 value.setType(type);
@@ -97,13 +97,13 @@ public class DataManager {
         return result;
     }
 
-    public DataValue deleteDataValue(String dataValueId) {
+    public DataValue deleteDataValue(String dataValueId) throws Exception {
         DataValue result = null;
 
         if (this.dataValues.containsKey(dataValueId)) {
             result = this.dataValues.remove(dataValueId);
 
-            result.destroy();
+            result.delete();
         }
 
         return result;

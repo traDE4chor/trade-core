@@ -2258,7 +2258,7 @@
                     "format": "date-time"
                 },
                 "status": {
-                    "$ref": "#/definitions/StatusEnum"
+                    "$ref": "#/definitions/InstanceStatusEnum"
                 },
                 "size": {
                     "type": "integer",

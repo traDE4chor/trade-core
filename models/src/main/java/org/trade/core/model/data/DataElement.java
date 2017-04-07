@@ -16,51 +16,34 @@
 
 package org.trade.core.model.data;
 
-import de.slub.urn.URN;
-import de.slub.urn.URNSyntaxException;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.PostLoad;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
-import org.trade.core.model.ModelUtils;
-import org.trade.core.model.data.instance.DEInstance;
+import org.trade.core.model.data.instance.DataElementInstance;
+import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by hahnml on 25.10.2016.
  */
 @Entity("dataElements")
-public class DataElement extends BaseResource implements Serializable {
+public class DataElement extends BaseResource implements Serializable, ILifeCycleModelObject {
 
     private static final long serialVersionUID = -2632920295003689320L;
 
     @Transient
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataElement");
-
-    /**
-     * We use Uniform Resource Names (URN) to identify data elements and the entity to which they belong, independent
-     * of their concrete location. Examples for such entities are choreography models or users which have defined and
-     * registered the data element at TraDE.
-     * <p>
-     * Therefore, we use the following scheme according to RFC 2141:
-     * <URN> ::= "urn:" <Namespace Identifier (NID)> ":" <Namespace Specific String (NSS)>
-     * <p>
-     * The NID is used to represent the context to which the parent data object belongs. The NSS contains the name of
-     * the data object and the name of the data element separated by a ":" symbol.
-     * For example, the URN "urn:cm23:resultData:element1" expresses that the data element with the name "element1"
-     * is a child of the data object "resultData" which belongs to the entity "cm23".
-     */
-    private transient URN urn = null;
 
     private String entity = null;
 
@@ -78,50 +61,38 @@ public class DataElement extends BaseResource implements Serializable {
     @Reference
     private DataObject parent = null;
 
+    @Reference
+    private List<DataElementInstance> instances = new ArrayList<DataElementInstance>();
+
     /**
      * Instantiates a new data element and associates it to the given data object.
      *
      * @param object the data object to which the data element belongs
      * @param name   the name of the data element
-     * @throws URNSyntaxException the urn syntax exception
      */
-    public DataElement(DataObject object, String name) throws URNSyntaxException {
+    public DataElement(DataObject object, String entity, String name) {
         this.parent = object;
         this.name = name;
-        this.entity = object.getUrn().getNamespaceIdentifier();
-
-        this.urn = URN.newInstance(object.getUrn().getNamespaceIdentifier(), object.getUrn()
-                .getNamespaceSpecificString() + ModelUtils.URN_NAMESPACE_STRING_DELIMITER + this.name);
-        this.identifier = urn.toString();
+        this.entity = entity;
 
         this.lifeCycle = new DataElementLifeCycle(this);
     }
 
     /**
      * Instantiates a new data element with an automatically generated random name and associates it to the given
-     * data object.
+     * data object while reusing the same entity value as specified for the data value.
      *
      * @param object the data object to which the data element belongs
-     * @throws URNSyntaxException the urn syntax exception
      */
-    public DataElement(DataObject object) throws URNSyntaxException {
-        this(object, UUID.randomUUID().toString());
+    public DataElement(DataObject object) {
+        this(object, object.getEntity(), UUID.randomUUID().toString());
     }
 
     /**
-     * This constructor is only used by Morphia to load data element from the database.
+     * This constructor is only used by Morphia to load data elements from the database.
      */
     private DataElement() {
         this.lifeCycle = new DataElementLifeCycle(this, false);
-    }
-
-    /**
-     * Provides the uniform resource name of the data element.
-     *
-     * @return The URN which identifies the data element.
-     */
-    public URN getUrn() {
-        return this.urn;
     }
 
     /**
@@ -191,11 +162,48 @@ public class DataElement extends BaseResource implements Serializable {
     }
 
     /**
-     * Initialize.
+     * Provides the parent data object to which this data element belongs.
      *
-     * @throws LifeCycleException the life cycle exception
+     * @return the parent data object
      */
-    public void initialize() throws LifeCycleException {
+    public DataObject getParent() {
+        return parent;
+    }
+
+    /**
+     * Provides the list of data element instances of this data element.
+     *
+     * @return An unmodifiable list of data element instances.
+     */
+    public List<DataElementInstance> getDataElementInstances() {
+        return this.instances != null ? Collections.unmodifiableList(this.instances) : null;
+    }
+
+    /**
+     * Gets all data element instances of this data element created by the specified entity.
+     *
+     * @param createdBy the entity which created the data element instances that should be returned
+     * @return An unmodifiable list of matching data element instances.
+     */
+    public List<DataElementInstance> getDataElementInstances(String createdBy) {
+        List<DataElementInstance> result = this.instances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
+                (Collectors.toList());
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * Gets a data element instance by id.
+     *
+     * @param identifier the identifier
+     * @return the data element instance by id
+     */
+    public DataElementInstance getDataElementInstanceById(String identifier) {
+        Optional<DataElementInstance> opt = this.instances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
+        return opt.isPresent() ? opt.get() : null;
+    }
+
+    @Override
+    public void initialize() throws Exception {
         // TODO: 27.10.2016 Add data element specific parameters and assignments, e.g. data type, type system, etc.
 
         // Trigger the ready event
@@ -203,17 +211,13 @@ public class DataElement extends BaseResource implements Serializable {
             this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.ready);
         } catch (TooBusyException e) {
             logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                    "amount of retries", this.getUrn(), DataElementLifeCycle.Events.ready);
+                    "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.ready);
             throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
         }
     }
 
-    /**
-     * Archive.
-     *
-     * @throws LifeCycleException the life cycle exception
-     */
-    public void archive() throws LifeCycleException {
+    @Override
+    public void archive() throws Exception {
         if (this.isReady()) {
             // TODO: 27.10.2016
 
@@ -222,25 +226,21 @@ public class DataElement extends BaseResource implements Serializable {
                 this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.archive);
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                        "amount of retries", this.getUrn(), DataElementLifeCycle.Events.archive);
+                        "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.archive);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
         } else {
             logger.info("The data element ({}) can not be archived because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data element (" + this.getUrn() +
+            throw new LifeCycleException("The data element (" + this.getIdentifier() +
                     ") can not be archived because it is in state '" + getState() + "'.");
         }
     }
 
-    /**
-     * Unarchive.
-     *
-     * @throws LifeCycleException the life cycle exception
-     */
-    public void unarchive() throws LifeCycleException {
+    @Override
+    public void unarchive() throws Exception {
         if (this.isArchived()) {
             // TODO: 27.10.2016
 
@@ -249,25 +249,21 @@ public class DataElement extends BaseResource implements Serializable {
                 this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.unarchive);
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                        "amount of retries", this.getUrn(), DataElementLifeCycle.Events.unarchive);
+                        "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.unarchive);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
         } else {
             logger.info("The data element ({}) can not be un-archived because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data element (" + this.getUrn() +
+            throw new LifeCycleException("The data element (" + this.getIdentifier() +
                     ") can not be un-archived because it is in state '" + getState() + "'.");
         }
     }
 
-    /**
-     * Delete.
-     *
-     * @throws LifeCycleException the life cycle exception
-     */
-    public void delete() throws LifeCycleException {
+    @Override
+    public void delete() throws Exception {
         if (this.isReady() || this.isInitial()) {
             // TODO: 27.10.2016
 
@@ -276,20 +272,20 @@ public class DataElement extends BaseResource implements Serializable {
                 this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.delete);
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                        "amount of retries", this.getUrn(), DataElementLifeCycle.Events.delete);
+                        "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.delete);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
 
-            urn = null;
+            identifier = null;
             entity = null;
             name = null;
             lifeCycle = null;
         } else {
             logger.info("The data element ({}) can not be deleted because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data element (" + this.getUrn() +
+            throw new LifeCycleException("The data element (" + this.getIdentifier() +
                     ") can not be deleted because it is in state '" + getState() + "'.");
         }
     }
@@ -297,27 +293,24 @@ public class DataElement extends BaseResource implements Serializable {
     /**
      * Instantiates the data element and returns the created instance.
      *
-     * @param createdBy      the entity that triggers the instantiation of the data element. For example, an instance
-     *                       ID of a workflow or the name of human user can be used.
+     * @param dataObjectInstance the data object instance to which the new data element instance belongs
+     * @param createdBy          the entity that triggers the instantiation of the data element. For example, an instance
+     *                           ID of a workflow or the name of human user can be used.
      * @return the created instance of the data element
      * @throws LifeCycleException If the data element is in a state which does not allow its instantiation.
      */
-    public DEInstance instantiate(String createdBy) throws LifeCycleException {
-        DEInstance result = null;
+    public DataElementInstance instantiate(DataObjectInstance dataObjectInstance, String createdBy) throws
+            LifeCycleException {
+        DataElementInstance result = null;
 
         if (this.isReady()) {
-            try {
-                result = new DEInstance(this.getUrn(), createdBy);
-            } catch (URNSyntaxException e) {
-                logger.error("Instantiation of data element '{}' caused an exception during URN creation.", this.getUrn
-                        ());
-            }
+            result = new DataElementInstance(this, dataObjectInstance, createdBy);
         } else {
             logger.info("The data element ({}) can not be instantiated because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data element (" + this.getUrn() +
+            throw new LifeCycleException("The data element (" + this.getIdentifier() +
                     ") can not be instantiated because it is in state '" + getState() + "'.");
         }
 
@@ -344,27 +337,14 @@ public class DataElement extends BaseResource implements Serializable {
                 .DELETED.name());
     }
 
-    @PostLoad
-    private void postLoad() {
-        try {
-            this.urn = URN.fromString(this.identifier);
-        } catch (URNSyntaxException e) {
-            logger.error("Reloading the persisted data element '{}' caused an URNSyntaxException", this.getIdentifier
-                    ());
-        }
-    }
-
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
-            this.urn = URN.fromString(this.identifier);
 
             lifeCycle = new DataElementLifeCycle(this, false);
         } catch (ClassNotFoundException e) {
-            logger.error("Class not found during deserialization of data element '{}'", this.getUrn().toString());
+            logger.error("Class not found during deserialization of data element '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data element.");
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
         }
     }
 }

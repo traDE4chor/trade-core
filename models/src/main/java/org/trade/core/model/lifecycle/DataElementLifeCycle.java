@@ -17,7 +17,7 @@
 package org.trade.core.model.lifecycle;
 
 import org.trade.core.model.data.DataElement;
-import org.trade.core.model.lifecycle.actions.DELogAction;
+import org.trade.core.model.lifecycle.actions.DataElementLogAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.FSM;
@@ -58,7 +58,7 @@ public class DataElementLifeCycle {
     private void buildFSM() {
         FSM.FSMBuilder<DataElement> fsmBuilder = FSM.FSMBuilder.newBuilder(DataElement.class);
 
-        DELogAction action = new DELogAction();
+        DataElementLogAction action = new DataElementLogAction();
 
         fsmBuilder.
                 buildState(States.INITIAL.name(), true)

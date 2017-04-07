@@ -16,18 +16,14 @@
 
 package org.trade.core.model.data;
 
-import de.slub.urn.URN;
-import de.slub.urn.URNSyntaxException;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.PostLoad;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
-import org.trade.core.model.data.instance.DOInstance;
-import org.trade.core.model.lifecycle.DataElementLifeCycle;
+import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 
@@ -35,32 +31,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by hahnml on 25.10.2016.
  */
 @Entity("dataObjects")
-public class DataObject extends BaseResource implements Serializable {
+public class DataObject extends BaseResource implements Serializable, ILifeCycleModelObject {
 
     private static final long serialVersionUID = 2549294173554279537L;
 
     @Transient
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataObject");
-
-    /**
-     * We use Uniform Resource Names (URN) to identify data objects and the entity to which they belong, independent
-     * of their concrete location. Examples for such entities are choreography models or users which have defined and
-     * registered the data object at TraDE.
-     * <p>
-     * Therefore, we use the following scheme according to RFC 2141:
-     * <URN> ::= "urn:" <Namespace Identifier (NID)> ":" <Namespace Specific String (NSS)>
-     * <p>
-     * Where the NID is used to represent the context to which a data object belongs and the NSS specifies the name
-     * of the data object.
-     * For example, the URN "urn:cm23:resultData" expresses that the data object with the name "resultData" (NSS)
-     * belongs to the entity "cm23" (NID).
-     */
-    private transient URN urn = null;
 
     private String entity = null;
 
@@ -72,20 +54,35 @@ public class DataObject extends BaseResource implements Serializable {
     private String state;
 
     @Reference
+    private DataModel model = null;
+
+    @Reference
     private List<DataElement> dataElements = new ArrayList<DataElement>();
+
+    @Reference
+    private List<DataObjectInstance> instances = new ArrayList<DataObjectInstance>();
 
     /**
      * Instantiates a new data object.
      *
      * @param entity the entity to which the data object belongs
      * @param name   the name of the data object
-     * @throws URNSyntaxException the urn syntax exception
      */
-    public DataObject(String entity, String name) throws URNSyntaxException {
+    public DataObject(String entity, String name) {
+        this(null, entity, name);
+    }
+
+    /**
+     * Instantiates a new data object for the given data model.
+     *
+     * @param model the data model the data object belongs to
+     * @param entity the entity to which the data object belongs
+     * @param name   the name of the data object
+     */
+    public DataObject(DataModel model, String entity, String name) {
+        this.model = model;
         this.name = name;
         this.entity = entity;
-        this.urn = URN.newInstance(entity, name);
-        this.identifier = urn.toString();
 
         this.lifeCycle = new DataObjectLifeCycle(this);
     }
@@ -95,15 +92,6 @@ public class DataObject extends BaseResource implements Serializable {
      */
     private DataObject() {
         this.lifeCycle = new DataObjectLifeCycle(this, false);
-    }
-
-    /**
-     * Provides the uniform resource name of the data object.
-     *
-     * @return The URN which identifies the data object.
-     */
-    public URN getUrn() {
-        return this.urn;
     }
 
     /**
@@ -134,6 +122,15 @@ public class DataObject extends BaseResource implements Serializable {
     }
 
     /**
+     * Provides the data model to which this data object belongs, if there is one.
+     *
+     * @return the parent data model or null, if the data object is defined independently.
+     */
+    public DataModel getDataModel() {
+        return model;
+    }
+
+    /**
      * Provides the list of data elements associated to this data object.
      *
      * @return An unmodifiable list of data elements.
@@ -142,13 +139,57 @@ public class DataObject extends BaseResource implements Serializable {
         return this.dataElements != null ? Collections.unmodifiableList(this.dataElements) : null;
     }
 
+    /**
+     * Gets a data element by its name.
+     *
+     * @param name the name of the data element
+     * @return the data element
+     */
     public DataElement getDataElement(String name) {
         Optional<DataElement> opt = this.dataElements.stream().filter(s -> s.getName().equals(name)).findFirst();
         return opt.isPresent() ? opt.get() : null;
     }
 
-    public DataElement getDataElement(URN identifier) {
-        Optional<DataElement> opt = this.dataElements.stream().filter(s -> s.getUrn().equals(identifier)).findFirst();
+    /**
+     * Gets a data element by its id.
+     *
+     * @param identifier the identifier of the data element
+     * @return the data element with the given id
+     */
+    public DataElement getDataElementById(String identifier) {
+        Optional<DataElement> opt = this.dataElements.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
+        return opt.isPresent() ? opt.get() : null;
+    }
+
+    /**
+     * Provides the list of data object instances of this data object.
+     *
+     * @return An unmodifiable list of data object instances.
+     */
+    public List<DataObjectInstance> getDataObjectInstances() {
+        return this.instances != null ? Collections.unmodifiableList(this.instances) : null;
+    }
+
+    /**
+     * Gets all data object instances of this data object created by the specified entity.
+     *
+     * @param createdBy the entity which created the data object instances that should be returned
+     * @return An unmodifiable list of matching data object instances.
+     */
+    public List<DataObjectInstance> getDataObjectInstances(String createdBy) {
+        List<DataObjectInstance> result = this.instances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
+                (Collectors.toList());
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * Gets a data object instance by id.
+     *
+     * @param identifier the identifier
+     * @return the data object instance by id
+     */
+    public DataObjectInstance getDataObjectInstanceById(String identifier) {
+        Optional<DataObjectInstance> opt = this.instances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
         return opt.isPresent() ? opt.get() : null;
     }
 
@@ -175,21 +216,21 @@ public class DataObject extends BaseResource implements Serializable {
                         } catch (TooBusyException e) {
                             logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                                     "after maximal " +
-                                    "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                                    "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
                             throw new LifeCycleException("State transition could not be enacted after maximal amount " +
                                     "of retries", e);
                         }
                     }
                 } else {
                     logger.info("Trying to add a non-ready data element ({}) to data object '{}'", element.getName(),
-                            this.getUrn());
+                            this.getIdentifier());
                     throw new LifeCycleException("Trying to add a non-ready data element (" + element.getName() + ")" +
-                            " to data object '" + this.getUrn() + "'");
+                            " to data object '" + this.getIdentifier() + "'");
                 }
             } else {
-                logger.info("No data element can be added because the data object ({}) is in state '{}'.", this.getUrn(),
+                logger.info("No data element can be added because the data object ({}) is in state '{}'.", this.getIdentifier(),
                         getState());
-                throw new LifeCycleException("No data element can be added because the data object (" + this.getUrn() +
+                throw new LifeCycleException("No data element can be added because the data object (" + this.getIdentifier() +
                         ") is in state '" + getState() + "'.");
             }
         }
@@ -201,7 +242,7 @@ public class DataObject extends BaseResource implements Serializable {
      * @param element the element to delete
      * @throws LifeCycleException the life cycle exception
      */
-    public void deleteDataElement(DataElement element) throws LifeCycleException {
+    public void deleteDataElement(DataElement element) throws Exception {
         if (element != null) {
             if (this.isInitial() || this.isReady()) {
                 // Remove the element from the list
@@ -218,23 +259,23 @@ public class DataObject extends BaseResource implements Serializable {
                     } catch (TooBusyException e) {
                         logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
-                                "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
                         throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
             } else {
                 logger.info("No data element can be deleted because the data object ({}) is in state '{}'.", this
-                                .getUrn(),
+                                .getIdentifier(),
                         getState());
 
-                throw new LifeCycleException("No data element can be deleted because the data object (" + this.getUrn() +
+                throw new LifeCycleException("No data element can be deleted because the data object (" + this.getIdentifier() +
                         ") is in state '" + getState() + "'.");
             }
         }
     }
 
-    private void deleteDataElements() throws LifeCycleException {
-        if (this.isInitial() || this.isReady()) {
+    private void deleteDataElements() throws Exception {
+        if (this.isInitial() || this.isReady() || this.isArchived()) {
             // Loop over all elements
             for (Iterator<DataElement> iter = this.dataElements.iterator(); iter.hasNext(); ) {
                 DataElement element = iter.next();
@@ -253,27 +294,51 @@ public class DataObject extends BaseResource implements Serializable {
                     } catch (TooBusyException e) {
                         logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
-                                "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
                         throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
             }
         } else {
             logger.info("No data element can be deleted because the data object ({}) is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("No data element can be deleted because the data object (" + this.getUrn() +
+            throw new LifeCycleException("No data element can be deleted because the data object (" + this.getIdentifier() +
                     ") is in state '" + getState() + "'.");
         }
     }
 
-    /**
-     * Archive.
-     *
-     * @throws LifeCycleException the life cycle exception
-     */
-    public void archive() throws LifeCycleException {
+    private void deleteDataObjectInstances() throws Exception {
+        if (this.isInitial() || this.isReady() || this.isArchived()) {
+            // Loop over all data object instances
+            for (Iterator<DataObjectInstance> iter = this.instances.iterator(); iter.hasNext(); ) {
+                DataObjectInstance objInst = iter.next();
+
+                // Remove the data object instance from the list
+                iter.remove();
+
+                // Trigger the deletion of the data object instance
+                objInst.delete();
+            }
+        } else {
+            logger.info("No data object instance can be deleted because the data object ({}) is in state '{}'.", this
+                            .getIdentifier(),
+                    getState());
+
+            throw new LifeCycleException("No data object instance can be deleted because the data object (" + this
+                    .getIdentifier() +
+                    ") is in state '" + getState() + "'.");
+        }
+    }
+
+    @Override
+    public void initialize() throws Exception {
+
+    }
+
+    @Override
+    public void archive() throws Exception {
         if (this.isReady()) {
             // Remember changed elements for undoing changes in case of an exception
             List<DataElement> changedElements = new ArrayList<DataElement>();
@@ -289,7 +354,7 @@ public class DataObject extends BaseResource implements Serializable {
                 this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.archive);
             } catch (Exception e) {
                 logger.warn("Archiving data object '{}' not successful because archiving of one of its data elements " +
-                        "caused an exception. Trying to undo all changes.", this.getUrn());
+                        "caused an exception. Trying to undo all changes.", this.getIdentifier());
 
                 try {
                     // Un-archive the already archived data elements again
@@ -300,25 +365,21 @@ public class DataObject extends BaseResource implements Serializable {
                     logger.error("Rollback of changes triggered by archiving data object '{}' was not successful. " +
                             "MANUAL INTERVENTION REQUIRED.", ex);
                     throw new LifeCycleException("Archiving data object '" + this
-                            .getUrn() + "' not successful. MANUAL INTERVENTION REQUIRED.", ex);
+                            .getIdentifier() + "' not successful. MANUAL INTERVENTION REQUIRED.", ex);
                 }
             }
         } else {
             logger.info("The data object ({}) can not be archived because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data object (" + this.getUrn() +
+            throw new LifeCycleException("The data object (" + this.getIdentifier() +
                     ") can not be archived because it is in state '" + getState() + "'.");
         }
     }
 
-    /**
-     * Unarchive.
-     *
-     * @throws LifeCycleException the life cycle exception
-     */
-    public void unarchive() throws LifeCycleException {
+    @Override
+    public void unarchive() throws Exception {
         if (this.isArchived()) {
             // Remember changed elements for undoing changes in case of an exception
             List<DataElement> changedElements = new ArrayList<DataElement>();
@@ -334,7 +395,7 @@ public class DataObject extends BaseResource implements Serializable {
                 this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.unarchive);
             } catch (Exception e) {
                 logger.warn("Un-archiving data object '{}' not successful because un-archiving of one of its data " +
-                        "elements caused an exception. Trying to undo all changes.", this.getUrn());
+                        "elements caused an exception. Trying to undo all changes.", this.getIdentifier());
 
                 try {
                     // Archive the already un-archived data elements again
@@ -348,23 +409,22 @@ public class DataObject extends BaseResource implements Serializable {
             }
         } else {
             logger.info("The data object ({}) can not be un-archived because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data object (" + this.getUrn() +
+            throw new LifeCycleException("The data object (" + this.getIdentifier() +
                     ") can not be un-archived because it is in state '" + getState() + "'.");
         }
     }
 
-    /**
-     * Delete.
-     *
-     * @throws LifeCycleException the life cycle exception
-     */
-    public void delete() throws LifeCycleException {
+    @Override
+    public void delete() throws Exception {
         if (this.isReady() || this.isInitial() || this.isArchived()) {
 
             try {
+                // Delete all data object instances
+                deleteDataObjectInstances();
+
                 // Delete all data elements
                 deleteDataElements();
 
@@ -374,11 +434,11 @@ public class DataObject extends BaseResource implements Serializable {
             } catch (TooBusyException e) {
                 logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                         "after maximal " +
-                        "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
+                        "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             } catch (Exception e) {
                 logger.error("Deletion data object '{}' not successful because deletion of one of its data " +
-                        "elements caused an exception. MANUAL INTERVENTION REQUIRED.", this.getUrn());
+                        "elements caused an exception. MANUAL INTERVENTION REQUIRED.", this.getIdentifier());
 
                 // Trigger the initial event to disable the creation of new instances of the corrupted object
                 try {
@@ -386,25 +446,25 @@ public class DataObject extends BaseResource implements Serializable {
                 } catch (TooBusyException ex) {
                     logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                             "after maximal " +
-                            "amount of retries", this.getUrn(), DataObjectLifeCycle.Events.ready);
-                    throw new LifeCycleException("Deletion data object '" + this.getUrn() + "' not successful", ex);
+                            "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                    throw new LifeCycleException("Deletion data object '" + this.getIdentifier() + "' not successful", ex);
                 }
 
-                throw new LifeCycleException("Deletion data object '" + this.getUrn() + "' not successful", e);
+                throw new LifeCycleException("Deletion data object '" + this.getIdentifier() + "' not successful", e);
             }
 
             // Cleanup variables
-            this.urn = null;
+            this.identifier = null;
             this.entity = null;
             this.name = null;
             this.lifeCycle = null;
             this.dataElements = null;
         } else {
             logger.info("The data object ({}) can not be deleted because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data object (" + this.getUrn() +
+            throw new LifeCycleException("The data object (" + this.getIdentifier() +
                     ") can not be deleted because it is in state '" + getState() + "'.");
         }
     }
@@ -412,27 +472,22 @@ public class DataObject extends BaseResource implements Serializable {
     /**
      * Instantiates the data object and returns the created instance.
      *
-     * @param createdBy      the entity that triggers the instantiation of the data object. For example, an instance
-     *                       ID of a workflow or the name of human user can be used.
+     * @param createdBy the entity that triggers the instantiation of the data object. For example, an instance
+     *                  ID of a workflow or the name of human user can be used.
      * @return the created instance of the data object
      * @throws LifeCycleException If the data object is in a state which does not allow its instantiation.
      */
-    public DOInstance instantiate(String createdBy) throws LifeCycleException {
-        DOInstance result = null;
+    public DataObjectInstance instantiate(String createdBy) throws LifeCycleException {
+        DataObjectInstance result = null;
 
         if (this.isReady()) {
-            try {
-                result = new DOInstance(this.getUrn(), createdBy);
-            } catch (URNSyntaxException e) {
-                logger.error("Instantiation of data object '{}' caused an exception during URN creation.", this.getUrn
-                        ());
-            }
+            result = new DataObjectInstance(this, createdBy);
         } else {
             logger.info("The data object ({}) can not be instantiated because it is in state '{}'.", this
-                            .getUrn(),
+                            .getIdentifier(),
                     getState());
 
-            throw new LifeCycleException("The data object (" + this.getUrn() +
+            throw new LifeCycleException("The data object (" + this.getIdentifier() +
                     ") can not be instantiated because it is in state '" + getState() + "'.");
         }
 
@@ -440,45 +495,33 @@ public class DataObject extends BaseResource implements Serializable {
     }
 
     public boolean isInitial() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
                 .INITIAL.name());
     }
 
     public boolean isReady() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
                 .READY.name());
     }
 
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
                 .ARCHIVED.name());
     }
 
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
                 .DELETED.name());
-    }
-
-    @PostLoad
-    private void postLoad() {
-        try {
-            this.urn = URN.fromString(this.identifier);
-        } catch (URNSyntaxException e) {
-            logger.error("Reloading the persisted data object '{}' caused an URNSyntaxException", this.getIdentifier());
-        }
     }
 
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
-            this.urn = URN.fromString(this.identifier);
 
             lifeCycle = new DataObjectLifeCycle(this, false);
         } catch (ClassNotFoundException e) {
-            logger.error("Class not found during deserialization of data object '{}'", this.getUrn().toString());
+            logger.error("Class not found during deserialization of data object '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data object.");
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
         }
     }
 

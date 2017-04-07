@@ -16,13 +16,12 @@
 
 package org.trade.core.model.data;
 
-import de.slub.urn.URNSyntaxException;
-import org.trade.core.model.ModelUtils;
-import org.trade.core.model.data.instance.DEInstance;
-import org.trade.core.model.lifecycle.DataElementLifeCycle;
-import org.trade.core.model.lifecycle.LifeCycleException;
 import org.junit.Before;
 import org.junit.Test;
+import org.trade.core.model.data.instance.DataElementInstance;
+import org.trade.core.model.data.instance.DataObjectInstance;
+import org.trade.core.model.lifecycle.DataElementLifeCycle;
+import org.trade.core.model.lifecycle.LifeCycleException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,31 +39,24 @@ public class DataElementTest {
 
     @Before
     public void createDataObject() {
-        try {
             this.obj = new DataObject(entity, doName);
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
-        }
     }
 
     @Test
     public void dataElementShouldBeReady() throws Exception {
         String name = "dataElement";
-        DataElement elm = new DataElement(obj, name);
+        DataElement elm = new DataElement(obj, entity, name);
         elm.initialize();
 
         assertEquals(DataElementLifeCycle.States.READY.name(), elm.getState());
-        assertEquals(entity, elm.getUrn().getNamespaceIdentifier
-                ());
-        assertEquals(doName + ModelUtils.URN_NAMESPACE_STRING_DELIMITER + name, elm.getUrn()
-                .getNamespaceSpecificString());
+        assertEquals(entity, elm.getEntity());
     }
 
     @Test(expected = LifeCycleException.class)
     public void instantiationOfDataElementShouldCauseException() throws Exception {
         DataElement elm = new DataElement(obj);
 
-        elm.instantiate("owner");
+        elm.instantiate(new DataObjectInstance(obj, "someone"), "owner");
     }
 
     @Test
@@ -72,7 +64,7 @@ public class DataElementTest {
         DataElement elm = new DataElement(obj);
         elm.initialize();
 
-        DEInstance inst = elm.instantiate("owner");
+        DataElementInstance inst = elm.instantiate(new DataObjectInstance(obj, "someone"),"owner");
 
         assertNotNull(inst);
     }

@@ -16,72 +16,48 @@
 
 package org.trade.core.model.data;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-import de.slub.urn.URN;
-import de.slub.urn.URNSyntaxException;
-import org.bson.Document;
-import org.bson.types.Binary;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.PostLoad;
+import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trade.core.model.ModelUtils;
-import org.trade.core.utils.TraDEProperties;
+import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.ModelConstants;
+import org.trade.core.model.data.instance.DataElementInstance;
+import org.trade.core.model.lifecycle.DataValueLifeCycle;
+import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.persistence.local.LocalPersistenceProvider;
+import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by hahnml on 26.10.2016.
  */
 @Entity("dataValues")
-public class DataValue extends BaseResource implements Serializable {
+public class DataValue extends BaseResource implements Serializable, ILifeCycleInstanceObject {
 
     private static final long serialVersionUID = -1774719861199414867L;
 
     @Transient
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataValue");
 
-    private transient TraDEProperties props = null;
-
-    /**
-     * We use Uniform Resource Names (URN) to identify data values independent of their concrete location.
-     * <p>
-     * Therefore, we use the following scheme according to RFC 2141:
-     * <URN> ::= "urn:" <Namespace Identifier (NID)> ":" <Namespace Specific String (NSS)>
-     * <p>
-     * Where the NID "data" is used to represent the data context. The NSS contains an optional name of the owner of
-     * the data value and its auto-generated name separated by a ":" symbol.
-     * For example, the URN "urn:data:hahnml:ca635810-8ec1-4e30-8bd7-b52469494fdd" refers to data value
-     * "ca635810-8ec1-4e30-8bd7-b52469494fdd" which belongs to owner "hahnml". The "owner" reference does not
-     * necessarily have to contain an identifier of a human being, also any type of resource or system can be
-     * specified to be the owner of the data value.
-     */
-    private transient URN urn = null;
-
     private String name = null;
-
-    private String readableName = "";
 
     private Date timestamp = new Date();
 
     private String owner = "";
 
-    private String state = "created";
+    private transient DataValueLifeCycle lifeCycle = null;
+
+    private transient LocalPersistenceProvider persistProv = null;
+
+    @State
+    private String state;
 
     private String type = null;
 
@@ -91,42 +67,48 @@ public class DataValue extends BaseResource implements Serializable {
 
     private long size = 0L;
 
-    public DataValue(String owner) throws URNSyntaxException {
-        props = new TraDEProperties();
+    @Reference
+    private List<DataElementInstance> dataElementInstances = new ArrayList<DataElementInstance>();
 
-        this.name = UUID.randomUUID().toString();
-
+    /**
+     * Instantiates a new data value with the given name and owner.
+     *
+     * @param owner the owner of the data value
+     * @param name  the name of the data value
+     */
+    public DataValue(String owner, String name) {
         this.owner = owner;
+        this.name = name;
 
-        if (owner != null) {
-            this.urn = URN.newInstance(ModelUtils.DATA_URN_NAMESPACE_ID, owner + ModelUtils
-                    .URN_NAMESPACE_STRING_DELIMITER + name);
-        } else {
-            this.urn = URN.newInstance(ModelUtils.DATA_URN_NAMESPACE_ID, name);
-        }
-
-        // Set the identifier to the stringified value of the URN
-        this.identifier = urn.toString();
+        this.lifeCycle = new DataValueLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
     }
 
     /**
      * This constructor is only used by Morphia to load data value from the database.
      */
     private DataValue() {
-        props = new TraDEProperties();
-    }
-
-    public URN getUrn() {
-        return urn;
+        this.lifeCycle = new DataValueLifeCycle(this, false);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
     }
 
     /**
-     * Provides the name of the data element.
+     * Provides the name of the data value.
      *
-     * @return The name of the data element.
+     * @return The name of the data value.
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * Allows to set the name of the data value.
+     *
+     * @param name the name of the data value
+     */
+    public void setName(String name) {
+        this.name = name;
+        this.lastModified = new Date();
     }
 
     public Date getCreationTimestamp() {
@@ -137,21 +119,17 @@ public class DataValue extends BaseResource implements Serializable {
         return owner;
     }
 
+    /**
+     * Provides access to the current state of the data value through its life cycle object.
+     *
+     * @return The current state of the data value.
+     */
     public String getState() {
         return state;
     }
 
     public Date getLastModified() {
         return lastModified;
-    }
-
-    public String getHumanReadableName() {
-        return readableName;
-    }
-
-    public void setHumanReadableName(String readableName) {
-        this.readableName = readableName;
-        this.lastModified = new Date();
     }
 
     /**
@@ -204,215 +182,174 @@ public class DataValue extends BaseResource implements Serializable {
         return this.size;
     }
 
-    public byte[] getData() {
-        byte[] result = null;
-
-        switch (this.props.getDataPersistenceMode()) {
-            case DB:
-                result = loadDataFromDB();
-                break;
-            case FILE:
-                result = loadDataFromFile();
-                break;
-            default:
-                result = loadDataFromFile();
-        }
+    public byte[] getData() throws Exception {
+        byte[] result = this.persistProv.loadData(ModelConstants.DATA_VALUE_COLLECTION, getIdentifier());
 
         return result;
     }
 
     public void setData(byte[] data, long size) throws Exception {
-        this.size = size;
+        // Check if the data value is created or already initialized and therefore ready to store data
+        if (this.isCreated() || this.isInitialized()) {
+            this.size = size;
 
-        // TODO: Where and how do we handle/track state changes?
-        this.state = "ready";
+            try {
+                this.persistProv.storeData(data, ModelConstants.DATA_VALUE_COLLECTION, getIdentifier());
 
-        switch (this.props.getDataPersistenceMode()) {
-            case DB:
-                storeDataToDB(data);
-                break;
-            case FILE:
-                storeDataToFile(data);
-                break;
-            default:
-                storeDataToFile(data);
-        }
+                this.lastModified = new Date();
 
-        this.lastModified = new Date();
-    }
+                if (this.isCreated()) {
+                    // If this is the first time data is set, we trigger the corresponding state change that the data
+                    // value is now initialized
 
-    public void destroy() {
-        switch (this.props.getDataPersistenceMode()) {
-            case DB:
-                removeDataFromDB();
-                break;
-            case FILE:
-                removeDataFromFile();
-                break;
-            default:
-                removeDataFromFile();
-        }
-    }
+                    // Trigger the initialized event for the data value
+                    this.lifeCycle.triggerEvent(this, DataValueLifeCycle.Events.initialize);
+                } else if (this.isInitialized() && data == null) {
+                    // If the data value is already initialized (i.e., has associated data) we have to change the state
+                    // back to created when the associated data is deleted (data==null)
 
-    private byte[] loadDataFromFile() {
-        byte[] result = new byte[0];
-
-        // We use the identifier as file name
-        Path file = Paths.get(this.props.getDataPersistenceFileDirectory(), ModelUtils.translateURNtoFolderPath
-                (getUrn()), ModelUtils.DATA_FILE_NAME);
-
-        try {
-            if (Files.exists(file)) {
-                result = Files.readAllBytes(file);
-            }
-        } catch (IOException e) {
-            logger.error("Loading data from file '{}' for data value '{}' caused an exception", file.toString(),
-                    getIdentifier());
-        }
-
-        return result;
-    }
-
-    private byte[] loadDataFromDB() {
-        byte[] data = new byte[0];
-
-        MongoClient client = new MongoClient(new MongoClientURI(this.props.getDataPersistenceDbUrl()));
-        MongoDatabase db = client.getDatabase(this.props.getDataPersistenceDbName());
-
-        Document doc = db.getCollection("dataCollection").find(Filters.eq("urn", getIdentifier())).limit(1).first();
-
-        if (doc != null) {
-            if (doc.containsKey("data")) {
-                data = ((Binary) doc.get("data")).getData();
-                this.lastModified = doc.getDate("lastModified");
-            } else {
-                logger.info("Data value '{}' does not have any associated data at the moment.", getIdentifier());
-            }
-        } else {
-            logger.info("The database does not contain the specified data value '{}'",
-                    getIdentifier());
-        }
-
-        client.close();
-
-        return data;
-    }
-
-    private void storeDataToFile(byte[] data) throws IOException {
-        Path path = Paths.get(this.props.getDataPersistenceFileDirectory(), ModelUtils.translateURNtoFolderPath(this
-                .urn));
-        Path file = Paths.get(path.toString(), ModelUtils.DATA_FILE_NAME);
-
-        if (data == null) {
-            // We assume that if the value is set to null, we should delete also the corresponding file
-            Files.deleteIfExists(file);
-        } else {
-
-            if (Files.notExists(path)) {
-                Files.createDirectories(path);
-            }
-
-            Files.write(file, data, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        }
-    }
-
-    private void storeDataToDB(byte[] data) {
-        MongoClient client = new MongoClient(new MongoClientURI(this.props.getDataPersistenceDbUrl()));
-        MongoDatabase db = client.getDatabase(this.props.getDataPersistenceDbName());
-
-        MongoCollection<Document> collection = db.getCollection("dataCollection");
-        Document doc = collection.find(Filters.eq("urn", getIdentifier())).limit(1).first();
-
-        if (data == null) {
-            // We assume that if the value is set to null, we should delete also the corresponding database entry
-            if (doc != null) {
-                collection.deleteOne(Filters.eq("urn", getIdentifier()));
-            }
-        } else {
-            // Check if the document already exists and update it
-            if (doc != null) {
-                collection.updateOne(Filters.eq("urn", getIdentifier()),
-                        Updates.combine(Updates.set("data", data), Updates.currentDate
-                                ("lastModified")));
-            } else {
-                Document document = new Document("urn", getIdentifier())
-                        .append("data", data)
-                        .append("lastModified", new Date());
-                collection.insertOne(document);
-            }
-        }
-
-        client.close();
-    }
-
-    private void removeDataFromFile() {
-        Path rootFolder = Paths.get(this.props.getDataPersistenceFileDirectory());
-
-        // We use the identifier as file name
-        Path file = Paths.get(this.props.getDataPersistenceFileDirectory(), ModelUtils.translateURNtoFolderPath
-                (getUrn()), ModelUtils.DATA_FILE_NAME);
-
-        try {
-            // Delete the associated file, if it exists
-            if (Files.exists(file)) {
-                Files.delete(file);
-            }
-
-            // Check if parent folders are empty, if so delete also these folders
-            Path current = file.getParent();
-            while (!current.equals(rootFolder)) {
-                File cFile = current.toFile();
-                if (cFile.isDirectory() && cFile.listFiles().length == 0) {
-                    Files.delete(current);
+                    // Trigger the created event for the data value
+                    this.lifeCycle.triggerEvent(this, DataValueLifeCycle.Events.create);
                 }
+            } catch (Exception e) {
+                logger.error("Setting data on data value '" + this.getIdentifier() + "' caused an exception.", e);
 
-                current = current.getParent();
+                throw e;
             }
-        } catch (IOException e) {
-            logger.error("Deleting data from file '{}' for data value '{}' caused an exception", file.toString(),
-                    getIdentifier());
-        }
-    }
-
-    private void removeDataFromDB() {
-        MongoClient client = new MongoClient(new MongoClientURI(this.props.getDataPersistenceDbUrl()));
-        MongoDatabase db = client.getDatabase(this.props.getDataPersistenceDbName());
-
-        Document doc = db.getCollection("dataCollection").findOneAndDelete(Filters.eq("urn", getIdentifier()));
-
-        if (doc != null) {
-            logger.info("Data value '{}' and its associated data successfully deleted from DB.", getIdentifier());
         } else {
-            logger.info("The database does not contain the specified data value '{}'",
-                    getIdentifier());
-        }
+            logger.info("No data can be set for the data value ({}) because it is in state '{}'.",
+                    this
+                            .getIdentifier(),
+                    getState());
 
-        client.close();
-    }
-
-    @PostLoad
-    private void postLoad() {
-        try {
-            this.urn = URN.fromString(this.identifier);
-        } catch (URNSyntaxException e) {
-            logger.error("Reloading the persisted data value '{}' caused an URNSyntaxException", this.getIdentifier());
+            throw new LifeCycleException("No data can be set for the data value (" + this.getIdentifier() +
+                    ") because it is in state '" + getState() + "'.");
         }
     }
+
+    public void associateWithDataElementInstance(DataElementInstance dataElementInstance) {
+        if (dataElementInstance != null) {
+            if (!dataElementInstances.contains(dataElementInstance)) {
+                dataElementInstances.add(dataElementInstance);
+            }
+        }
+    }
+
+    public void removeAssociationWithDataElementInstance(DataElementInstance dataElementInstance) {
+        if (dataElementInstance != null) {
+            if (dataElementInstances.contains(dataElementInstance)) {
+                dataElementInstances.remove(dataElementInstance);
+            }
+        }
+    }
+
+    /**
+     * Provides the list of data element instances using this data value.
+     *
+     * @return An unmodifiable list of data element instances.
+     */
+    public List<DataElementInstance> getDataElementInstances() {
+        return this.dataElementInstances != null ? Collections.unmodifiableList(this.dataElementInstances) : null;
+    }
+
+    /**
+     * Gets all data element instances using this data value created by the specified entity.
+     *
+     * @param createdBy the entity for which data element instances using this data value should be
+     *                  returned
+     * @return An unmodifiable list of matching data element instances.
+     */
+    public List<DataElementInstance> getDataElementInstances(String createdBy) {
+        List<DataElementInstance> result = this.dataElementInstances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
+                (Collectors.toList());
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * Gets a data element instance (using this data value) by id.
+     *
+     * @param identifier the identifier
+     * @return the data element instance by id
+     */
+    public DataElementInstance getDataElementInstanceById(String identifier) {
+        Optional<DataElementInstance> opt = this.dataElementInstances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
+        return opt.isPresent() ? opt.get() : null;
+    }
+
+    @Override
+    public void create() throws Exception {
+        // TODO: Do we have to put some logic here?
+    }
+
+    @Override
+    public void initialize() throws Exception {
+        // TODO: Do we have to put some logic here?
+    }
+
+    @Override
+    public void archive() throws Exception {
+        // TODO: Add logic for archiving data values. Only archive a data value if it is not used by any existing (non-archived) data element instance!
+    }
+
+    @Override
+    public void unarchive() throws Exception {
+        // TODO: Add logic for unarchiving data values.
+    }
+
+    @Override
+    public void delete() throws Exception {
+        // Check if the data value is used by any data element, if not delete it
+        if (this.dataElementInstances.isEmpty()) {
+            // Delete the associated data
+            this.persistProv.removeData(ModelConstants.DATA_VALUE_COLLECTION, getIdentifier());
+        } else {
+            // If the data value is used by any data element instance, we deny its deletion
+            logger.warn("Someone tried to delete data value ({}) which is used by '{}' data element instances. " +
+                            "Therefore, the deletion attempt is rejected by the system.",
+                    this
+                            .getIdentifier(),
+                    this.dataElementInstances.size());
+
+            throw new LifeCycleException("Someone tried to delete data value (" + this.getIdentifier() +
+                    ") which is used by " + this.dataElementInstances.size() + " data element instances. " +
+                    "Therefore, the deletion attempt is rejected by the system.");
+        }
+    }
+
+    @Override
+    public boolean isCreated() {
+        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+                .CREATED.name());
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+                .INITIALIZED.name());
+    }
+
+    @Override
+    public boolean isArchived() {
+        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+                .ARCHIVED.name());
+    }
+
+    @Override
+    public boolean isDeleted() {
+        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+                .DELETED.name());
+    }
+
 
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
-            this.urn = URN.fromString(this.identifier);
+
+            lifeCycle = new DataValueLifeCycle(this, false);
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data value '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data value.");
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
-        }
-
-        // We need to recreate the properties object
-        if (this.props == null) {
-            props = new TraDEProperties();
         }
     }
 }

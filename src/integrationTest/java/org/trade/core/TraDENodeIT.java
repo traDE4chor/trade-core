@@ -26,7 +26,6 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import de.slub.urn.URNSyntaxException;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.types.Binary;
@@ -35,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.DataValue;
 import org.trade.core.utils.TraDEProperties;
@@ -89,81 +89,73 @@ public class TraDENodeIT {
     @Test
     public void createDataObjectsTest() {
         List<String> keys = new ArrayList<String>();
-        keys.add("urn:chorModel1:lattice");
-        keys.add("urn:userA:plot");
-        keys.add("urn:random:input");
 
-        try {
-            IMap<String, DataObject> dataObjects = instance.getMap("dataObjects");
+        IMap<String, DataObject> dataObjects = instance.getMap("dataObjects");
 
-            assertEquals(0, cacheStore.createQuery(DataObject.class).asList().size());
+        assertEquals(0, cacheStore.createQuery(DataObject.class).asList().size());
 
-            if (!dataObjects.containsKey(keys.get(0))) {
-                DataObject obj = new DataObject("chorModel1", "lattice");
-                dataObjects.set(obj.getIdentifier(), obj);
-            }
-
-            if (!dataObjects.containsKey(keys.get(1))) {
-                DataObject obj = new DataObject("userA", "plot");
-                dataObjects.set(obj.getIdentifier(), obj);
-            }
-
-            if (!dataObjects.containsKey(keys.get(2))) {
-                DataObject obj = new DataObject("random", "input");
-                dataObjects.set(obj.getIdentifier(), obj);
-            }
-
-            for (String key : keys) {
-                DataObject obj = (DataObject) instance.getMap("dataObjects").get(key);
-                assertNotNull(obj);
-            }
-
-            assertEquals(3, instance.getMap("dataObjects").size());
-            assertEquals(3, cacheStore.createQuery(DataObject.class).asList().size());
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
+        if (dataObjects.keySet().size() == 0 || !dataObjects.containsKey(keys.get(0))) {
+            DataObject obj = new DataObject("chorModel1", "lattice");
+            dataObjects.set(obj.getIdentifier(), obj);
+            keys.add(obj.getIdentifier());
         }
+
+        if (dataObjects.keySet().size() == 1 || !dataObjects.containsKey(keys.get(1))) {
+            DataObject obj = new DataObject("userA", "plot");
+            dataObjects.set(obj.getIdentifier(), obj);
+            keys.add(obj.getIdentifier());
+        }
+
+        if (dataObjects.keySet().size() == 2 || !dataObjects.containsKey(keys.get(2))) {
+            DataObject obj = new DataObject("random", "input");
+            dataObjects.set(obj.getIdentifier(), obj);
+            keys.add(obj.getIdentifier());
+        }
+
+        for (String key : keys) {
+            DataObject obj = (DataObject) instance.getMap("dataObjects").get(key);
+            assertNotNull(obj);
+        }
+
+        assertEquals(3, instance.getMap("dataObjects").size());
+        assertEquals(3, cacheStore.createQuery(DataObject.class).asList().size());
     }
 
     @Test
     public void createDataValuesTest() {
-        try {
-            IMap<String, DataValue> dataValues = instance.getMap("dataValues");
+        IMap<String, DataValue> dataValues = instance.getMap("dataValues");
 
-            assertEquals(0, cacheStore.createQuery(DataValue.class).asList().size());
+        assertEquals(0, cacheStore.createQuery(DataValue.class).asList().size());
 
-            List<String> dvKeys = new ArrayList<String>();
-            for (DataValue value : cacheStore.createQuery(DataValue.class).retrievedFields(true, "identifier").asList()) {
-                dvKeys.add(value.getIdentifier());
+        List<String> dvKeys = new ArrayList<String>();
+        for (DataValue value : cacheStore.createQuery(DataValue.class).retrievedFields(true, "identifier").asList()) {
+            dvKeys.add(value.getIdentifier());
+        }
+
+        if (dvKeys.isEmpty()) {
+            DataValue value = new DataValue("hahnml", "someData");
+
+            try {
+                InputStream in = getClass().getResourceAsStream("/data.dat");
+
+                byte[] data = IOUtils.toByteArray(in);
+                assertNotNull(data);
+
+                value.setData(data, data.length);
+
+                MongoCollection<Document> collection = dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION);
+                Document doc = collection.find(Filters.eq("urn", value.getIdentifier())).limit(1).first();
+                assertNotNull(((Binary) doc.get("data")).getData());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-            if (dvKeys.isEmpty()) {
-                DataValue value = new DataValue("hahnml");
+            dvKeys.add(value.getIdentifier());
 
-                try {
-                    InputStream in = getClass().getResourceAsStream("/data.dat");
+            dataValues.set(value.getIdentifier(), value);
 
-                    byte[] data = IOUtils.toByteArray(in);
-                    assertNotNull(data);
-
-                    value.setData(data, data.length);
-
-                    MongoCollection<Document> collection = dataStore.getCollection("dataCollection");
-                    Document doc = collection.find(Filters.eq("urn", value.getIdentifier())).limit(1).first();
-                    assertNotNull(((Binary) doc.get("data")).getData());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                dvKeys.add(value.getIdentifier());
-
-                dataValues.set(value.getIdentifier(), value);
-
-                assertEquals(1, instance.getMap("dataValues").size());
-                assertEquals(1, cacheStore.createQuery(DataValue.class).asList().size());
-            }
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
+            assertEquals(1, instance.getMap("dataValues").size());
+            assertEquals(1, cacheStore.createQuery(DataValue.class).asList().size());
         }
     }
 
@@ -172,7 +164,7 @@ public class TraDENodeIT {
         cacheStore.createQuery(DataObject.class).getCollection().drop();
         cacheStore.createQuery(DataValue.class).getCollection().drop();
 
-        dataStore.getCollection("dataCollection").drop();
+        dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION).drop();
         dataStoreClient.close();
 
         instance.shutdown();

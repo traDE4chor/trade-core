@@ -16,9 +16,9 @@
 
 package io.swagger.trade.server.jersey.api.util;
 
-import de.slub.urn.URNSyntaxException;
 import io.swagger.trade.server.jersey.model.DataValue;
 import io.swagger.trade.server.jersey.model.DataValueData;
+import io.swagger.trade.server.jersey.model.InstanceStatusEnum;
 import io.swagger.trade.server.jersey.model.StatusEnum;
 
 /**
@@ -29,14 +29,8 @@ public class ResourceTransformationUtils {
     public static DataValue model2Resource(org.trade.core.model.data.DataValue dataValue) {
         DataValue value = new DataValue();
 
-        /* TODO: Using URNs as identifiers of resources (maybe inside URL paths/queries) is not a good idea!?
-        * Therefore, the question is if we should change the underlying model so that each model element has a UUID
-        * as identifier and the URN is only used for internal purposes?
-        */
-
-        //value.setId(dataValue.getIdentifier());
-        value.setId(dataValue.getName());
-        value.setName(dataValue.getHumanReadableName());
+        value.setId(dataValue.getIdentifier());
+        value.setName(dataValue.getName());
 
         value.setType(dataValue.getType());
         value.setContentType(dataValue.getContentType());
@@ -47,29 +41,40 @@ public class ResourceTransformationUtils {
         value.setCreatedBy(dataValue.getOwner());
         value.setSize(dataValue.getSize());
 
-        value.setStatus(model2resource(dataValue.getState()));
+        value.setStatus(string2InstanceStatus(dataValue.getState()));
 
         return value;
     }
 
-    public static org.trade.core.model.data.DataValue resource2Model(DataValueData dataValue) throws
-            URNSyntaxException {
-        org.trade.core.model.data.DataValue value = new org.trade.core.model.data.DataValue(dataValue.getCreatedBy());
+    public static org.trade.core.model.data.DataValue resource2Model(DataValueData dataValue) {
+        org.trade.core.model.data.DataValue value = new org.trade.core.model.data.DataValue(dataValue.getCreatedBy(),
+                dataValue.getName());
 
-        value.setHumanReadableName(dataValue.getName());
         value.setContentType(dataValue.getContentType());
         value.setType(dataValue.getType());
 
         return value;
     }
 
-    public static StatusEnum model2resource(String value) {
-        if (value.equals(StatusEnum.CREATED.toString())) {
+    public static StatusEnum string2Status(String value) {
+        if (value.toUpperCase().equals(StatusEnum.CREATED.toString().toUpperCase())) {
             return StatusEnum.CREATED;
-        } else if (value.equals(StatusEnum.ARCHIVED.toString())) {
+        } else if (value.toUpperCase().equals(StatusEnum.ARCHIVED.toString().toUpperCase())) {
             return StatusEnum.ARCHIVED;
-        } else if (value.equals(StatusEnum.READY.toString())) {
+        } else if (value.toUpperCase().equals(StatusEnum.READY.toString().toUpperCase())) {
             return StatusEnum.READY;
+        }
+
+        return null;
+    }
+
+    public static InstanceStatusEnum string2InstanceStatus(String value) {
+        if (value.toUpperCase().equals(InstanceStatusEnum.CREATED.toString().toUpperCase())) {
+            return InstanceStatusEnum.CREATED;
+        } else if (value.toUpperCase().equals(InstanceStatusEnum.ARCHIVED.toString().toUpperCase())) {
+            return InstanceStatusEnum.ARCHIVED;
+        } else if (value.toUpperCase().equals(InstanceStatusEnum.INITIALIZED.toString().toUpperCase())) {
+            return InstanceStatusEnum.INITIALIZED;
         }
 
         return null;

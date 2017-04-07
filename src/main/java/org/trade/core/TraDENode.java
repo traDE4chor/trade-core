@@ -23,7 +23,6 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import de.slub.urn.URNSyntaxException;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.trade.core.model.data.DataObject;
@@ -86,28 +85,27 @@ public class TraDENode {
         store.ensureIndexes();
 
         List<String> keys = new ArrayList<String>();
-        keys.add("urn:chorModel1:lattice");
-        keys.add("urn:userA:plot");
-        keys.add("urn:random:input");
 
-        try {
-            IMap<String, DataObject> dataObjects = instance.getMap("dataObjects");
-            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
+        IMap<String, DataObject> dataObjects = instance.getMap("dataObjects");
+        System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 
-            if (!dataObjects.containsKey(keys.get(0))) {
-                DataObject obj = new DataObject("chorModel1", "lattice");
-                dataObjects.set(obj.getIdentifier(), obj);
-            }
+        if (!dataObjects.containsKey(keys.get(0))) {
+            DataObject obj = new DataObject("chorModel1", "lattice");
+            dataObjects.set(obj.getIdentifier(), obj);
+            keys.add(obj.getIdentifier());
+        }
 
-            if (!dataObjects.containsKey(keys.get(1))) {
-                DataObject obj = new DataObject("userA", "plot");
-                dataObjects.set(obj.getIdentifier(), obj);
-            }
+        if (!dataObjects.containsKey(keys.get(1))) {
+            DataObject obj = new DataObject("userA", "plot");
+            dataObjects.set(obj.getIdentifier(), obj);
+            keys.add(obj.getIdentifier());
+        }
 
-            if (!dataObjects.containsKey(keys.get(2))) {
-                DataObject obj = new DataObject("random", "input");
-                dataObjects.set(obj.getIdentifier(), obj);
-            }
+        if (!dataObjects.containsKey(keys.get(2))) {
+            DataObject obj = new DataObject("random", "input");
+            dataObjects.set(obj.getIdentifier(), obj);
+            keys.add(obj.getIdentifier());
+        }
 
 //            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 //
@@ -119,91 +117,88 @@ public class TraDENode {
 //
 //            System.out.println(dataObjects.getName() + " - " + dataObjects.size());
 
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        for (String key : keys) {
+            DataObject obj = (DataObject) instance.getMap("dataObjects").get(key);
+            System.out.println("### DataObject ###");
+            System.out.println("Name: " + obj.getName());
+            System.out.println("Identifier: " + obj.getIdentifier());
+            System.out.println("Entity: " + obj.getEntity());
+            System.out.println("State: " + obj.getState());
+            System.out.println("##################");
+        }
+
+        IMap<String, DataValue> dataValues = instance.getMap("dataValues");
+        System.out.println(dataValues.getName() + " - " + dataValues.size());
+
+        List<String> dvKeys = new ArrayList<String>();
+        for (DataValue value : store.createQuery(DataValue.class).retrievedFields(true, "identifier").asList()) {
+            dvKeys.add(value.getIdentifier());
+        }
+
+        if (dvKeys.isEmpty()) {
+            DataValue value = new DataValue("hahnml", "script");
+
             try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
+                // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
+                byte[] data = Files.readAllBytes(Paths.get("C:\\test\\script.sh"));
+
+                value.setData(data, data.length);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            for (String key : keys) {
-                DataObject obj = (DataObject) instance.getMap("dataObjects").get(key);
-                System.out.println("### DataObject ###");
-                System.out.println("Name: " + obj.getName());
-                System.out.println("Identifier: " + obj.getIdentifier());
-                System.out.println("URN: " + obj.getUrn().toString());
-                System.out.println("Entity: " + obj.getEntity());
-                System.out.println("State: " + obj.getState());
-                if (obj.getId() != null) {
-                    System.out.println("ObjectID: " + obj.getId().toString());
-                }
-                System.out.println("##################");
+            dvKeys.add(value.getIdentifier());
+
+            dataValues.set(value.getIdentifier(), value);
+
+            value = new DataValue("hahnml", "opalVideo");
+
+            try {
+                // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
+                byte[] data = Files.readAllBytes(Paths.get("C:\\test\\opalClusterSnapshots.mp4"));
+                value.setContentType("video/mp4");
+                value.setData(data, data.length);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-            IMap<String, DataValue> dataValues = instance.getMap("dataValues");
+            dvKeys.add(value.getIdentifier());
+
+            dataValues.set(value.getIdentifier(), value);
             System.out.println(dataValues.getName() + " - " + dataValues.size());
+        }
 
-            List<String> dvKeys = new ArrayList<String>();
-            for (DataValue value : store.createQuery(DataValue.class).retrievedFields(true, "identifier").asList()) {
-                dvKeys.add(value.getIdentifier());
-            }
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-            if (dvKeys.isEmpty()) {
-                DataValue value = new DataValue("hahnml");
-
-                try {
-                    // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
-                    byte[] data = Files.readAllBytes(Paths.get("C:\\test\\script.sh"));
-
-                    value.setData(data, data.length);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                dvKeys.add(value.getIdentifier());
-
-                dataValues.set(value.getIdentifier(), value);
-
-                value = new DataValue("hahnml");
-
-                try {
-                    // byte[] data = Files.readAllBytes(Paths.get("C:\\test\\OpalMC\\scripts\\data\\000abcd0001.dat"));
-                    byte[] data = Files.readAllBytes(Paths.get("C:\\test\\opalClusterSnapshots.mp4"));
-                    value.setContentType("video/mp4");
-                    value.setData(data, data.length);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                dvKeys.add(value.getIdentifier());
-
-                dataValues.set(value.getIdentifier(), value);
-                System.out.println(dataValues.getName() + " - " + dataValues.size());
-            }
+        for (String key : dvKeys) {
+            DataValue value = (DataValue) instance.getMap("dataValues").get(key);
+            System.out.println("### DataValue ###");
+            System.out.println("Owner: " + value.getOwner());
+            System.out.println("Identifier: " + value.getIdentifier());
+            System.out.println("Timestamp: " + value.getCreationTimestamp());
+            System.out.println("State: " + value.getState());
 
             try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            for (String key : dvKeys) {
-                DataValue value = (DataValue) instance.getMap("dataValues").get(key);
-                System.out.println("### DataValue ###");
-                System.out.println("Owner: " + value.getOwner());
-                System.out.println("Identifier: " + value.getIdentifier());
-                System.out.println("URN: " + value.getUrn().toString());
-                System.out.println("Timestamp: " + value.getCreationTimestamp());
-                System.out.println("State: " + value.getState());
                 if (value.getData() != null) {
                     System.out.println("Data: " + value.getData().toString() + ", size: " + value.getData().length);
                 }
-                System.out.println("#################");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            instance.shutdown();
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
+            System.out.println("#################");
         }
+
+        instance.shutdown();
 
         try {
             Thread.sleep(3000);

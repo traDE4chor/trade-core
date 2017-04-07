@@ -146,7 +146,7 @@ public class TraDEClientServerIT {
         } catch (ApiException e) {
             e.printStackTrace();
 
-            assertEquals(400, e.getCode());
+            assertEquals(404, e.getCode());
         }
     }
 

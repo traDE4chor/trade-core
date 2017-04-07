@@ -19,7 +19,7 @@
         <async-backup-count>1</async-backup-count>
 
         <map-store enabled="true" initial-mode="LAZY">
-            <class-name>org.trade.core.persistence.DataObjectStore</class-name>
+            <class-name>org.trade.core.hazelcast.DataObjectStore</class-name>
             <properties>
                 <property name="mongo.url">${cache.db.url}</property>
                 <property name="mongo.db">${cache.db.name}</property>
@@ -36,7 +36,7 @@
         <async-backup-count>1</async-backup-count>
 
         <map-store enabled="true" initial-mode="LAZY">
-            <class-name>org.trade.core.persistence.DataObjectInstanceStore</class-name>
+            <class-name>org.trade.core.hazelcast.DataObjectInstanceStore</class-name>
             <properties>
                 <property name="mongo.url">${cache.db.url}</property>
                 <property name="mongo.db">${cache.db.name}</property>
@@ -53,7 +53,7 @@
         <async-backup-count>1</async-backup-count>
 
         <map-store enabled="true" initial-mode="LAZY">
-            <class-name>org.trade.core.persistence.DataElementStore</class-name>
+            <class-name>org.trade.core.hazelcast.DataElementStore</class-name>
             <properties>
                 <property name="mongo.url">${cache.db.url}</property>
                 <property name="mongo.db">${cache.db.name}</property>
@@ -70,7 +70,7 @@
         <async-backup-count>1</async-backup-count>
 
         <map-store enabled="true" initial-mode="LAZY">
-            <class-name>org.trade.core.persistence.DataElementInstanceStore</class-name>
+            <class-name>org.trade.core.hazelcast.DataElementInstanceStore</class-name>
             <properties>
                 <property name="mongo.url">${cache.db.url}</property>
                 <property name="mongo.db">${cache.db.name}</property>
@@ -87,7 +87,7 @@
         <async-backup-count>1</async-backup-count>
 
         <map-store enabled="true" initial-mode="LAZY">
-            <class-name>org.trade.core.persistence.DataValueStore</class-name>
+            <class-name>org.trade.core.hazelcast.DataValueStore</class-name>
             <properties>
                 <property name="mongo.url">${cache.db.url}</property>
                 <property name="mongo.db">${cache.db.name}</property>

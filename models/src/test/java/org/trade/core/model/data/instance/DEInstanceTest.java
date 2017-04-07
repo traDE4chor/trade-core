@@ -16,15 +16,10 @@
 
 package org.trade.core.model.data.instance;
 
-import de.slub.urn.URNSyntaxException;
-import org.trade.core.model.ModelUtils;
+import org.junit.Before;
 import org.trade.core.model.data.DataElement;
 import org.trade.core.model.data.DataObject;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by hahnml on 11.11.2016.
@@ -46,23 +41,14 @@ public class DEInstanceTest {
         try {
             this.obj = new DataObject(entity, doName);
 
-            elm = new DataElement(obj, deName);
+            elm = new DataElement(obj, entity, deName);
             elm.initialize();
-        } catch (URNSyntaxException e) {
-            e.printStackTrace();
         } catch (LifeCycleException e) {
+            e.printStackTrace();
+        }  catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @Test
-    public void testURNGeneration() throws Exception {
-        DEInstance inst = new DEInstance(elm.getUrn(), "owner");
-
-        assertEquals(entity, inst.getUrn().getNamespaceIdentifier
-                ());
-        assertEquals(doName + ModelUtils.URN_NAMESPACE_STRING_DELIMITER + deName + ModelUtils
-                .URN_NAMESPACE_STRING_DELIMITER + inst.getInstanceID(), inst.getUrn()
-                .getNamespaceSpecificString());
-    }
+    // TODO: 07.04.2017
 }
