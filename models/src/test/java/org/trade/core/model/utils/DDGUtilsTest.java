@@ -17,6 +17,7 @@
 package org.trade.core.model.utils;
 
 import org.junit.Test;
+import org.trade.core.model.ModelConstants;
 import org.trade.core.model.ddg.DataDependenceGraph;
 
 import static org.junit.Assert.assertEquals;
@@ -29,14 +30,16 @@ public class DDGUtilsTest {
 
     @Test
     public void testUnmarshalGraphWithValidSource() throws Exception {
-        DataDependenceGraph graph = DDGUtils.unmarshalGraph(getClass().getResourceAsStream("/test-ddg.xml"));
+        DataDependenceGraph graph = DDGUtils.unmarshalGraph(getClass().getResourceAsStream("/test-ddg." +
+                ModelConstants.DDG_FILE_EXTENSION));
 
         assertNotNull(graph);
     }
 
     @Test
     public void testUnmarshalMarshalGraphRoundTrip() throws Exception {
-        DataDependenceGraph graph = DDGUtils.unmarshalGraph(getClass().getResourceAsStream("/test-ddg.xml"));
+        DataDependenceGraph graph = DDGUtils.unmarshalGraph(getClass().getResourceAsStream("/test-ddg." +
+                ModelConstants.DDG_FILE_EXTENSION));
 
         graph.getDependenceEdges().getDependenceEdge().get(0).setName("newName");
 

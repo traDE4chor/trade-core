@@ -1,4 +1,5 @@
-<ddg:DataDependenceGraph xmlns:ddg="http://org.trade.models/ddg">
+<ddg:DataDependenceGraph xmlns:ddg="http://org.trade.models/ddg" targetNamespace="http://exampleNamespace"
+name="SomeChoreography">
     <processors>
         <processor identifier="act_A" name="ActivityA">
             <incoming>

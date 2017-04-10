@@ -20,11 +20,16 @@
 
     <xsd:element name="DataDependenceGraph">
         <xsd:complexType>
-            <xsd:sequence>
-                <xsd:element minOccurs="0" maxOccurs="1" name="processors" type="ddg:ProcessorListType"/>
-                <xsd:element minOccurs="0" maxOccurs="1" name="dataObjects" type="ddg:DataObjectListType"/>
-                <xsd:element minOccurs="0" maxOccurs="1" name="dependenceEdges" type="ddg:DataDependenceEdgeListType"/>
-            </xsd:sequence>
+        	<xsd:sequence>
+        		<xsd:element minOccurs="0" maxOccurs="1"
+        			name="processors" type="ddg:ProcessorListType" />
+        		<xsd:element minOccurs="0" maxOccurs="1"
+        			name="dataObjects" type="ddg:DataObjectListType" />
+        		<xsd:element minOccurs="0" maxOccurs="1"
+        			name="dependenceEdges" type="ddg:DataDependenceEdgeListType" />
+        	</xsd:sequence>
+        	<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+        	<xsd:attribute name="targetNamespace" type="xsd:string"></xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 

@@ -16,7 +16,9 @@
 
 package org.trade.core.data.management;
 
-import org.trade.core.model.data.DataValue;
+import org.trade.core.model.data.*;
+import org.trade.core.model.data.instance.DataElementInstance;
+import org.trade.core.model.data.instance.DataObjectInstance;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +34,18 @@ public class DataManager {
 
     private static DataManager instance = new DataManager();
 
+    // TODO: Should we split this to multiple, type-specific DataManager classes?
+
+    // TODO: Is the use of a singleton object appropriate or will this become a bottleneck in future?
+    // But how to access the managers from API service implementations?
+
     // TODO: Use Hazelcast, etc. instead of local maps
+    private HashMap<String, DataDependencyGraph> dataDependencyGraphs = new LinkedHashMap<>();
+    private HashMap<String, DataModel> dataModels = new LinkedHashMap<>();
+    private HashMap<String, DataObject> dataObjects = new LinkedHashMap<>();
+    private HashMap<String, DataObjectInstance> dataObjectInstances = new LinkedHashMap<>();
+    private HashMap<String, DataElement> dataElements = new LinkedHashMap<>();
+    private HashMap<String, DataElementInstance> dataElementInstances = new LinkedHashMap<>();
     private HashMap<String, DataValue> dataValues = new LinkedHashMap<>();
 
     private DataManager() {
@@ -43,11 +56,30 @@ public class DataManager {
         return instance;
     }
 
+    public DataDependencyGraph registerDataDependencyGraph(DataDependencyGraph graph) {
+        this.dataDependencyGraphs.put(graph.getIdentifier(), graph);
 
-    public DataValue registerDataValue(DataValue body) {
-        this.dataValues.put(body.getIdentifier(), body);
+        return graph;
+    }
 
-        return body;
+    public DataModel registerDataModel(DataModel model) {
+        this.dataModels.put(model.getIdentifier(), model);
+
+        return model;
+    }
+
+    public DataValue registerDataValue(DataValue value) {
+        this.dataValues.put(value.getIdentifier(), value);
+
+        return value;
+    }
+
+    public DataDependencyGraph getDataDependencyGraph(String dataDependencyGraphId) {
+        return this.dataDependencyGraphs.get(dataDependencyGraphId);
+    }
+
+    public DataModel getDataModel(String dataModelId) {
+        return this.dataModels.get(dataModelId);
     }
 
     public DataValue getDataValue(String dataValueId) {
@@ -107,5 +139,31 @@ public class DataManager {
         }
 
         return result;
+    }
+
+    public void registerContentsOfDataDependencyGraph(String graphId) {
+        DataDependencyGraph graph = this.dataDependencyGraphs.get(graphId);
+
+        // Retrieve the data model generated during compilation
+        DataModel model = graph.getDataModel();
+
+        // Add the data model to the map
+        this.dataModels.put(model.getIdentifier(), model);
+
+        // Register its child elements
+        registerContentsOfDataModel(model.getIdentifier());
+    }
+
+    public void registerContentsOfDataModel(String dataModelId) {
+        DataModel model = this.dataModels.get(dataModelId);
+
+        // Extract all child elements of the model to make them available through the respective maps
+        for (DataObject dataObject : model.getDataObjects()) {
+            this.dataObjects.put(dataObject.getIdentifier(), dataObject);
+
+            for (DataElement element : dataObject.getDataElements()) {
+                this.dataElements.put(element.getIdentifier(), element);
+            }
+        }
     }
 }

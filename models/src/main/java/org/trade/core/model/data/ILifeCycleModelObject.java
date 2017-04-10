@@ -20,12 +20,6 @@ package org.trade.core.model.data;
  * Created by hahnml on 07.04.2017.
  */
 public interface ILifeCycleModelObject {
-    /**
-     * Initialize the model object according to its life cycle.
-     *
-     * @throws Exception any exception thrown during execution of the method
-     */
-    public void initialize() throws Exception;
 
     /**
      * Archive the model object according to its life cycle.

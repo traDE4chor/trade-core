@@ -88,6 +88,23 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     }
 
     /**
+     * Instantiates a new data object with the given identifier for the given data model.
+     *
+     * @param model the data model the data object belongs to
+     * @param identifier the identifier to use for the data object
+     * @param entity the entity to which the data object belongs
+     * @param name   the name of the data object
+     */
+    public DataObject(DataModel model, String identifier, String entity, String name) {
+        this.model = model;
+        this.identifier = identifier;
+        this.name = name;
+        this.entity = entity;
+
+        this.lifeCycle = new DataObjectLifeCycle(this);
+    }
+
+    /**
      * This constructor is only used by Morphia to load data objects from the database.
      */
     private DataObject() {
@@ -330,11 +347,6 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
                     .getIdentifier() +
                     ") is in state '" + getState() + "'.");
         }
-    }
-
-    @Override
-    public void initialize() throws Exception {
-
     }
 
     @Override

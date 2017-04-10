@@ -16,8 +16,15 @@
 
 package org.trade.core.model.compiler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.trade.core.model.data.DataModel;
 import org.trade.core.model.data.DataObject;
+import org.trade.core.model.ddg.DataDependenceGraph;
+import org.trade.core.model.ddg.DataObjectType;
+import org.trade.core.model.utils.DataModelUtils;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,29 +32,52 @@ import java.util.List;
 /**
  * Created by hahnml on 07.04.2017.
  */
-public class DataModelCompiler {
+public class DataModelCompiler extends ACompiler {
 
-    private byte[] modelData = null;
+    Logger logger = LoggerFactory.getLogger("org.trade.core.model.compiler.DataModelCompiler");
+
+    private String modelId = "";
 
     private List<DataObject> compiledDataObjects = new ArrayList<DataObject>();
 
-    private List<CompilationError> compilerErrors = new ArrayList<CompilationError>();
+    public void compile(String dataModelId, String entity, byte[] serializedDataModel) throws CompilationException {
+        Object modelDef = null;
+        try {
+            modelDef = DataModelUtils.unmarshalGraph(serializedDataModel);
 
-    public DataModelCompiler(byte[] data) {
-        this.modelData = data;
+            compile(dataModelId, entity, modelDef);
+
+            // Write all identified issues to the log
+            writeCompilationIssuesToLog(logger);
+        } catch (CompilationException e) {
+            logger.warn("The compilation of data model '" + this.modelId + "' ended with errors.", e);
+
+            // Output the compilation issues also to the log as warnings
+            writeCompilationIssuesToLog(logger);
+
+            // Simply forward the exception
+            throw e;
+        } catch (Exception e) {
+            logger.error("The compilation of data model '" + this.modelId + "' caused an " +
+                    "exception.", e);
+
+            // Wrap any other kind of exception into a CompilationException
+            throw new CompilationException("The compilation of data model '" + this.modelId + "' caused an " +
+                    "exception.", e,
+                    this.compilationIssues);
+
+        }
     }
 
-    public List<DataObject> compileDataModel(byte[] data) {
-        // TODO: 07.04.2017
+    public void compile(String dataModelId, String entity, Object modelDefinition) throws CompilationException {
+        this.modelId = dataModelId;
+        String targetNamespace = "";
+        String name = "";
 
-        return Collections.emptyList();
+        // TODO: 10.04.2017
     }
 
     public List<DataObject> getCompiledDataObjects() {
-        return compiledDataObjects;
-    }
-
-    public List<CompilationError> getCompilerErrors() {
-        return compilerErrors;
+        return this.compiledDataObjects;
     }
 }

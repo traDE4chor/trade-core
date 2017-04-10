@@ -94,11 +94,6 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
     }
 
     @Override
-    public void initialize() throws Exception {
-
-    }
-
-    @Override
     public void archive() throws Exception {
 
     }

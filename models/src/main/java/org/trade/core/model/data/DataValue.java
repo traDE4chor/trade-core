@@ -282,11 +282,6 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
     }
 
     @Override
-    public void initialize() throws Exception {
-        // TODO: Do we have to put some logic here?
-    }
-
-    @Override
     public void archive() throws Exception {
         // TODO: Add logic for archiving data values. Only archive a data value if it is not used by any existing (non-archived) data element instance!
     }

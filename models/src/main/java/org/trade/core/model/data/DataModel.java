@@ -24,8 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
 import org.trade.core.model.ModelConstants;
-import org.trade.core.model.compiler.DataModelCompilationException;
+import org.trade.core.model.compiler.CompilationException;
+import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DataModelCompiler;
+import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.lifecycle.DataModelLifeCycle;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
@@ -59,6 +61,9 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
     @State
     private String state;
+
+    @Reference
+    private List<DataDependencyGraph> dataDependencyGraphs = new ArrayList<DataDependencyGraph>();
 
     @Reference
     private List<DataObject> dataObjects = new ArrayList<DataObject>();
@@ -141,8 +146,6 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
      * Sets and persists the serialized data of this data model. At the moment we do not support updates on data
      * models, i.e., support the migration of data objects and data elements (and their related instances and
      * data values) between different data model versions.
-     * Therefore, at the moment, this method automatically invokes the compilation of the provided serialized data
-     * model and based on that the generation of specified data objects and data elements.
      *
      * @param data the data
      * @throws Exception An exception thrown during execution of this method
@@ -153,11 +156,8 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
             try {
                 // Persist the serialized model
                 this.persistProv.storeData(data, ModelConstants.DATA_MODEL_COLLECTION, getIdentifier());
-
-                // Trigger its compilation
-                compileDataModel(data);
             } catch (Exception e) {
-                logger.error("Setting and compiling serialized model data for data model '" + this.getIdentifier() +
+                logger.error("Setting the serialized model data for data model '" + this.getIdentifier() +
                         "' caused an exception.", e);
 
                 throw e;
@@ -173,35 +173,61 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
         }
     }
 
+    public void associateWithDataDependencyGraph(DataDependencyGraph dataDependencyGraph) {
+        if (dataDependencyGraph != null) {
+            if (!dataDependencyGraphs.contains(dataDependencyGraph)) {
+                dataDependencyGraphs.add(dataDependencyGraph);
+            }
+        }
+    }
+
+    public void removeAssociationWithDataDependencyGraph(DataDependencyGraph dataDependencyGraph) {
+        if (dataDependencyGraph != null) {
+            if (dataDependencyGraphs.contains(dataDependencyGraph)) {
+                dataDependencyGraphs.remove(dataDependencyGraph);
+            }
+        }
+    }
+
+    /**
+     * Provides the list of data dependency graphs using this data model.
+     *
+     * @return An unmodifiable list of data dependency graphs.
+     */
+    public List<DataDependencyGraph> getDataDependencyGraphs() {
+        return this.dataDependencyGraphs != null ? Collections.unmodifiableList(this.dataDependencyGraphs) : null;
+    }
+
     /**
      * Compile the serialized data model to generate and expose the specified data objects and data elements.
      *
+     * @return A list of issues identified during the compilation of the data model
      * @throws Exception An exception thrown during the execution of this method
      */
-    private void compileDataModel(byte[] data) throws Exception {
+    public List<CompilationIssue> compileDataModel(byte[] data) throws Exception {
+        List<CompilationIssue> issues = Collections.emptyList();
+
         if (this.isInitial()) {
             // Deserialize and compile the provided data model, i.e., generate the specified data objects and data
             // elements
-            DataModelCompiler comp = new DataModelCompiler(data);
-            comp.compileDataModel(data);
+            DataModelCompiler comp = new DataModelCompiler();
+            comp.compile(this.identifier, this.entity, data);
 
-            if (comp.getCompilerErrors().isEmpty()) {
-                this.dataObjects.addAll(comp.getCompiledDataObjects());
+            // Add the resulting data objects to this data model
+            this.dataObjects.addAll(comp.getCompiledDataObjects());
 
-                // Trigger the ready event for the data model after everything was compiled successfully
-                try {
-                    this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.ready);
-                } catch (TooBusyException e) {
-                    logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
-                            "after maximal " +
-                            "amount of retries", this.getIdentifier(), DataModelLifeCycle.Events.ready);
-                    throw new LifeCycleException("State transition could not be enacted after maximal amount " +
-                            "of retries", e);
-                }
-            } else {
-                throw new DataModelCompilationException("The compilation of data model (" + this.getIdentifier() +
-                        ", " + getName() + ") was not successful due to some exceptions.", comp
-                        .getCompilerErrors());
+            // Get the list of compilation issues
+            issues = comp.getCompilationIssues();
+
+            // Trigger the ready event for the data model after everything was compiled successfully
+            try {
+                this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.ready);
+            } catch (TooBusyException e) {
+                logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
+                        "after maximal " +
+                        "amount of retries", this.getIdentifier(), DataModelLifeCycle.Events.ready);
+                throw new LifeCycleException("State transition could not be enacted after maximal amount " +
+                        "of retries", e);
             }
         } else {
             logger.info("The data model ({}) can not be compiled because it is in state '{}'.", this
@@ -212,11 +238,53 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
                     ") can not be compiled because it is already in state '" + getState() + "'.");
         }
 
+        return issues;
     }
 
-    @Override
-    public void initialize() throws Exception {
-        // Nothing to do
+    public void initialize(List<DataObject> dataObjects) throws LifeCycleException {
+        // If the data model is in state INITIAL and contains only data objects which are all in state READY, we
+        // trigger a state change to READY
+        if (this.isInitial()) {
+            boolean everythingReady = true;
+
+            // Set the list of data objects
+            this.dataObjects = dataObjects;
+
+            Iterator<DataObject> iter = this.dataObjects.iterator();
+            // Stop if one data object is not ready
+            while (everythingReady && iter.hasNext()) {
+                DataObject obj = iter.next();
+                // If 'everythingReady' becomes false, it will never become true anymore. Therefore, we can stop the loop as
+                // soon as it is false.
+                everythingReady = everythingReady && obj.isReady();
+            }
+
+            if (everythingReady) {
+                // Trigger the ready event for the data model after everything was initialized successfully
+                try {
+                    this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.ready);
+                } catch (TooBusyException e) {
+                    logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
+                            "after maximal " +
+                            "amount of retries", this.getIdentifier(), DataModelLifeCycle.Events.ready);
+                    throw new LifeCycleException("State transition could not be enacted after maximal amount " +
+                            "of retries", e);
+                }
+            } else {
+                logger.info("The data model ({}) can not be initialized because one or more of its data objects are " +
+                                "not in state 'ready'.", this.getIdentifier(), getState());
+
+                throw new LifeCycleException("The data model (" + this.getIdentifier() +
+                        ") because one or more of its data objects are not in state 'ready'.");
+            }
+        } else {
+            logger.info("The data model ({}) can not be initialized because it is in state '{}'.", this
+                            .getIdentifier(),
+                    getState());
+
+            throw new LifeCycleException("The data model (" + this.getIdentifier() +
+                    ") can not be initialized because it is in state '" + getState() + "'.");
+        }
     }
 
     @Override
@@ -306,33 +374,51 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
     public void delete() throws Exception {
         if (this.isReady() || this.isInitial() || this.isArchived()) {
 
-            try {
-                // Delete all data objects
-                deleteDataObjects();
-
-                // Trigger the delete event for the whole data model since all data objects are deleted
-                // successfully.
-                this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.delete);
-            } catch (TooBusyException e) {
-                logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
-                        "after maximal " +
-                        "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
-                throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
-            } catch (Exception e) {
-                logger.error("Deletion data model '{}' not successful because deletion of one of its data " +
-                        "objects caused an exception. MANUAL INTERVENTION REQUIRED.", this.getIdentifier());
-
-                // Trigger the initial event to disable the creation of new instances of the corrupted model
+            // Check if the data model is used by any data dependency graph, if not we can delete it
+            if (this.dataDependencyGraphs.isEmpty()) {
                 try {
-                    this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.initial);
-                } catch (TooBusyException ex) {
+                    // Delete the associated data
+                    this.persistProv.removeData(ModelConstants.DATA_MODEL_COLLECTION, getIdentifier());
+
+                    // Delete all data objects
+                    deleteDataObjects();
+
+                    // Trigger the delete event for the whole data model since all data objects are deleted
+                    // successfully.
+                    this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.delete);
+                } catch (TooBusyException e) {
                     logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                             "after maximal " +
                             "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
-                    throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", ex);
-                }
+                    throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+                } catch (Exception e) {
+                    logger.error("Deletion data model '{}' not successful because deletion of one of its data " +
+                            "objects caused an exception. MANUAL INTERVENTION REQUIRED.", this.getIdentifier());
 
-                throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", e);
+                    // Trigger the initial event to disable the creation of new instances of the corrupted model
+                    try {
+                        this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.initial);
+                    } catch (TooBusyException ex) {
+                        logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
+                                "after maximal " +
+                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                        throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", ex);
+                    }
+
+                    throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", e);
+                }
+            } else {
+                // If the data value is used by any data element instance, we deny its deletion
+                logger.warn("Someone tried to delete data model ({}) which is used by '{}' data dependency graphs." +
+                                " " +
+                                "Therefore, the deletion attempt is rejected by the system.",
+                        this
+                                .getIdentifier(),
+                        this.dataDependencyGraphs.size());
+
+                throw new LifeCycleException("Someone tried to delete data model (" + this.getIdentifier() +
+                        ") which is used by " + this.dataDependencyGraphs.size() + " data dependency graphs. " +
+                        "Therefore, the deletion attempt is rejected by the system.");
             }
 
             // Cleanup variables

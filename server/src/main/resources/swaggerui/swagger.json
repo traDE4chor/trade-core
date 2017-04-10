@@ -1214,7 +1214,7 @@
                 }
             }
         },
-        "/dataObjectInstances/{instanceId}/elementInstances&{dataElementName}": {
+        "/dataObjectInstances/{instanceId}/elementInstances/{dataElementName}": {
             "x-swagger-router-controller": "DataElementInstance",
             "get": {
                 "tags": [

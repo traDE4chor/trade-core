@@ -16,10 +16,23 @@
 
 package org.trade.core.model.compiler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by hahnml on 07.04.2017.
  */
-public class CompilationError {
+public class CompilationException extends Exception {
 
-    // TODO
+    private List<CompilationIssue> compilationErrors = new ArrayList<CompilationIssue>();
+
+    public CompilationException(String message, List<CompilationIssue> compilationErrors) {
+        super(message);
+        this.compilationErrors = compilationErrors;
+    }
+
+    public CompilationException(String message, Throwable t, List<CompilationIssue> compilationErrors) {
+        super(message, t);
+        this.compilationErrors = compilationErrors;
+    }
 }

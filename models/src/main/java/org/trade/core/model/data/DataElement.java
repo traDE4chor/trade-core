@@ -79,6 +79,22 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     }
 
     /**
+     * Instantiates a new data element with the given identifier and associates it to the given data object.
+     *
+     * @param object the data object to which the data element belongs
+     * @param identifier the identifier to use for the data element
+     * @param name   the name of the data element
+     */
+    public DataElement(DataObject object, String identifier, String entity, String name) {
+        this.parent = object;
+        this.identifier = identifier;
+        this.name = name;
+        this.entity = entity;
+
+        this.lifeCycle = new DataElementLifeCycle(this);
+    }
+
+    /**
      * Instantiates a new data element with an automatically generated random name and associates it to the given
      * data object while reusing the same entity value as specified for the data value.
      *
@@ -202,7 +218,6 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
         return opt.isPresent() ? opt.get() : null;
     }
 
-    @Override
     public void initialize() throws Exception {
         // TODO: 27.10.2016 Add data element specific parameters and assignments, e.g. data type, type system, etc.
 

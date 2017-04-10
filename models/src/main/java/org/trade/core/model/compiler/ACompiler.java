@@ -1,5 +1,4 @@
-/*
- * Copyright 2017 Michael Hahn
+/* Copyright 2017 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +15,25 @@
 
 package org.trade.core.model.compiler;
 
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by hahnml on 07.04.2017.
+ * Created by hahnml on 10.04.2017.
  */
-public class DataModelCompilationException extends Exception {
+public class ACompiler {
 
-    private List<CompilationError> compilationErrors = new ArrayList<CompilationError>();
+    protected List<CompilationIssue> compilationIssues = new ArrayList<>();
 
-    public DataModelCompilationException(String message, List<CompilationError> compilationErrors) {
-        super(message);
-        this.compilationErrors = compilationErrors;
+    public List<CompilationIssue> getCompilationIssues() {
+        return this.compilationIssues;
+    }
+
+    protected void writeCompilationIssuesToLog(Logger logger) {
+        for (CompilationIssue issue : this.compilationIssues) {
+            logger.warn("[{}]: " + issue.getMessage(), issue.getType().toString());
+        }
     }
 }

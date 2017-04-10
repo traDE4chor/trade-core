@@ -14,20 +14,35 @@
  * limitations under the License.
  */
 
-package org.trade.core.model.utils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package org.trade.core.model.compiler;
 
 /**
  * Created by hahnml on 07.04.2017.
  */
-public class DataModelUtils {
+public class CompilationIssue {
 
-    private static Logger logger = LoggerFactory.getLogger("org.trade.core.model.utils.DataModelUtils");
+    private CompilationIssueType type = CompilationIssueType.Unknown;
 
-    // TODO: Parse and provide data model using JAXB model based on XSD Schema file as for DDGs, see DDGUtils
-    public static Object unmarshalGraph(byte[] serializedDataModel) {
-        return null;
+    private String message = "";
+
+    public CompilationIssue(CompilationIssueType type, String message) {
+        this.type = type;
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public CompilationIssueType getType() {
+        return type;
+    }
+
+    public void setType(CompilationIssueType type) {
+        this.type = type;
     }
 }

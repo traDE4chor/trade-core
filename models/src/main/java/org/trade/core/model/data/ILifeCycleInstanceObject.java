@@ -28,13 +28,6 @@ public interface ILifeCycleInstanceObject {
     public void create() throws Exception;
 
     /**
-     * Initializes the instance object according to its life cycle.
-     *
-     * @throws Exception any exception thrown during execution of the method
-     */
-    public void initialize() throws Exception;
-
-    /**
      * Archive the instance object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method

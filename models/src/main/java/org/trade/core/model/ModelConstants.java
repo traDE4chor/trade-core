@@ -28,8 +28,13 @@ public class ModelConstants {
 
     public static final String DDG_SCHEMA_LOCATION = "/schema/ddgModel.xsd";
 
+    public static final String DDG_FILE_EXTENSION = "trade";
+
     public static final String DATA_VALUE_COLLECTION = "dataValues";
 
     public static final String DATA_MODEL_COLLECTION = "dataModels";
 
+    public static final String DATA_DEPENDENCY_GRAPH_COLLECTION = "dataDependencyGraphs";
+
+    public static final String BINARY_TYPE = "binary";
 }

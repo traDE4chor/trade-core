@@ -123,11 +123,6 @@ public class DataElementInstance extends BaseResource implements Serializable, I
     }
 
     @Override
-    public void initialize() throws Exception {
-
-    }
-
-    @Override
     public void archive() throws Exception {
 
     }

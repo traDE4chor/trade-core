@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package org.trade.core.model.utils;
+package org.trade.core.model.lifecycle.actions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.statefulj.fsm.RetryException;
+import org.statefulj.fsm.model.Action;
+import org.trade.core.model.data.DataDependencyGraph;
+import org.trade.core.model.data.DataModel;
 
 /**
  * Created by hahnml on 07.04.2017.
  */
-public class DataModelUtils {
+public class DataDependencyGraphLogAction implements Action<DataDependencyGraph> {
 
-    private static Logger logger = LoggerFactory.getLogger("org.trade.core.model.utils.DataModelUtils");
+    @Override
+    public void execute(DataDependencyGraph stateful, String event, Object... args) throws RetryException {
+        Logger logger = LoggerFactory.getLogger(stateful.getClass().getCanonicalName());
 
-    // TODO: Parse and provide data model using JAXB model based on XSD Schema file as for DDGs, see DDGUtils
-    public static Object unmarshalGraph(byte[] serializedDataModel) {
-        return null;
+        logger.info("State of data dependency graph ({}) changed to '{}' on event '{}'.", stateful.getIdentifier(),
+                stateful.getState()
+                , event);
     }
+
 }

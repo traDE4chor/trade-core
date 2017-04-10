@@ -1,5 +1,4 @@
-/*
- * Copyright 2017 Michael Hahn
+/* Copyright 2017 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +16,8 @@
 package org.trade.core.model.compiler;
 
 /**
- * Created by hahnml on 04.11.2016.
+ * Created by hahnml on 10.04.2017.
  */
-public class DataObjectCompiler {
-
-
+public enum CompilationIssueType {
+    Unknown, MissingElements, MissingName, MissingIdentifier, MissingData, UnknownElement, UnresolveableReference
 }
