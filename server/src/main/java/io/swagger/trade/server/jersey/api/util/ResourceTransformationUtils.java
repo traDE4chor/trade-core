@@ -16,10 +16,7 @@
 
 package io.swagger.trade.server.jersey.api.util;
 
-import io.swagger.trade.server.jersey.model.DataValue;
-import io.swagger.trade.server.jersey.model.DataValueData;
-import io.swagger.trade.server.jersey.model.InstanceStatusEnum;
-import io.swagger.trade.server.jersey.model.StatusEnum;
+import io.swagger.trade.server.jersey.model.*;
 
 /**
  * Created by hahnml on 26.01.2017.
@@ -54,6 +51,51 @@ public class ResourceTransformationUtils {
         value.setType(dataValue.getType());
 
         return value;
+    }
+
+    public static org.trade.core.model.data.DataDependencyGraph resource2Model(DataDependencyGraphData dataDependencyGraphData) {
+        org.trade.core.model.data.DataDependencyGraph graph = new org.trade.core.model.data.DataDependencyGraph
+                (dataDependencyGraphData.getEntity(), dataDependencyGraphData.getName());
+
+        return graph;
+    }
+
+    public static DataDependencyGraph model2Resource(org.trade.core.model.data.DataDependencyGraph graph) {
+        DataDependencyGraph result = new DataDependencyGraph();
+
+        result.setName(graph.getName());
+        result.setEntity(graph.getEntity());
+        result.setTargetNamespace(graph.getTargetNamespace());
+        result.setId(graph.getIdentifier());
+
+        return result;
+    }
+
+    public static DataModel model2Resource(org.trade.core.model.data.DataModel model) {
+        DataModel result = new DataModel();
+
+        result.setName(model.getName());
+        result.setEntity(model.getEntity());
+        result.setTargetNamespace(model.getTargetNamespace());
+        result.setId(model.getIdentifier());
+        result.setStatus(string2Status(model.getState()));
+
+        return result;
+    }
+
+    public static DataObject model2Resource(org.trade.core.model.data.DataObject dataObject) {
+        DataObject result = new DataObject();
+
+        result.setEntity(dataObject.getEntity());
+        result.setId(dataObject.getIdentifier());
+        result.setName(dataObject.getName());
+        result.setStatus(string2Status(dataObject.getState()));
+
+        if (dataObject.getDataModel() != null) {
+            result.setDataModelName(dataObject.getDataModel().getName());
+        }
+
+        return result;
     }
 
     public static StatusEnum string2Status(String value) {

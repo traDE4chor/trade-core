@@ -19,19 +19,19 @@ package org.trade.server;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.DataValueApi;
-import io.swagger.trade.client.jersey.model.DataValue;
-import io.swagger.trade.client.jersey.model.DataValueData;
-import io.swagger.trade.client.jersey.model.DataValueWithLinks;
+import io.swagger.trade.client.jersey.api.*;
+import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import java.io.IOException;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by hahnml on 31.01.2017.
@@ -41,6 +41,14 @@ public class TraDEClientServerIT {
     private static TraDEServer server;
 
     private static TraDEProperties properties;
+
+    private static DataDependencyGraphApi ddgApiInstance;
+
+    private static DataModelApi dataModelApiInstance;
+
+    private static DataObjectApi dataObjectApiInstance;
+
+    private static DataElementApi dataElementApiInstance;
 
     private static DataValueApi dvApiInstance;
 
@@ -59,8 +67,14 @@ public class TraDEClientServerIT {
             e.printStackTrace();
         }
 
-        dvApiInstance = new DataValueApi();
-        dvApiInstance.getApiClient().setBasePath("http://localhost:8080/api");
+        ApiClient client = new ApiClient();
+        client.setBasePath("http://localhost:8080/api");
+
+        ddgApiInstance = new DataDependencyGraphApi(client);
+        dataModelApiInstance = new DataModelApi(client);
+        dataObjectApiInstance = new DataObjectApi(client);
+        dataElementApiInstance = new DataElementApi(client);
+        dvApiInstance = new DataValueApi(client);
     }
 
     @Test
@@ -147,6 +161,77 @@ public class TraDEClientServerIT {
             e.printStackTrace();
 
             assertEquals(404, e.getCode());
+        }
+    }
+
+    @Test
+    public void createAndUploadDataDependencyGraphTest() throws Exception {
+        String entity = "hahnml";
+        String name = "TestDataDependencyGraph";
+
+        DataDependencyGraphData ddg = new DataDependencyGraphData();
+        ddg.setEntity(entity);
+        ddg.setName(name);
+
+        try {
+            DataDependencyGraphWithLinks ddgResponse = ddgApiInstance.addDataDependencyGraph(ddg);
+
+            assertNotNull(ddgResponse);
+            assertNotNull(ddgResponse.getDataDependencyGraph());
+            assertNotNull(ddgResponse.getDataDependencyGraph().getId());
+            assertEquals(entity, ddgResponse.getDataDependencyGraph().getEntity());
+            assertEquals(name, ddgResponse.getDataDependencyGraph().getName());
+
+            String graphId = ddgResponse.getDataDependencyGraph().getId();
+
+            byte[] graph = TestUtils.INSTANCE.getData("opalData.trade");
+
+            // Try to upload and compile a serialized DDG
+            ddgApiInstance.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
+
+            // Try to query the resulting data objects and data elements
+            DataModelWithLinks dataModelResp = dataModelApiInstance.getDataModel(graphId);
+            String dataModelId = dataModelResp.getDataModel().getId();
+
+            DataObjectArrayWithLinks dataObjects = dataObjectApiInstance.getDataObjects(dataModelId, null, null);
+            assertEquals(4, dataObjects.getDataObjects().size());
+        } catch (ApiException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    @Test
+    public void createAndUploadDataDependencyGraphWithFailureTest() {
+        String entity = "hahnml";
+        String name = "AnotherTestDataDependencyGraph";
+
+        DataDependencyGraphData ddg = new DataDependencyGraphData();
+        ddg.setEntity(entity);
+        ddg.setName(name);
+
+        try {
+            DataDependencyGraphWithLinks ddgResponse = ddgApiInstance.addDataDependencyGraph(ddg);
+
+            assertNotNull(ddgResponse);
+            assertNotNull(ddgResponse.getDataDependencyGraph());
+            assertNotNull(ddgResponse.getDataDependencyGraph().getId());
+            assertEquals(entity, ddgResponse.getDataDependencyGraph().getEntity());
+            assertEquals(name, ddgResponse.getDataDependencyGraph().getName());
+
+            String id = ddgResponse.getDataDependencyGraph().getId();
+
+            byte[] graph = TestUtils.INSTANCE.getData("opalDataFailure.trade");
+
+            // Try to upload and compile a serialized DDG that is not valid
+            ddgApiInstance.uploadGraphModel(id, Long.valueOf(graph.length), graph);
+        } catch (ApiException e) {
+            e.printStackTrace();
+
+            assertEquals(500, e.getCode());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

@@ -40,7 +40,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response queryDataElementInstance(@NotNull String dataModelName, @NotNull String dataObjectName, @NotNull String dataElementName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response queryDataElementInstance( @NotNull String dataModelName,  @NotNull String dataObjectName,  @NotNull String dataElementName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

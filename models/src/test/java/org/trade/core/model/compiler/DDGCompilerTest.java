@@ -50,7 +50,7 @@ public class DDGCompilerTest {
         // Get the resulting data model of this DDG
         DataModel dataModel = comp.getCompiledDataModel();
         assertNotNull(dataModel);
-        assertEquals(DataModelLifeCycle.States.READY, dataModel.getState());
+        assertEquals(DataModelLifeCycle.States.READY.toString(), dataModel.getState());
         assertNotNull(dataModel.getDataObjects());
         assertTrue(dataModel.getDataObjects().size() > 0);
 
@@ -74,7 +74,7 @@ public class DDGCompilerTest {
         // Get the resulting data model of this DDG
         DataModel dataModel = comp.getCompiledDataModel();
         assertNotNull(dataModel);
-        assertEquals(DataModelLifeCycle.States.READY, dataModel.getState());
+        assertEquals(DataModelLifeCycle.States.READY.toString(), dataModel.getState());
         assertNotNull(dataModel.getDataObjects());
         assertTrue(dataModel.getDataObjects().size() > 0);
 

@@ -34,7 +34,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getAllDataElements( @Min(0) Integer start,  @Min(0) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getAllDataElements( @Min(1) Integer start,  @Min(1) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
@@ -44,7 +44,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataElementInstancesOfDataElement(String dataElementId,  @Min(0) Integer start,  @Min(0) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataElementInstancesOfDataElement(String dataElementId,  @Min(1) Integer start,  @Min(1) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

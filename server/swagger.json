@@ -32,7 +32,7 @@
                 "tags": [
                     "dataDependencyGraph"
                 ],
-                "description": "Gets all available `DataDependencyGraph` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data dependency graph resources and param **name** filters result list by name.",
+                "description": "Gets all available `DataDependencyGraph` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data dependency graph resources and param **targetNamespace**, **name** and **entity** filter result list by name, targetNamespace and entity.",
                 "operationId": "getDataDependencyGraphs",
                 "parameters": [
                     {
@@ -42,9 +42,23 @@
                         "$ref": "#/parameters/sizeParam"
                     },
                     {
+                        "name": "targetNamespace",
+                        "in": "query",
+                        "description": "Target namespace of data dependency graph to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "name",
                         "in": "query",
                         "description": "Name of data dependency graph to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "entity",
+                        "in": "query",
+                        "description": "Creating entity of data dependency graph to return",
                         "required": false,
                         "type": "string"
                     }
@@ -317,10 +331,11 @@
                     },
                     {
                         "in": "body",
-                        "name": "dataModel",
-                        "description": "DataModel object that needs to be associated. In order to realize the association the provided data model should at least contain a valid Id of a known DataModel.",
+                        "name": "dataModelId",
+                        "description": "The id of a data model that should be associated to this data dependency graph.",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/DataModel"
+                            "type": "string"
                         }
                     }
                 ],
@@ -351,7 +366,7 @@
                 "tags": [
                     "dataModel"
                 ],
-                "description": "Gets all available `DataModel` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data model resources and param **name** filters result list by name.",
+                "description": "Gets all available `DataModel` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data model resources and param **name**, **targetNamespace** filter result list by name and target namespace.",
                 "operationId": "getDataModels",
                 "parameters": [
                     {
@@ -359,6 +374,13 @@
                     },
                     {
                         "$ref": "#/parameters/sizeParam"
+                    },
+                    {
+                        "name": "targetNamespace",
+                        "in": "query",
+                        "description": "Target namespace of data model to return",
+                        "required": false,
+                        "type": "string"
                     },
                     {
                         "name": "name",
@@ -1942,6 +1964,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "targetNamespace": {
+                    "type": "string"
                 }
             }
         },
@@ -1987,6 +2012,12 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "targetNamespace": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/StatusEnum"
                 }
             }
         },

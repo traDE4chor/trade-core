@@ -24,10 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
 import org.trade.core.model.ModelConstants;
-import org.trade.core.model.compiler.CompilationException;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DataModelCompiler;
-import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.lifecycle.DataModelLifeCycle;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
@@ -53,7 +51,9 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
     private String entity = null;
 
-    private QName name = null;
+    private String name = null;
+
+    private String targetNamespace = null;
 
     private transient DataModelLifeCycle lifeCycle = null;
 
@@ -71,15 +71,27 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
     /**
      * Instantiates a new data model.
      *
-     * @param entity the entity to which the data model belongs
-     * @param name   the name of the data model
+     * @param entity          the entity to which the data model belongs
+     * @param name            the name of the data model
+     * @param targetNamespace the target namespace of the model
      */
-    public DataModel(String entity, QName name) {
+    public DataModel(String entity, String name, String targetNamespace) {
         this.name = name;
         this.entity = entity;
+        this.targetNamespace = targetNamespace;
 
         this.lifeCycle = new DataModelLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+    }
+
+    /**
+     * Instantiates a new data model.
+     *
+     * @param entity the entity to which the data model belongs
+     * @param name   the name of the data model
+     */
+    public DataModel(String entity, String name) {
+        this(entity, name, null);
     }
 
     /**
@@ -104,8 +116,26 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
      *
      * @return The qualified name of the data model.
      */
-    public QName getName() {
+    public QName getQName() {
+        return new QName(this.targetNamespace, name);
+    }
+
+    /**
+     * Provides the name of the data model.
+     *
+     * @return The name of the data model.
+     */
+    public String getName() {
         return this.name;
+    }
+
+    /**
+     * Gets target namespace.
+     *
+     * @return the target namespace
+     */
+    public String getTargetNamespace() {
+        return targetNamespace;
     }
 
     /**
@@ -216,6 +246,8 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
             // Add the resulting data objects to this data model
             this.dataObjects.addAll(comp.getCompiledDataObjects());
 
+            this.targetNamespace = comp.getTargetNamespace();
+
             // Get the list of compilation issues
             issues = comp.getCompilationIssues();
 
@@ -272,7 +304,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
                 }
             } else {
                 logger.info("The data model ({}) can not be initialized because one or more of its data objects are " +
-                                "not in state 'ready'.", this.getIdentifier(), getState());
+                        "not in state 'ready'.", this.getIdentifier(), getState());
 
                 throw new LifeCycleException("The data model (" + this.getIdentifier() +
                         ") because one or more of its data objects are not in state 'ready'.");

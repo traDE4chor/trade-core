@@ -26,7 +26,6 @@ import org.trade.core.model.ModelConstants;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DDGCompiler;
 import org.trade.core.model.lifecycle.DataDependencyGraphLifeCycle;
-import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.local.LocalPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
@@ -35,9 +34,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -53,7 +50,9 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
 
     private String entity = null;
 
-    private QName name = null;
+    private String name = null;
+
+    private String targetNamespace = null;
 
     private transient DataDependencyGraphLifeCycle lifeCycle = null;
 
@@ -71,7 +70,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
      * @param entity the entity to which the data dependency graph belongs
      * @param name   the name of the data dependency graph
      */
-    public DataDependencyGraph(String entity, QName name) {
+    public DataDependencyGraph(String entity, String name) {
         this.name = name;
         this.entity = entity;
 
@@ -101,8 +100,26 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
      *
      * @return The qualified name of the data dependency graph.
      */
-    public QName getName() {
+    public QName getQName() {
+        return new QName(this.targetNamespace, name);
+    }
+
+    /**
+     * Provides the name of the data dependency graph.
+     *
+     * @return The name of the data dependency graph.
+     */
+    public String getName() {
         return this.name;
+    }
+
+    /**
+     * Gets target namespace.
+     *
+     * @return the target namespace
+     */
+    public String getTargetNamespace() {
+        return targetNamespace;
     }
 
     /**
@@ -123,6 +140,12 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
         return this.dataModel;
     }
 
+    /**
+     * Sets data model.
+     *
+     * @param dataModel the data model
+     * @throws LifeCycleException the life cycle exception
+     */
     public void setDataModel(DataModel dataModel) throws LifeCycleException {
         if (dataModel != null) {
             if (dataModel.isReady()) {
@@ -204,6 +227,8 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
 
             // Set the resulting data model to this DDG
             setDataModel(comp.getCompiledDataModel());
+
+            this.targetNamespace = comp.getTargetNamespace();
 
             // Get the list of compilation issues
             issues = comp.getCompilationIssues();

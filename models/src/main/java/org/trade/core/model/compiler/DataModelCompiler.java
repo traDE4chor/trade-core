@@ -18,15 +18,10 @@ package org.trade.core.model.compiler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trade.core.model.data.DataModel;
 import org.trade.core.model.data.DataObject;
-import org.trade.core.model.ddg.DataDependenceGraph;
-import org.trade.core.model.ddg.DataObjectType;
 import org.trade.core.model.utils.DataModelUtils;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,6 +32,8 @@ public class DataModelCompiler extends ACompiler {
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.compiler.DataModelCompiler");
 
     private String modelId = "";
+
+    private String targetNamespace = "";
 
     private List<DataObject> compiledDataObjects = new ArrayList<DataObject>();
 
@@ -79,5 +76,9 @@ public class DataModelCompiler extends ACompiler {
 
     public List<DataObject> getCompiledDataObjects() {
         return this.compiledDataObjects;
+    }
+
+    public String getTargetNamespace() {
+        return targetNamespace;
     }
 }

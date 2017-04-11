@@ -10,7 +10,7 @@
         </processor>
         <processor name="OpalMC" identifier="participant_OpalMC">
             <incoming>
-                <edge>ddgEdge_5e9797ff-4a6a-4a4d-882c-5e2503df062c</edge>
+                <edge>5e9797ff-4a6a-4a4d-882c-5e2503df062c</edge>
                 <edge>ddgEdge_c0284a40-0553-4fdf-9d9c-989571f35228</edge>
             </incoming>
             <outgoing>

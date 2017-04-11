@@ -28,7 +28,6 @@ import org.trade.core.model.ddg.DataObjectType;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.model.utils.DDGUtils;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +39,8 @@ public class DDGCompiler extends ACompiler {
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.compiler.DDGCompiler");
 
     private String ddgId = "";
+
+    private String targetNamespace = "";
 
     private DataModel dataModel = null;
 
@@ -125,8 +126,10 @@ public class DDGCompiler extends ACompiler {
             targetNamespace = ddgDefinition.getTargetNamespace();
         }
 
+        this.targetNamespace = targetNamespace;
+
         // Create a new DataModel to which we can add the elements translated in the following
-        this.dataModel = new DataModel(entity, new QName(targetNamespace, name));
+        this.dataModel = new DataModel(entity, name, targetNamespace);
 
         List<DataObject> dataObjects = new ArrayList<>();
         for (DataObjectType dataObject : ddgDefinition.getDataObjects().getDataObject()) {
@@ -197,6 +200,7 @@ public class DDGCompiler extends ACompiler {
             // Try to add the compiled data element to its data object
             DataElement compiledDataElement = compile(compiledDataObject, dataElement, entity);
             try {
+                compiledDataElement.initialize();
                 compiledDataObject.addDataElement(compiledDataElement);
             } catch (LifeCycleException e) {
                 logger.error("The generated data element '{}' could not be added to data object '{}'. " +
@@ -204,8 +208,17 @@ public class DDGCompiler extends ACompiler {
                         "correctly.", compiledDataElement.getName(), compiledDataObject.getName());
 
                 throw new CompilationException("The generated data element '" + compiledDataElement.getName() + "' " +
-                        "could not be added to data object '" + compiledDataObject.getName() +
+                        "could not be added to data object '" + compiledDataObject.getName() + "'. " +
                         "Please check if the corresponding data element is generated and initialized correctly.",
+                        this.compilationIssues);
+            } catch (Exception e) {
+                logger.error("The generated data element '{}' could not be initialized. " +
+                        "Please check if the corresponding data element is generated correctly.",
+                        compiledDataElement.getName());
+
+                throw new CompilationException("The generated data element '" + compiledDataElement.getName() + "' " +
+                        "could not be initialized. Please check if the corresponding data element is generated " +
+                        "correctly.",
                         this.compilationIssues);
             }
         }
@@ -275,6 +288,10 @@ public class DDGCompiler extends ACompiler {
         compiledElement.setContentType(dataElement.getContentType());
 
         return compiledElement;
+    }
+
+    public String getTargetNamespace() {
+        return targetNamespace;
     }
 
     public DataModel getCompiledDataModel() {

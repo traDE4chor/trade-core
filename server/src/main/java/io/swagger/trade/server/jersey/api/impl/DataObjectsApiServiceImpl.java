@@ -52,12 +52,12 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getAllDataObjects( @Min(0) Integer start,  @Min(0) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getAllDataObjects( @Min(1) Integer start,  @Min(1) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataElements(String dataObjectId,  @Min(0) Integer start,  @Min(0) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataElements(String dataObjectId,  @Min(1) Integer start,  @Min(1) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
@@ -67,7 +67,7 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataObjectInstances(String dataObjectId,  @Min(0) Integer start,  @Min(0) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataObjectInstances(String dataObjectId,  @Min(1) Integer start,  @Min(1) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

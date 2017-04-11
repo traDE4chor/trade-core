@@ -35,7 +35,12 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response getDataElementInstances(String instanceId,  @Min(0) Integer start,  @Min(0) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataElementInstanceByDataElementName(String instanceId, String dataElementName, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+        // do some magic!
+        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+    @Override
+    public Response getDataElementInstances(String instanceId,  @Min(1) Integer start,  @Min(1) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
@@ -45,12 +50,7 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
     @Override
-    public Response queryDataObjectInstance(@NotNull String dataModelName, @NotNull String dataObjectName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
-    }
-    @Override
-    public Response getDataElementInstanceByDataElementName(String instanceId,String dataElementName,SecurityContext securityContext,UriInfo uriInfo) throws NotFoundException {
+    public Response queryDataObjectInstance( @NotNull String dataModelName,  @NotNull String dataObjectName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }

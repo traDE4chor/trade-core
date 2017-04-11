@@ -78,12 +78,50 @@ public class DataManager {
         return this.dataDependencyGraphs.get(dataDependencyGraphId);
     }
 
+    public DataModel getDataModelOfGraphWithId(String graphId) {
+        return this.dataDependencyGraphs.get(graphId).getDataModel();
+    }
+
     public DataModel getDataModel(String dataModelId) {
         return this.dataModels.get(dataModelId);
     }
 
     public DataValue getDataValue(String dataValueId) {
         return this.dataValues.get(dataValueId);
+    }
+
+    public List<DataDependencyGraph> getAllDataDependencyGraphs(String targetNamespace, String name, String entity) {
+        Stream<DataDependencyGraph> stream = dataDependencyGraphs.values().stream();
+
+        if (targetNamespace != null && !targetNamespace.isEmpty()) {
+            stream = stream.filter(d -> (d.getTargetNamespace() != null && d.getTargetNamespace().toUpperCase().equals(targetNamespace
+                    .toUpperCase())));
+        }
+
+        if (name != null && !name.isEmpty()) {
+            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().equals(name
+                    .toUpperCase())));
+        }
+
+        if (entity != null && !entity.isEmpty()) {
+            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().toUpperCase().equals(entity
+                    .toUpperCase())));
+        }
+
+        List<DataDependencyGraph> result = stream.collect(Collectors.toList());
+
+        // Return an unmodifiable copy of the list
+        return Collections.unmodifiableList(result);
+    }
+
+    public List<DataObject> getAllDataObjectsOfDataModel(String dataModelId) {
+        List<DataObject> result = Collections.emptyList();
+        if (hasDataModel(dataModelId)) {
+            // Return an unmodifiable copy of the list of all data objects of the data model
+            result = Collections.unmodifiableList(this.dataModels.get(dataModelId).getDataObjects());
+        }
+
+        return result;
     }
 
     public List<DataValue> getAllDataValues(String status, String createdBy) {
@@ -101,6 +139,14 @@ public class DataManager {
 
         // Return an unmodifiable copy of the list
         return Collections.unmodifiableList(result);
+    }
+
+    public boolean hasDataDependencyGraph(String graphId) {
+        return this.dataDependencyGraphs.containsKey(graphId);
+    }
+
+    public boolean hasDataModel(String dataModelId) {
+        return this.dataModels.containsKey(dataModelId);
     }
 
     public boolean hasDataValue(String dataValueId) {
@@ -129,16 +175,20 @@ public class DataManager {
         return result;
     }
 
-    public DataValue deleteDataValue(String dataValueId) throws Exception {
-        DataValue result = null;
-
-        if (this.dataValues.containsKey(dataValueId)) {
-            result = this.dataValues.remove(dataValueId);
+    public void deleteDataDependencyGraph(String graphId) throws Exception {
+        if (this.dataDependencyGraphs.containsKey(graphId)) {
+            DataDependencyGraph result = this.dataDependencyGraphs.remove(graphId);
 
             result.delete();
         }
+    }
 
-        return result;
+    public void deleteDataValue(String dataValueId) throws Exception {
+        if (this.dataValues.containsKey(dataValueId)) {
+            DataValue result = this.dataValues.remove(dataValueId);
+
+            result.delete();
+        }
     }
 
     public void registerContentsOfDataDependencyGraph(String graphId) {

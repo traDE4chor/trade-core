@@ -22,10 +22,8 @@ import io.swagger.trade.client.jersey.model.DataValue;
 import io.swagger.trade.client.jersey.model.DataValueArrayWithLinks;
 import io.swagger.trade.client.jersey.model.DataValueData;
 import io.swagger.trade.client.jersey.model.DataValueWithLinks;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.OffsetDateTime;
 
 import static org.junit.Assert.*;
@@ -169,7 +167,7 @@ public class DataValueTestHelper {
     public void pushDataValues() throws Exception {
         try {
             OffsetDateTime oldTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getDataValue().getLastModified();
-            byte[] data1 = getData("data.dat");
+            byte[] data1 = TestUtils.INSTANCE.getData("data.dat");
 
             // Push data to first data value
             dvApiInstance.pushDataValue(idOfDataValue1, new Long(data1.length), data1);
@@ -178,7 +176,7 @@ public class DataValueTestHelper {
             // Check if the lastModified property is updated
             assertNotEquals(oldTime, newTime);
 
-            byte[] data2 = getData("video.mp4");
+            byte[] data2 = TestUtils.INSTANCE.getData("video.mp4");
 
             // Push data to second data value
             dvApiInstance.pushDataValue(idOfDataValue2, new Long(data2.length), data2);
@@ -238,18 +236,5 @@ public class DataValueTestHelper {
             System.err.println("Exception when calling DataValueApi#deleteDataValue");
             throw e;
         }
-    }
-
-    private byte[] getData(String fileName) throws IOException {
-        InputStream in = getClass().getResourceAsStream("/" + fileName);
-        byte[] data = null;
-
-        try {
-            data = IOUtils.toByteArray(in);
-        } finally {
-            in.close();
-        }
-
-        return data;
     }
 }
