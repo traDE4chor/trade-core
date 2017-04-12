@@ -26,6 +26,7 @@ import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
@@ -182,6 +183,8 @@ public class TraDEClientServerIT {
             assertEquals(entity, ddgResponse.getDataDependencyGraph().getEntity());
             assertEquals(name, ddgResponse.getDataDependencyGraph().getName());
 
+            printLinkArray(ddgResponse.getLinks());
+
             String graphId = ddgResponse.getDataDependencyGraph().getId();
 
             byte[] graph = TestUtils.INSTANCE.getData("opalData.trade");
@@ -193,8 +196,12 @@ public class TraDEClientServerIT {
             DataModelWithLinks dataModelResp = dataModelApiInstance.getDataModel(graphId);
             String dataModelId = dataModelResp.getDataModel().getId();
 
+            printLinkArray(dataModelResp.getLinks());
+
             DataObjectArrayWithLinks dataObjects = dataObjectApiInstance.getDataObjects(dataModelId, null, null);
             assertEquals(4, dataObjects.getDataObjects().size());
+
+            printLinkArray(dataObjects.getLinks());
         } catch (ApiException e) {
             throw e;
         } catch (IOException e) {
@@ -240,7 +247,9 @@ public class TraDEClientServerIT {
         // Cleanup the database
         MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
         MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection("dataCollection").drop();
+        dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION).drop();
+        dataStore.getCollection(ModelConstants.DATA_MODEL_COLLECTION).drop();
+        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH_COLLECTION).drop();
         dataStoreClient.close();
 
         // Stop the server
@@ -248,6 +257,17 @@ public class TraDEClientServerIT {
             server.stopHTTPServer();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void printLinkArray(LinkArray links) {
+        for (Link link : links) {
+            System.out.println("HREF: " + link.getHref());
+            System.out.println("REL: " + link.getRel());
+            System.out.println("TITLE: " + link.getTitle());
+            System.out.println("TYPE: " + link.getType());
+            System.out.println("HREF-LANG: " + link.getHreflang());
+            System.out.println("LENGTH: " + link.getLength());
         }
     }
 }

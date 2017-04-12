@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Created by hahnml on 26.10.2016.
@@ -60,6 +61,8 @@ public class DataElementInstance extends BaseResource implements Serializable, I
 
     @Reference
     private DataValue dataValue = null;
+
+    private HashMap<String, String> correlationProperties = new HashMap<>();
 
     public DataElementInstance(DataElement dataElement, DataObjectInstance dataObjectInstance, String createdBy) {
         this.model = dataElement;
@@ -90,6 +93,18 @@ public class DataElementInstance extends BaseResource implements Serializable, I
 
     public DataValue getDataValue() {
         return dataValue;
+    }
+
+    public DataElement getDataElement() {
+        return this.model;
+    }
+
+    public DataObjectInstance getDataObjectInstance() {
+        return dataObjectInstance;
+    }
+
+    public HashMap<String, String> getCorrelationProperties() {
+        return correlationProperties;
     }
 
     public void setDataValue(DataValue dataValue) throws LifeCycleException {

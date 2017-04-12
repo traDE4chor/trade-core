@@ -28,9 +28,7 @@ import org.trade.core.model.compiler.CompilationIssue;
 import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -61,65 +59,64 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     }
 
     @Override
-    public Response getDataModels( @Min(1) Integer start,  @Min(1) Integer size,  String targetNamespace,  String name, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataModels(@Min(1) Integer start, @Min(1) Integer size, String targetNamespace, String name, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
-    public Response getDataObjects(String dataModelId,  @Min(1) Integer start,  @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataObjects(String dataModelId, @Min(1) Integer start, @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         boolean exists = DataManager.getInstance().hasDataModel(dataModelId);
 
         if (exists) {
-        try {
-            List<org.trade.core.model.data.DataObject> dataObjects = DataManager.getInstance()
-                    .getAllDataObjectsOfDataModel(dataModelId);
-            int filteredListSize = dataObjects.size();
+            try {
+                List<org.trade.core.model.data.DataObject> dataObjects = DataManager.getInstance()
+                        .getAllDataObjectsOfDataModel(dataModelId);
+                int filteredListSize = dataObjects.size();
 
-            // Check if the start index and the size are in still the range of the filtered result list, if not
-            // respond the whole filtered result list
-            if (start > 0 && size > 0 && start <= dataObjects.size()) {
-                // Calculate the two index
-                int toIndex = start - 1 + size;
-                // Check if the index is still in bounds
-                if (toIndex > dataObjects.size()) {
-                    toIndex = dataObjects.size();
+                // Check if the start index and the size are in still the range of the filtered result list, if not
+                // respond the whole filtered result list
+                if (start > 0 && size > 0 && start <= dataObjects.size()) {
+                    // Calculate the two index
+                    int toIndex = start - 1 + size;
+                    // Check if the index is still in bounds
+                    if (toIndex > dataObjects.size()) {
+                        toIndex = dataObjects.size();
+                    }
+                    // Decrease start by one since the API starts counting indexes from 1
+                    dataObjects = dataObjects.subList(start - 1, toIndex);
                 }
-                // Decrease start by one since the API starts counting indexes from 1
-                dataObjects = dataObjects.subList(start - 1, toIndex);
+
+                DataObjectArrayWithLinks resultList = new DataObjectArrayWithLinks();
+                resultList.setDataObjects(new DataObjectArray());
+                for (org.trade.core.model.data.DataObject dataObject : dataObjects) {
+
+                    DataObjectWithLinks result = new DataObjectWithLinks();
+
+                    result.setDataObject(ResourceTransformationUtils.model2Resource(dataObject));
+
+                    // Set HREF and links to related resources
+                    result.getDataObject().setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
+                            .TEMPLATE_COLLECTION_RESOURCE).build(LinkUtils.COLLECTION_DATA_OBJECT, dataObject
+                            .getIdentifier()).toASCIIString());
+
+                    // Set links to related data elements, etc.
+                    result.setLinks(LinkUtils.createDataObjectLinks(uriInfo, dataObject, result.getDataObject().getHref()));
+
+                    resultList.getDataObjects().add(result);
+                }
+
+                resultList.setLinks(LinkUtils.createPaginationLinks("data objects", uriInfo, start, size,
+                        filteredListSize));
+
+                response = Response.ok().entity(resultList).build();
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                response = Response.serverError().entity(e.getMessage()).build();
             }
-
-            DataObjectArrayWithLinks resultList = new DataObjectArrayWithLinks();
-            resultList.setDataObjects(new DataObjectArray());
-            for (org.trade.core.model.data.DataObject dataObject : dataObjects) {
-
-                DataObjectWithLinks result = new DataObjectWithLinks();
-
-                result.setDataObject(ResourceTransformationUtils.model2Resource(dataObject));
-
-                // Set HREF and links to related resources
-                UriBuilder builder = uriInfo.getAbsolutePathBuilder();
-                URI valueUri = builder.path(result.getDataObject().getId()).build();
-
-                result.getDataObject().setHref(valueUri.toASCIIString());
-
-                // TODO: Set links to related data elements, etc.!?
-                result.setLinks(LinkUtils.createDataObjectLinks(uriInfo));
-
-                resultList.getDataObjects().add(result);
-            }
-
-            resultList.setLinks(LinkUtils.createPaginationLinks("data objects", uriInfo, start, size,
-                    filteredListSize));
-
-            response = Response.ok().entity(resultList).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            response = Response.serverError().entity(e.getMessage()).build();
-        }
         } else {
             response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                     .singletonList(dataModelId)).message("A data model with id = '" + dataModelId + "' is " +

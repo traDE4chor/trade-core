@@ -1947,6 +1947,45 @@
                     }
                 }
             }
+        },
+        "/dataValues/{dataValueId}/elementInstances": {
+            "x-swagger-router-controller": "DataElementInstance",
+            "get": {
+                "tags": [
+                    "dataElementInstance"
+                ],
+                "summary": "Provides a list of all data element instances that use/refer to the data value with the given id. Optional query parameter of **start** and **size** enable pagination of the collection of data element instance resources.",
+                "operationId": "getDataElementInstancesUsingDataValue",
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/startParam"
+                    },
+                    {
+                        "$ref": "#/parameters/sizeParam"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataValueId",
+                        "description": "Id of the data value that needs to be fetched",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns an array of `DataElementInstance` resource for the given data value.",
+                        "schema": {
+                            "$ref": "#/definitions/DataElementInstanceArrayWithLinks"
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/responses/ErrorResponse"
+                    }
+                }
+            }
         }
     },
     "definitions": {

@@ -64,6 +64,10 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
 
                 result.getDataDependencyGraph().setHref(valueUri.toASCIIString());
 
+                // Set links to related resources
+                result.setLinks(LinkUtils.createDataDependencyGraphLinks(uriInfo, graph, result
+                        .getDataDependencyGraph().getHref()));
+
                 response = Response.created(valueUri).entity(result).build();
             }
         } catch (Exception e) {
@@ -143,8 +147,9 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
 
                 result.getDataDependencyGraph().setHref(valueUri.toASCIIString());
 
-                // TODO: Set links to related data element instances!?
-                result.setLinks(LinkUtils.createDataDependencyGraphLinks(uriInfo));
+                // Set links to related resources
+                result.setLinks(LinkUtils.createDataDependencyGraphLinks(uriInfo, graph, result
+                        .getDataDependencyGraph().getHref()));
 
                 response = Response.ok().entity(result).build();
             } else {
@@ -200,8 +205,9 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
 
                 result.getDataDependencyGraph().setHref(valueUri.toASCIIString());
 
-                // TODO: Set links to related data models!?
-                result.setLinks(LinkUtils.createDataDependencyGraphLinks(uriInfo));
+                // Set links to related resources
+                result.setLinks(LinkUtils.createDataDependencyGraphLinks(uriInfo, dataDependencyGraph, result
+                        .getDataDependencyGraph().getHref()));
 
                 resultList.getDataDependencyGraphs().add(result);
             }
@@ -226,23 +232,23 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         boolean exists = DataManager.getInstance().hasDataDependencyGraph(graphId);
 
         if (exists) {
-            org.trade.core.model.data.DataModel model = DataManager.getInstance().getDataModelOfGraphWithId
+            org.trade.core.model.data.DataDependencyGraph ddg = DataManager.getInstance().getDataDependencyGraph
                     (graphId);
 
             try {
+                org.trade.core.model.data.DataModel model = ddg.getDataModel();
                 if (model != null) {
                     DataModelWithLinks result = new DataModelWithLinks();
 
                     result.setDataModel(ResourceTransformationUtils.model2Resource(model));
 
                     // Set HREF and links to related resources
-                    UriBuilder builder = uriInfo.getAbsolutePathBuilder();
-                    URI valueUri = builder.build();
+                    result.getDataModel().setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
+                            .TEMPLATE_COLLECTION_RESOURCE).build(LinkUtils.COLLECTION_DATA_MODEL, model
+                            .getIdentifier()).toASCIIString());
 
-                    result.getDataModel().setHref(valueUri.toASCIIString());
-
-                    // TODO: Set links to related data objects!?
-                    result.setLinks(LinkUtils.createDataDependencyGraphLinks(uriInfo));
+                    // Set links to related data objects
+                    result.setLinks(LinkUtils.createDataModelLinks(uriInfo, model, result.getDataModel().getHref()));
 
                     response = Response.ok().entity(result).build();
                 } else {

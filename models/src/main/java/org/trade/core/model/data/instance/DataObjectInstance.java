@@ -31,6 +31,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -57,6 +58,8 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
 
     @Reference
     private List<DataElementInstance> dataElementInstances = new ArrayList<DataElementInstance>();
+
+    private HashMap<String, String> correlationProperties = new HashMap<>();
 
     public DataObjectInstance(DataObject dataObject, String createdBy) {
         this.createdBy = createdBy;
@@ -86,6 +89,18 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
 
     public String getState() {
         return state;
+    }
+
+    public DataObject getDataObject() {
+        return this.model;
+    }
+
+    public List<DataElementInstance> getDataElementInstances() {
+        return dataElementInstances;
+    }
+
+    public HashMap<String, String> getCorrelationProperties() {
+        return correlationProperties;
     }
 
     @Override

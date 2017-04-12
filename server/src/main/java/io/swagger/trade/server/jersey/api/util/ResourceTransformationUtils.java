@@ -18,6 +18,8 @@ package io.swagger.trade.server.jersey.api.util;
 
 import io.swagger.trade.server.jersey.model.*;
 
+import java.util.HashMap;
+
 /**
  * Created by hahnml on 26.01.2017.
  */
@@ -93,6 +95,34 @@ public class ResourceTransformationUtils {
 
         if (dataObject.getDataModel() != null) {
             result.setDataModelName(dataObject.getDataModel().getName());
+        }
+
+        return result;
+    }
+
+    public static DataElementInstance model2Resource(
+            org.trade.core.model.data.instance.DataElementInstance instance) {
+        DataElementInstance result = new DataElementInstance();
+
+        result.setId(instance.getIdentifier());
+        result.setCreatedBy(instance.getCreatedBy());
+        result.setStatus(string2InstanceStatus(instance.getState()));
+        result.setDataElementName(instance.getDataElement().getName());
+        result.setCorrelationProperties(model2Resource(instance.getCorrelationProperties()));
+
+        return result;
+    }
+
+    private static CorrelationPropertyArray model2Resource(HashMap<String, String> correlationProperties) {
+        CorrelationPropertyArray result = new CorrelationPropertyArray();
+
+        for (String key : correlationProperties.keySet()) {
+            CorrelationProperty prop = new CorrelationProperty();
+
+            prop.setKey(key);
+            prop.setValue(correlationProperties.get(key));
+
+            result.add(prop);
         }
 
         return result;

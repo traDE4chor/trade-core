@@ -93,7 +93,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 result.getDataValue().setHref(valueUri.toASCIIString());
 
                 // Set links to related data element instances
-                result.setLinks(LinkUtils.createDataValueLinks(uriInfo));
+                result.setLinks(LinkUtils.createDataValueLinks(uriInfo, value, result.getDataValue().getHref()));
 
                 response = Response.ok().entity(result).build();
             } else {
@@ -147,7 +147,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 result.getDataValue().setHref(valueUri.toASCIIString());
 
                 // Set links to related data element instances
-                result.setLinks(LinkUtils.createDataValueLinks(uriInfo));
+                result.setLinks(LinkUtils.createDataValueLinks(uriInfo, dataValue, result.getDataValue().getHref()));
 
                 resultList.getDataValues().add(result);
             }
@@ -245,7 +245,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 result.getDataValue().setHref(valueUri.toASCIIString());
 
                 // Set links to realted data element instances
-                result.setLinks(LinkUtils.createDataValueLinks(uriInfo));
+                result.setLinks(LinkUtils.createDataValueLinks(uriInfo, value, result.getDataValue().getHref()));
 
                 response = Response.ok().entity(result).build();
             } else {
@@ -284,6 +284,71 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
             e.printStackTrace();
 
             response = Response.serverError().entity(e.getMessage()).build();
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response getDataElementInstancesUsingDataValue(String dataValueId,  @Min(1) Integer start,  @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+        Response response = null;
+
+        boolean exists = DataManager.getInstance().hasDataValue(dataValueId);
+
+        if (exists) {
+            try {
+                List<org.trade.core.model.data.instance.DataElementInstance> elementInstances = DataManager
+                        .getInstance()
+                        .getAllDataElementInstancesOfDataValue(dataValueId);
+                int filteredListSize = elementInstances.size();
+
+                // Check if the start index and the size are in still the range of the filtered result list, if not
+                // respond the whole filtered result list
+                if (start > 0 && size > 0 && start <= elementInstances.size()) {
+                    // Calculate the two index
+                    int toIndex = start - 1 + size;
+                    // Check if the index is still in bounds
+                    if (toIndex > elementInstances.size()) {
+                        toIndex = elementInstances.size();
+                    }
+                    // Decrease start by one since the API starts counting indexes from 1
+                    elementInstances = elementInstances.subList(start - 1, toIndex);
+                }
+
+                DataElementInstanceArrayWithLinks resultList = new DataElementInstanceArrayWithLinks();
+                resultList.setInstances(new DataElementInstanceArray());
+                for (org.trade.core.model.data.instance.DataElementInstance elmInstance : elementInstances) {
+
+                    DataElementInstanceWithLinks result = new DataElementInstanceWithLinks();
+
+                    result.setInstance(ResourceTransformationUtils.model2Resource(elmInstance));
+
+                    // Set HREF and links to related resources
+                    result.getInstance().setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
+                            .TEMPLATE_COLLECTION_RESOURCE).build(LinkUtils.COLLECTION_DATA_ELEMENT_INSTANCE, elmInstance
+                            .getIdentifier()).toASCIIString());
+
+                    // Set links to related data elements, etc.
+                    result.setLinks(LinkUtils.createDataElementInstanceLinks(uriInfo, elmInstance, result.getInstance()
+                            .getHref()));
+
+                    resultList.getInstances().add(result);
+                }
+
+                resultList.setLinks(LinkUtils.createPaginationLinks("data element instances", uriInfo,
+                        start, size, filteredListSize));
+
+                response = Response.ok().entity(resultList).build();
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                response = Response.serverError().entity(e.getMessage()).build();
+            }
+        } else {
+            response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
+                    .singletonList(dataValueId)).message("A data value with id = '" + dataValueId + "' is " +
+                    "not available."))
+                    .build();
         }
 
         return response;

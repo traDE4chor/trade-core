@@ -78,10 +78,6 @@ public class DataManager {
         return this.dataDependencyGraphs.get(dataDependencyGraphId);
     }
 
-    public DataModel getDataModelOfGraphWithId(String graphId) {
-        return this.dataDependencyGraphs.get(graphId).getDataModel();
-    }
-
     public DataModel getDataModel(String dataModelId) {
         return this.dataModels.get(dataModelId);
     }
@@ -119,6 +115,16 @@ public class DataManager {
         if (hasDataModel(dataModelId)) {
             // Return an unmodifiable copy of the list of all data objects of the data model
             result = Collections.unmodifiableList(this.dataModels.get(dataModelId).getDataObjects());
+        }
+
+        return result;
+    }
+
+    public List<DataElementInstance> getAllDataElementInstancesOfDataValue(String dataValueId) {
+        List<DataElementInstance> result = Collections.emptyList();
+        if (hasDataValue(dataValueId)) {
+            // Return an unmodifiable copy of the list of all data element instances using the data value
+            result = Collections.unmodifiableList(this.dataValues.get(dataValueId).getDataElementInstances());
         }
 
         return result;
