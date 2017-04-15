@@ -81,9 +81,9 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     /**
      * Instantiates a new data element with the given identifier and associates it to the given data object.
      *
-     * @param object the data object to which the data element belongs
+     * @param object     the data object to which the data element belongs
      * @param identifier the identifier to use for the data element
-     * @param name   the name of the data element
+     * @param name       the name of the data element
      */
     public DataElement(DataObject object, String identifier, String entity, String name) {
         this.parent = object;
@@ -112,12 +112,34 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     }
 
     /**
+     * Set the entity. Only allowed if the data object is not part of a data model.
+     *
+     * @param entity
+     */
+    public void setEntity(String entity) {
+        if (this.parent != null && this.parent.getDataModel() == null) {
+            this.entity = entity;
+        }
+    }
+
+    /**
      * Provides the name of the entity the data element belongs to.
      *
      * @return the entity
      */
     public String getEntity() {
         return entity;
+    }
+
+    /**
+     * Set the name. Only allowed if the data object is not part of a data model.
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        if (this.parent != null && this.parent.getDataModel() == null) {
+            this.name = name;
+        }
     }
 
     /**
@@ -308,18 +330,23 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     /**
      * Instantiates the data element and returns the created instance.
      *
-     * @param dataObjectInstance the data object instance to which the new data element instance belongs
-     * @param createdBy          the entity that triggers the instantiation of the data element. For example, an instance
-     *                           ID of a workflow or the name of human user can be used.
+     * @param dataObjectInstance    the data object instance to which the new data element instance belongs
+     * @param createdBy             the entity that triggers the instantiation of the data element. For example, an instance
+     *                              ID of a workflow or the name of human user can be used.
+     * @param correlationProperties the properties used for identifying a specific instance of a data element
      * @return the created instance of the data element
      * @throws LifeCycleException If the data element is in a state which does not allow its instantiation.
      */
-    public DataElementInstance instantiate(DataObjectInstance dataObjectInstance, String createdBy) throws
+    public DataElementInstance instantiate(DataObjectInstance dataObjectInstance, String createdBy, HashMap<String, String>
+            correlationProperties) throws
             LifeCycleException {
         DataElementInstance result = null;
 
         if (this.isReady()) {
-            result = new DataElementInstance(this, dataObjectInstance, createdBy);
+            result = new DataElementInstance(this, dataObjectInstance, createdBy, correlationProperties);
+
+            // Add the new instance to the list of instances
+            this.instances.add(result);
         } else {
             logger.info("The data element ({}) can not be instantiated because it is in state '{}'.", this
                             .getIdentifier(),
@@ -330,6 +357,17 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
         }
 
         return result;
+    }
+
+    /**
+     * Removes the data element instance from this data element.
+     *
+     */
+    public void removeDataElementInstance(DataElementInstance instance) {
+        // Check if the data element instance belongs to this data element
+        if (instance.getDataElement() == this) {
+            this.instances.remove(instance);
+        }
     }
 
     public boolean isInitial() {

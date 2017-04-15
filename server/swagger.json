@@ -14,7 +14,6 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
     },
-    "host": "localhost:@port_number@/api",
     "consumes": [
         "application/json"
     ],
@@ -366,7 +365,7 @@
                 "tags": [
                     "dataModel"
                 ],
-                "description": "Gets all available `DataModel` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data model resources and param **name**, **targetNamespace** filter result list by name and target namespace.",
+                "description": "Gets all available `DataModel` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data model resources and param **targetNamespace**, **name** and **entity** filter result list by name, targetNamespace and entity.",
                 "operationId": "getDataModels",
                 "parameters": [
                     {
@@ -386,6 +385,13 @@
                         "name": "name",
                         "in": "query",
                         "description": "Name of data model to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "entity",
+                        "in": "query",
+                        "description": "Creating entity of data dependency graph to return",
                         "required": false,
                         "type": "string"
                     }
@@ -655,7 +661,7 @@
                 "tags": [
                     "dataObject"
                 ],
-                "description": "Gets all available `DataObject` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data object resources, param **name** filters result list by name and param **status** filters result list by status of the data objects.",
+                "description": "Gets all available `DataObject` resources.\nOptional query parameter of **start** and **size** enable pagination of the collection of data object resources, params **name** and **entity** filter result list by name and entity and param **status** filters result list by status of the data objects.",
                 "operationId": "getAllDataObjects",
                 "parameters": [
                     {
@@ -668,6 +674,13 @@
                         "name": "name",
                         "in": "query",
                         "description": "Name of data objects to return",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "entity",
+                        "in": "query",
+                        "description": "Creating entity of data dependency graph to return",
                         "required": false,
                         "type": "string"
                     },
@@ -1087,6 +1100,13 @@
                 "operationId": "queryDataObjectInstance",
                 "parameters": [
                     {
+                        "name": "dataModelNamespace",
+                        "in": "query",
+                        "description": "Namespace of the data model a data object instance should belong to.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
                         "name": "dataModelName",
                         "in": "query",
                         "description": "Name of the data model a data object instance should belong to.",
@@ -1481,6 +1501,13 @@
                 "description": "Get an available `DataElementInstance` resource based on specified parameters.\nQuery parameters **dataModelName**, **dataObjectName** and **dataElementName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data element instance.",
                 "operationId": "queryDataElementInstance",
                 "parameters": [
+                    {
+                        "name": "dataModelNamespace",
+                        "in": "query",
+                        "description": "Namespace of the data model a data object instance should belong to.",
+                        "required": true,
+                        "type": "string"
+                    },
                     {
                         "name": "dataModelName",
                         "in": "query",
@@ -2199,8 +2226,8 @@
                 "href": {
                     "type": "string"
                 },
-                "parent": {
-                    "$ref": "#/definitions/DataObject"
+                "dataObjectName": {
+                    "type": "string"
                 },
                 "entity": {
                     "type": "string"

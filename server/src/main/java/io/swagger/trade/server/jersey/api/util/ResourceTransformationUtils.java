@@ -17,6 +17,13 @@
 package io.swagger.trade.server.jersey.api.util;
 
 import io.swagger.trade.server.jersey.model.*;
+import io.swagger.trade.server.jersey.model.DataDependencyGraph;
+import io.swagger.trade.server.jersey.model.DataElementInstance;
+import io.swagger.trade.server.jersey.model.DataModel;
+import io.swagger.trade.server.jersey.model.DataObject;
+import io.swagger.trade.server.jersey.model.DataObjectInstance;
+import io.swagger.trade.server.jersey.model.DataValue;
+import org.trade.core.model.data.instance.*;
 
 import java.util.HashMap;
 
@@ -55,11 +62,35 @@ public class ResourceTransformationUtils {
         return value;
     }
 
+    public static org.trade.core.model.data.DataValue resource2Model(DataValue dataValue) {
+        org.trade.core.model.data.DataValue value = new org.trade.core.model.data.DataValue(dataValue.getCreatedBy(),
+                dataValue.getName());
+
+        value.setContentType(dataValue.getContentType());
+        value.setType(dataValue.getType());
+
+        return value;
+    }
+
     public static org.trade.core.model.data.DataDependencyGraph resource2Model(DataDependencyGraphData dataDependencyGraphData) {
         org.trade.core.model.data.DataDependencyGraph graph = new org.trade.core.model.data.DataDependencyGraph
                 (dataDependencyGraphData.getEntity(), dataDependencyGraphData.getName());
 
         return graph;
+    }
+
+    public static org.trade.core.model.data.DataModel resource2Model(DataModelData dataModelData) {
+        org.trade.core.model.data.DataModel model = new org.trade.core.model.data.DataModel
+                (dataModelData.getEntity(), dataModelData.getName());
+
+        return model;
+    }
+
+    public static org.trade.core.model.data.DataObject resource2Model(DataObjectData dataObjectData) {
+        org.trade.core.model.data.DataObject object = new org.trade.core.model.data.DataObject(dataObjectData
+                .getEntity(), dataObjectData.getName());
+
+        return object;
     }
 
     public static DataDependencyGraph model2Resource(org.trade.core.model.data.DataDependencyGraph graph) {
@@ -100,6 +131,31 @@ public class ResourceTransformationUtils {
         return result;
     }
 
+    public static DataElement model2Resource(org.trade.core.model.data.DataElement dataElement) {
+        DataElement result = new DataElement();
+
+        result.setContentType(dataElement.getContentType());
+        result.setType(dataElement.getType());
+        result.setId(dataElement.getIdentifier());
+        result.setDataObjectName(dataElement.getParent().getName());
+        result.setEntity(dataElement.getEntity());
+        result.setStatus(string2Status(dataElement.getState()));
+
+        return result;
+    }
+
+    public static DataObjectInstance model2Resource(org.trade.core.model.data.instance.DataObjectInstance instance) {
+        DataObjectInstance result = new DataObjectInstance();
+
+        result.setId(instance.getIdentifier());
+        result.setCreatedBy(instance.getCreatedBy());
+        result.setStatus(string2InstanceStatus(instance.getState()));
+        result.setDataObjectName(instance.getDataObject().getName());
+        result.setCorrelationProperties(model2Resource(instance.getCorrelationProperties()));
+
+        return result;
+    }
+
     public static DataElementInstance model2Resource(
             org.trade.core.model.data.instance.DataElementInstance instance) {
         DataElementInstance result = new DataElementInstance();
@@ -109,6 +165,16 @@ public class ResourceTransformationUtils {
         result.setStatus(string2InstanceStatus(instance.getState()));
         result.setDataElementName(instance.getDataElement().getName());
         result.setCorrelationProperties(model2Resource(instance.getCorrelationProperties()));
+
+        return result;
+    }
+
+    public static HashMap<String, String> resource2Model(CorrelationPropertyArray correlationProperties) {
+        HashMap<String, String> result = new HashMap<>();
+
+        for (CorrelationProperty prop : correlationProperties) {
+            result.put(prop.getKey(), prop.getValue());
+        }
 
         return result;
     }

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
@@ -75,7 +76,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     /**
      * Instantiates a new data object for the given data model.
      *
-     * @param model the data model the data object belongs to
+     * @param model  the data model the data object belongs to
      * @param entity the entity to which the data object belongs
      * @param name   the name of the data object
      */
@@ -90,10 +91,10 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     /**
      * Instantiates a new data object with the given identifier for the given data model.
      *
-     * @param model the data model the data object belongs to
+     * @param model      the data model the data object belongs to
      * @param identifier the identifier to use for the data object
-     * @param entity the entity to which the data object belongs
-     * @param name   the name of the data object
+     * @param entity     the entity to which the data object belongs
+     * @param name       the name of the data object
      */
     public DataObject(DataModel model, String identifier, String entity, String name) {
         this.model = model;
@@ -112,12 +113,34 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     }
 
     /**
+     * Set the entity. Only allowed if the data object is not part of a data model.
+     *
+     * @param entity
+     */
+    public void setEntity(String entity) {
+        if (this.model == null) {
+            this.entity = entity;
+        }
+    }
+
+    /**
      * Provides the name of the entity the data object belongs to.
      *
      * @return the entity
      */
     public String getEntity() {
         return entity;
+    }
+
+    /**
+     * Set the name. Only allowed if the data object is not part of a data model.
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        if (this.model == null) {
+            this.name = name;
+        }
     }
 
     /**
@@ -484,16 +507,21 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     /**
      * Instantiates the data object and returns the created instance.
      *
-     * @param createdBy the entity that triggers the instantiation of the data object. For example, an instance
-     *                  ID of a workflow or the name of human user can be used.
+     * @param createdBy             the entity that triggers the instantiation of the data object. For example, an instance
+     *                              ID of a workflow or the name of human user can be used.
+     * @param correlationProperties the properties used for identifying a specific instance of a data object
      * @return the created instance of the data object
      * @throws LifeCycleException If the data object is in a state which does not allow its instantiation.
      */
-    public DataObjectInstance instantiate(String createdBy) throws LifeCycleException {
+    public DataObjectInstance instantiate(String createdBy, HashMap<String, String>
+            correlationProperties) throws LifeCycleException {
         DataObjectInstance result = null;
 
         if (this.isReady()) {
-            result = new DataObjectInstance(this, createdBy);
+            result = new DataObjectInstance(this, createdBy, correlationProperties);
+
+            // Add the new instance to the list of instances
+            this.instances.add(result);
         } else {
             logger.info("The data object ({}) can not be instantiated because it is in state '{}'.", this
                             .getIdentifier(),
@@ -504,6 +532,17 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
         }
 
         return result;
+    }
+
+    /**
+     * Removes the data object instance from this data object.
+     *
+     */
+    public void removeDataObjectInstance(DataObjectInstance instance) {
+        // Check if the object instance belongs to this data object
+        if (instance.getDataObject() == this) {
+            this.instances.remove(instance);
+        }
     }
 
     public boolean isInitial() {

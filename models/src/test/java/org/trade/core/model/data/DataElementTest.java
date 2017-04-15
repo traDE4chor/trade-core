@@ -23,6 +23,8 @@ import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 
+import java.util.HashMap;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -39,7 +41,7 @@ public class DataElementTest {
 
     @Before
     public void createDataObject() {
-            this.obj = new DataObject(entity, doName);
+        this.obj = new DataObject(entity, doName);
     }
 
     @Test
@@ -56,7 +58,9 @@ public class DataElementTest {
     public void instantiationOfDataElementShouldCauseException() throws Exception {
         DataElement elm = new DataElement(obj);
 
-        elm.instantiate(new DataObjectInstance(obj, "someone"), "owner");
+        HashMap<String, String> correlationProps = new HashMap<>();
+
+        elm.instantiate(new DataObjectInstance(obj, "someone", correlationProps), "owner", correlationProps);
     }
 
     @Test
@@ -64,7 +68,11 @@ public class DataElementTest {
         DataElement elm = new DataElement(obj);
         elm.initialize();
 
-        DataElementInstance inst = elm.instantiate(new DataObjectInstance(obj, "someone"),"owner");
+        HashMap<String, String> correlationProps = new HashMap<>();
+        correlationProps.put("customerId", "1234");
+
+        DataElementInstance inst = elm.instantiate(new DataObjectInstance(obj, "someone", correlationProps), "owner",
+                correlationProps);
 
         assertNotNull(inst);
     }

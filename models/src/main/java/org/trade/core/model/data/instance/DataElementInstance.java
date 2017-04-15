@@ -64,10 +64,12 @@ public class DataElementInstance extends BaseResource implements Serializable, I
 
     private HashMap<String, String> correlationProperties = new HashMap<>();
 
-    public DataElementInstance(DataElement dataElement, DataObjectInstance dataObjectInstance, String createdBy) {
+    public DataElementInstance(DataElement dataElement, DataObjectInstance dataObjectInstance, String createdBy, HashMap<String, String>
+            correlationProperties) {
         this.model = dataElement;
         this.dataObjectInstance = dataObjectInstance;
         this.createdBy = createdBy;
+        this.correlationProperties = correlationProperties;
 
         this.lifeCycle = new DataElementInstanceLifeCycle(this);
     }
@@ -110,9 +112,16 @@ public class DataElementInstance extends BaseResource implements Serializable, I
     public void setDataValue(DataValue dataValue) throws LifeCycleException {
         if (dataValue != null) {
             if (dataValue.isCreated()) {
-                // Remember the data value
+                // Check if another data value was set before
+                if (this.dataValue != null && this.dataValue != dataValue) {
+                    // Remove the association between this data element instance and the data value
+                    this.dataValue.removeAssociationWithDataElementInstance(this);
+                }
+
+                // Set the new data value
                 this.dataValue = dataValue;
-                // Associate the data element instance with the data value
+
+                // Associate the data element instance with the new data value
                 this.dataValue.associateWithDataElementInstance(this);
             } else {
                 logger.info("The data value ({}) can not be used by data element instance ({}) because it is in state " +
@@ -149,7 +158,8 @@ public class DataElementInstance extends BaseResource implements Serializable, I
 
     @Override
     public void delete() throws Exception {
-
+        // Remove the data element instance from the data element
+        getDataElement().removeDataElementInstance(this);
     }
 
     @Override

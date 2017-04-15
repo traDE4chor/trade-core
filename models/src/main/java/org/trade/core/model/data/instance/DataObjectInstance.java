@@ -61,9 +61,11 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
 
     private HashMap<String, String> correlationProperties = new HashMap<>();
 
-    public DataObjectInstance(DataObject dataObject, String createdBy) {
+    public DataObjectInstance(DataObject dataObject, String createdBy, HashMap<String, String>
+            correlationProperties) {
         this.createdBy = createdBy;
         this.model = dataObject;
+        this.correlationProperties = correlationProperties;
 
         this.lifeCycle = new DataObjectInstanceLifeCycle(this);
     }
@@ -103,6 +105,20 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
         return correlationProperties;
     }
 
+    public void addDataElementInstance(DataElementInstance elementInstance) {
+        // Check if the element instance belongs to this data object instance
+        if (elementInstance.getDataObjectInstance() == this) {
+            this.dataElementInstances.add(elementInstance);
+        }
+    }
+
+    public void removeDataElementInstance(DataElementInstance elementInstance) {
+        // Check if the element instance belongs to this data object instance
+        if (elementInstance.getDataObjectInstance() == this) {
+            this.dataElementInstances.remove(elementInstance);
+        }
+    }
+
     @Override
     public void create() throws Exception {
 
@@ -120,7 +136,8 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
 
     @Override
     public void delete() throws Exception {
-
+        // Remove the data object instance from the data object
+        getDataObject().removeDataObjectInstance(this);
     }
 
     @Override

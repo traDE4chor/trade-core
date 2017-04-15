@@ -316,17 +316,13 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         boolean exists = DataManager.getInstance().hasDataDependencyGraph(graphId);
 
         if (exists) {
-            org.trade.core.model.data.DataDependencyGraph ddg = DataManager.getInstance().getDataDependencyGraph(graphId);
-
             // Since we don't support the recompilation (updates) of data dependency graphs, at the moment, this
             // method automatically invokes the compilation of the provided serialized data dependency graph.
             try {
-                ddg.setSerializedModel(graph);
+                DataManager.getInstance().setSerializedModelOfDDG(graphId, graph);
 
                 // TODO: We need to add the list of issues as part of the response!
-                List<CompilationIssue> issues = ddg.compileDataDependencyGraph(graph);
-
-                DataManager.getInstance().registerContentsOfDataDependencyGraph(graphId);
+                List<CompilationIssue> issues = DataManager.getInstance().compileDataDependencyGraph(graphId, graph);
             } catch (CompilationException e) {
                 // TODO: We need some special response type that allows us to forward the list of CompilationIssue's!
                 e.printStackTrace();

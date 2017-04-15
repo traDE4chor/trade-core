@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 
 import static org.junit.Assert.*;
 
@@ -127,7 +128,10 @@ public class DataObjectTest {
     public void instantiationOfDataObjectShouldCauseException() throws Exception {
         DataObject obj = new DataObject("modelA", "inputData");
 
-        DataObjectInstance inst = obj.instantiate("owner");
+        HashMap<String, String> correlationProps = new HashMap<>();
+        correlationProps.put("customerId", "1234");
+
+        DataObjectInstance inst = obj.instantiate("owner", correlationProps);
     }
 
     @Test
@@ -139,7 +143,10 @@ public class DataObjectTest {
 
         obj.addDataElement(elm);
 
-        DataObjectInstance inst = obj.instantiate("owner");
+        HashMap<String, String> correlationProps = new HashMap<>();
+        correlationProps.put("customerId", "1234");
+
+        DataObjectInstance inst = obj.instantiate("owner", correlationProps);
 
         assertNotNull(inst);
     }
