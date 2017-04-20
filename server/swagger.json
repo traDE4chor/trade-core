@@ -1093,11 +1093,11 @@
         },
         "/dataObjectInstances": {
             "x-swagger-router-controller": "DataObjectInstance",
-            "get": {
+            "post": {
                 "tags": [
                     "dataObjectInstance"
                 ],
-                "description": "Get an available `DataObjectInstance` resource based on specified parameters.\nQuery parameters **dataModelName** and **dataObjectName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data object instance.",
+                "description": "Query an available `DataObjectInstance` resource based on specified parameters.\nQuery parameters **dataModelName** and **dataObjectName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data object instance.",
                 "operationId": "queryDataObjectInstance",
                 "parameters": [
                     {
@@ -1137,6 +1137,9 @@
                         "schema": {
                             "$ref": "#/definitions/DataObjectInstanceWithLinks"
                         }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
@@ -1495,11 +1498,11 @@
         },
         "/dataElementInstances": {
             "x-swagger-router-controller": "DataElementInstance",
-            "get": {
+            "post": {
                 "tags": [
                     "dataElementInstance"
                 ],
-                "description": "Get an available `DataElementInstance` resource based on specified parameters.\nQuery parameters **dataModelName**, **dataObjectName** and **dataElementName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data element instance.",
+                "description": "Query an available `DataElementInstance` resource based on specified parameters.\nQuery parameters **dataModelName**, **dataObjectName** and **dataElementName** as well as **correlationProperties** transfered as request body are used as a query to find a matching data element instance.",
                 "operationId": "queryDataElementInstance",
                 "parameters": [
                     {
@@ -1546,6 +1549,9 @@
                         "schema": {
                             "$ref": "#/definitions/DataElementInstanceWithLinks"
                         }
+                    },
+                    "404": {
+                        "$ref": "#/responses/NotFoundResponse"
                     },
                     "500": {
                         "$ref": "#/responses/ErrorResponse"
