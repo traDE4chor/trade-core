@@ -187,7 +187,7 @@ public class TraDEClientServerIT {
 
             String graphId = ddgResponse.getDataDependencyGraph().getId();
 
-            byte[] graph = TestUtils.INSTANCE.getData("opalData.trade");
+            byte[] graph = TestUtils.getData("opalData.trade");
 
             // Try to upload and compile a serialized DDG
             ddgApiInstance.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
@@ -229,7 +229,7 @@ public class TraDEClientServerIT {
 
             String id = ddgResponse.getDataDependencyGraph().getId();
 
-            byte[] graph = TestUtils.INSTANCE.getData("opalDataFailure.trade");
+            byte[] graph = TestUtils.getData("opalDataFailure.trade");
 
             // Try to upload and compile a serialized DDG that is not valid
             ddgApiInstance.uploadGraphModel(id, Long.valueOf(graph.length), graph);

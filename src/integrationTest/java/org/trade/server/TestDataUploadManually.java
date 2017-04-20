@@ -21,10 +21,8 @@ import io.swagger.trade.client.jersey.api.DataDependencyGraphApi;
 import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataDependencyGraphData;
 import io.swagger.trade.client.jersey.model.DataDependencyGraphWithLinks;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -60,7 +58,7 @@ public class TestDataUploadManually {
 
             String graphId = ddgResponse.getDataDependencyGraph().getId();
 
-            byte[] graph = TestUtils.INSTANCE.getData("opalData.trade");
+            byte[] graph = TestUtils.getData("opalData.trade");
 
             // Try to upload and compile a serialized DDG
             ddgApiInstance.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
@@ -79,12 +77,12 @@ public class TestDataUploadManually {
             String idOfDataValue1 = "";
             String idOfDataValue2 = "";
 
-            byte[] data1 = getData("data.dat");
+            byte[] data1 = TestUtils.getData("data.dat");
 
             // Push data to first data value
             dvApiInstance.pushDataValue(idOfDataValue1, new Long(data1.length), data1);
 
-            byte[] data2 = getData("video.mp4");
+            byte[] data2 = TestUtils.getData("video.mp4");
 
             // Push data to second data value
             dvApiInstance.pushDataValue(idOfDataValue2, new Long(data1.length), data2);
@@ -95,18 +93,5 @@ public class TestDataUploadManually {
             System.err.println("Exception when calling DataValueApi#addDataValue");
             e.printStackTrace();
         }
-    }
-
-    private static byte[] getData(String fileName) throws IOException {
-        InputStream in = TestDataUploadManually.class.getResourceAsStream("/" + fileName);
-        byte[] data = null;
-
-        try {
-            data = IOUtils.toByteArray(in);
-        } finally {
-            in.close();
-        }
-
-        return data;
     }
 }

@@ -167,7 +167,7 @@ public class DataValueTestHelper {
     public void pushDataValues() throws Exception {
         try {
             OffsetDateTime oldTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getDataValue().getLastModified();
-            byte[] data1 = TestUtils.INSTANCE.getData("data.dat");
+            byte[] data1 = TestUtils.getData("data.dat");
 
             // Push data to first data value
             dvApiInstance.pushDataValue(idOfDataValue1, new Long(data1.length), data1);
@@ -176,7 +176,7 @@ public class DataValueTestHelper {
             // Check if the lastModified property is updated
             assertNotEquals(oldTime, newTime);
 
-            byte[] data2 = TestUtils.INSTANCE.getData("video.mp4");
+            byte[] data2 = TestUtils.getData("video.mp4");
 
             // Push data to second data value
             dvApiInstance.pushDataValue(idOfDataValue2, new Long(data2.length), data2);

@@ -26,8 +26,6 @@ import java.io.InputStream;
  */
 public class TestUtils {
 
-    public static final TestUtils INSTANCE = new TestUtils();
-
     /**
      * Get data from a file as byte[].
      *
@@ -35,8 +33,8 @@ public class TestUtils {
      * @return the byte[]
      * @throws IOException the io exception
      */
-    public byte[] getData(String fileName) throws IOException {
-        InputStream in = getClass().getResourceAsStream("/" + fileName);
+    public static byte[] getData(String fileName) throws IOException {
+        InputStream in = TestUtils.class.getResourceAsStream("/" + fileName);
         byte[] data = null;
 
         try {
