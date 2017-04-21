@@ -1,5 +1,4 @@
-/*
- * Copyright 2016 Michael Hahn
+/* Copyright 2017 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +13,11 @@
  * limitations under the License.
  */
 
-package org.trade.core.auditing;
-
-import org.trade.core.auditing.events.TraDEEvent;
+package org.trade.core.utils;
 
 /**
- * Created by hahnml on 25.10.2016.
+ * Created by hahnml on 21.04.2017.
  */
-public interface IAuditingService {
-
-    void registerEventListener(TraDEEventListener listener);
-
-    void unregisterEventListener(TraDEEventListener listener);
-
-    void fireEvent(TraDEEvent event);
+public enum ModelStates {
+    INITIAL, READY, ARCHIVED, DELETED;
 }

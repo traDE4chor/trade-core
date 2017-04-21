@@ -23,10 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
-import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.ModelStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -252,11 +253,11 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
                     // instantiation.
                     if (this.isInitial()) {
                         try {
-                            this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.ready);
+                            this.lifeCycle.triggerEvent(this, ModelEvents.ready);
                         } catch (TooBusyException e) {
                             logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                                     "after maximal " +
-                                    "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                                    "amount of retries", this.getIdentifier(), ModelEvents.ready);
                             throw new LifeCycleException("State transition could not be enacted after maximal amount " +
                                     "of retries", e);
                         }
@@ -295,11 +296,11 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
                 if (this.dataElements.isEmpty()) {
                     // Change the state back to initial to disallow its instantiation
                     try {
-                        this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.initial);
+                        this.lifeCycle.triggerEvent(this, ModelEvents.initial);
                     } catch (TooBusyException e) {
                         logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
-                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                                "amount of retries", this.getIdentifier(), ModelEvents.ready);
                         throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
@@ -330,11 +331,11 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
                 if (this.dataElements.isEmpty()) {
                     // Change the state back to initial to disallow its instantiation
                     try {
-                        this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.initial);
+                        this.lifeCycle.triggerEvent(this, ModelEvents.initial);
                     } catch (TooBusyException e) {
                         logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
-                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                                "amount of retries", this.getIdentifier(), ModelEvents.ready);
                         throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
@@ -386,7 +387,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
 
                 // Trigger the archive event for the whole data object since all data elements are archived
                 // successfully.
-                this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.archive);
+                this.lifeCycle.triggerEvent(this, ModelEvents.archive);
             } catch (Exception e) {
                 logger.warn("Archiving data object '{}' not successful because archiving of one of its data elements " +
                         "caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -427,7 +428,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
 
                 // Trigger the unarchive event for the whole data object since all data elements are unarchived
                 // successfully.
-                this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.unarchive);
+                this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
             } catch (Exception e) {
                 logger.warn("Un-archiving data object '{}' not successful because un-archiving of one of its data " +
                         "elements caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -465,11 +466,11 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
 
                 // Trigger the delete event for the whole data object since all data elements are deleted
                 // successfully.
-                this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.delete);
+                this.lifeCycle.triggerEvent(this, ModelEvents.delete);
             } catch (TooBusyException e) {
                 logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                         "after maximal " +
-                        "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                        "amount of retries", this.getIdentifier(), ModelEvents.ready);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             } catch (Exception e) {
                 logger.error("Deletion data object '{}' not successful because deletion of one of its data " +
@@ -477,11 +478,11 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
 
                 // Trigger the initial event to disable the creation of new instances of the corrupted object
                 try {
-                    this.lifeCycle.triggerEvent(this, DataObjectLifeCycle.Events.initial);
+                    this.lifeCycle.triggerEvent(this, ModelEvents.initial);
                 } catch (TooBusyException ex) {
                     logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                             "after maximal " +
-                            "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                            "amount of retries", this.getIdentifier(), ModelEvents.ready);
                     throw new LifeCycleException("Deletion data object '" + this.getIdentifier() + "' not successful", ex);
                 }
 
@@ -546,22 +547,22 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     }
 
     public boolean isInitial() {
-        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
     public boolean isReady() {
-        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataObjectLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());
     }
 

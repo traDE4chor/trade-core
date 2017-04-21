@@ -16,6 +16,8 @@
 
 package org.trade.server;
 
+import io.swagger.trade.client.jersey.model.Link;
+import io.swagger.trade.client.jersey.model.LinkArray;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -46,4 +48,14 @@ public class TestUtils {
         return data;
     }
 
+    public static void printLinkArray(LinkArray links) {
+        for (Link link : links) {
+            System.out.println("HREF: " + link.getHref());
+            System.out.println("REL: " + link.getRel());
+            System.out.println("TITLE: " + link.getTitle());
+            System.out.println("TYPE: " + link.getType());
+            System.out.println("HREF-LANG: " + link.getHreflang());
+            System.out.println("LENGTH: " + link.getLength());
+        }
+    }
 }

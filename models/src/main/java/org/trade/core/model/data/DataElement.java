@@ -27,6 +27,8 @@ import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.ModelStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -245,10 +247,10 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
 
         // Trigger the ready event
         try {
-            this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.ready);
+            this.lifeCycle.triggerEvent(this, ModelEvents.ready);
         } catch (TooBusyException e) {
             logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                    "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.ready);
+                    "amount of retries", this.getIdentifier(), ModelEvents.ready);
             throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
         }
     }
@@ -260,10 +262,10 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
 
             // Trigger the archive event
             try {
-                this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.archive);
+                this.lifeCycle.triggerEvent(this, ModelEvents.archive);
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                        "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.archive);
+                        "amount of retries", this.getIdentifier(), ModelEvents.archive);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
         } else {
@@ -283,10 +285,10 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
 
             // Trigger the unarchive event
             try {
-                this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.unarchive);
+                this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                        "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.unarchive);
+                        "amount of retries", this.getIdentifier(), ModelEvents.unarchive);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
         } else {
@@ -306,10 +308,10 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
 
             // Trigger the delete event
             try {
-                this.lifeCycle.triggerEvent(this, DataElementLifeCycle.Events.delete);
+                this.lifeCycle.triggerEvent(this, ModelEvents.delete);
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
-                        "amount of retries", this.getIdentifier(), DataElementLifeCycle.Events.delete);
+                        "amount of retries", this.getIdentifier(), ModelEvents.delete);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
 
@@ -371,22 +373,22 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     }
 
     public boolean isInitial() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
     public boolean isReady() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataElementLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());
     }
 

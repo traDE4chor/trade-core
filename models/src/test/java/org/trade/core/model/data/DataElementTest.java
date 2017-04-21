@@ -22,6 +22,7 @@ import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.utils.ModelStates;
 
 import java.util.HashMap;
 
@@ -50,7 +51,7 @@ public class DataElementTest {
         DataElement elm = new DataElement(obj, entity, name);
         elm.initialize();
 
-        assertEquals(DataElementLifeCycle.States.READY.name(), elm.getState());
+        assertEquals(ModelStates.READY.name(), elm.getState());
         assertEquals(entity, elm.getEntity());
     }
 

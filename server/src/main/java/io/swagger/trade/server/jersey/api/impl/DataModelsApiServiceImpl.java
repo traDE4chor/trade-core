@@ -52,7 +52,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataModel graph = DataManager.getInstance().registerDataModel(
+                org.trade.core.model.data.DataModel graph = DataManager.INSTANCE.registerDataModel(
                         (ResourceTransformationUtils.resource2Model
                                 (dataModelData)));
 
@@ -79,10 +79,10 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataModel(dataModelId);
+            boolean exists = DataManager.INSTANCE.hasDataModel(dataModelId);
 
             if (exists) {
-                DataManager.getInstance().deleteDataModel(dataModelId);
+                DataManager.INSTANCE.deleteDataModel(dataModelId);
 
                 response = Response.ok().build();
             } else {
@@ -105,7 +105,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataModel model = DataManager.getInstance().getDataModel(dataModelId);
+            org.trade.core.model.data.DataModel model = DataManager.INSTANCE.getDataModel(dataModelId);
 
             if (model != null) {
                 response = Response.ok(model.getSerializedModel()).build();
@@ -128,7 +128,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     public Response getDataModelDirectly(String dataModelId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataModel model = DataManager.getInstance().getDataModel(dataModelId);
+        org.trade.core.model.data.DataModel model = DataManager.INSTANCE.getDataModel(dataModelId);
 
         try {
             if (model != null) {
@@ -169,7 +169,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataModel> dataModels = DataManager.getInstance()
+            List<org.trade.core.model.data.DataModel> dataModels = DataManager.INSTANCE
                     .getAllDataModels
                             (targetNamespace, name, entity);
             int filteredListSize = dataModels.size();
@@ -225,11 +225,11 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     public Response getDataObjects(String dataModelId, @Min(1) Integer start, @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataModel(dataModelId);
+        boolean exists = DataManager.INSTANCE.hasDataModel(dataModelId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.DataObject> dataObjects = DataManager.getInstance()
+                List<org.trade.core.model.data.DataObject> dataObjects = DataManager.INSTANCE
                         .getAllDataObjectsOfDataModel(dataModelId);
                 int filteredListSize = dataObjects.size();
 
@@ -288,15 +288,15 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     public Response uploadDataModel(String dataModelId, Long contentLength, byte[] model, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataModel(dataModelId);
+        boolean exists = DataManager.INSTANCE.hasDataModel(dataModelId);
         if (exists) {
             // Since we don't support the recompilation (updates) of data models, at the moment, this
             // method automatically invokes the compilation of the provided serialized data model.
             try {
-                DataManager.getInstance().setSerializedModelOfDataModel(dataModelId, model);
+                DataManager.INSTANCE.setSerializedModelOfDataModel(dataModelId, model);
 
                 // TODO: We need to add the list of issues as part of the response!
-                List<CompilationIssue> issues = DataManager.getInstance().compileDataModel(dataModelId, model);
+                List<CompilationIssue> issues = DataManager.INSTANCE.compileDataModel(dataModelId, model);
             } catch (CompilationException e) {
                 // TODO: We need some special response type that allows us to forward the list of CompilationIssue's!
                 e.printStackTrace();

@@ -29,6 +29,8 @@ import org.trade.core.model.lifecycle.DataDependencyGraphLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.local.LocalPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.ModelStates;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -235,11 +237,11 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
 
             // Trigger the ready event for the data dependency graph after everything was compiled successfully
             try {
-                this.lifeCycle.triggerEvent(this, DataDependencyGraphLifeCycle.Events.ready);
+                this.lifeCycle.triggerEvent(this, ModelEvents.ready);
             } catch (TooBusyException e) {
                 logger.error("State transition for data dependency graph '{}' with event '{}' could not be enacted " +
                         "after maximal " +
-                        "amount of retries", this.getIdentifier(), DataDependencyGraphLifeCycle.Events.ready);
+                        "amount of retries", this.getIdentifier(), ModelEvents.ready);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount " +
                         "of retries", e);
             }
@@ -287,10 +289,23 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     public void delete() throws Exception {
         if (this.isReady() || this.isInitial() || this.isArchived()) {
 
-            // TODO: 10.04.2017 Implement deletion of data model?
+            if (dataModel != null) {
+                // Remove the association between the data model and the data dependency graph
+                dataModel.removeAssociationWithDataDependencyGraph(this);
 
-            // At least delete the associated data
+                // Delete the whole associated data model, if it was created through the compilation of the data
+                // dependency graph, i.e., the data model does not have attached serialized model data.
+                if (dataModel.getSerializedModel().length == 0) {
+                    dataModel.delete();
+                }
+            }
+
+            // Delete the associated data of the graph
             this.persistProv.removeData(ModelConstants.DATA_DEPENDENCY_GRAPH_COLLECTION, getIdentifier());
+
+            // Trigger the delete event for the whole data dependency graph since all related model objects are deleted
+            // successfully.
+            this.lifeCycle.triggerEvent(this, ModelEvents.delete);
 
             // Cleanup variables
             this.identifier = null;
@@ -309,22 +324,22 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     }
 
     public boolean isInitial() {
-        return getState() != null && this.getState().equals(DataDependencyGraphLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
     public boolean isReady() {
-        return getState() != null && this.getState().equals(DataDependencyGraphLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataDependencyGraphLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataDependencyGraphLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());
     }
 

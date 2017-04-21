@@ -39,10 +39,10 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataObjectInstance(instanceId);
+            boolean exists = DataManager.INSTANCE.hasDataObjectInstance(instanceId);
 
             if (exists) {
-                DataManager.getInstance().deleteDataObjectInstance(instanceId);
+                DataManager.INSTANCE.deleteDataObjectInstance(instanceId);
 
                 response = Response.ok().build();
             } else {
@@ -65,11 +65,11 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
                                                             SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataObjectInstance(dataObjectInstanceId);
+        boolean exists = DataManager.INSTANCE.hasDataObjectInstance(dataObjectInstanceId);
 
         if (exists) {
             try {
-                org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.getInstance()
+                org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.INSTANCE
                         .getDataElementInstanceForDataElement(dataObjectInstanceId, dataElementName);
 
                 DataElementInstanceWithLinks result = new DataElementInstanceWithLinks();
@@ -104,12 +104,12 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response getDataElementInstances(String dataObjectInstanceId, @Min(1) Integer start, @Min(1) Integer size, String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataObjectInstance(dataObjectInstanceId);
+        boolean exists = DataManager.INSTANCE.hasDataObjectInstance(dataObjectInstanceId);
 
         if (exists) {
             try {
                 List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManager
-                        .getInstance()
+                        .INSTANCE
                         .getAllDataElementInstancesOfDataObjectInstance(dataObjectInstanceId, status);
                 int filteredListSize = dataElementInstances.size();
 
@@ -170,7 +170,7 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response getDataObjectInstance(String instanceId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManager.getInstance()
+        org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManager.INSTANCE
                 .getDataObjectInstance(instanceId);
 
         try {
@@ -209,7 +209,7 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response queryDataObjectInstance(@NotNull String dataModelNamespace, @NotNull String dataModelName, @NotNull String dataObjectName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstance = DataManager.getInstance()
+        List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstance = DataManager.INSTANCE
                 .queryDataObjectInstance(dataModelNamespace, dataModelName, dataObjectName,
                         ResourceTransformationUtils.resource2Model(correlationProperties));
 

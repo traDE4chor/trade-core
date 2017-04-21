@@ -40,10 +40,10 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataElement(dataElementId);
+            boolean exists = DataManager.INSTANCE.hasDataElement(dataElementId);
 
             if (exists) {
-                DataManager.getInstance().deleteDataElement(dataElementId);
+                DataManager.INSTANCE.deleteDataElement(dataElementId);
 
                 response = Response.ok().build();
             } else {
@@ -65,7 +65,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataElement> dataElements = DataManager.getInstance()
+            List<org.trade.core.model.data.DataElement> dataElements = DataManager.INSTANCE
                     .getAllDataElements
                             (name, status);
             int filteredListSize = dataElements.size();
@@ -120,7 +120,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
     public Response getDataElementDirectly(String dataElementId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataElement dataElement = DataManager.getInstance().getDataElement(dataElementId);
+        org.trade.core.model.data.DataElement dataElement = DataManager.INSTANCE.getDataElement(dataElementId);
 
         try {
             if (dataElement != null) {
@@ -157,11 +157,11 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
     public Response getDataElementInstancesOfDataElement(String dataElementId,  @Min(1) Integer start,  @Min(1) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataElement(dataElementId);
+        boolean exists = DataManager.INSTANCE.hasDataElement(dataElementId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManager.getInstance()
+                List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManager.INSTANCE
                         .getAllDataElementInstancesOfDataElement(dataElementId);
                 int filteredListSize = dataElementInstances.size();
 
@@ -222,10 +222,10 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataElement(dataElementId);
+            boolean exists = DataManager.INSTANCE.hasDataElement(dataElementId);
 
             if (exists) {
-                org.trade.core.model.data.DataElement value = DataManager.getInstance().updateDataElement(
+                org.trade.core.model.data.DataElement value = DataManager.INSTANCE.updateDataElement(
                         dataElementId, dataElement.getName(), dataElement.getType(), dataElement.getContentType());
 
                 DataElementWithLinks result = new DataElementWithLinks();

@@ -17,13 +17,6 @@
 package io.swagger.trade.server.jersey.api.util;
 
 import io.swagger.trade.server.jersey.model.*;
-import io.swagger.trade.server.jersey.model.DataDependencyGraph;
-import io.swagger.trade.server.jersey.model.DataElementInstance;
-import io.swagger.trade.server.jersey.model.DataModel;
-import io.swagger.trade.server.jersey.model.DataObject;
-import io.swagger.trade.server.jersey.model.DataObjectInstance;
-import io.swagger.trade.server.jersey.model.DataValue;
-import org.trade.core.model.data.instance.*;
 
 import java.util.HashMap;
 

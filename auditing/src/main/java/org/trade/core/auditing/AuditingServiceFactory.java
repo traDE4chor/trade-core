@@ -1,5 +1,4 @@
-/*
- * Copyright 2016 Michael Hahn
+/* Copyright 2017 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +15,26 @@
 
 package org.trade.core.auditing;
 
-import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.utils.TraDEProperties;
 
 /**
- * Created by hahnml on 25.10.2016.
+ * Created by hahnml on 21.04.2017.
  */
-public interface IAuditingService {
+public class AuditingServiceFactory {
 
-    void registerEventListener(TraDEEventListener listener);
+    /**
+     * Provides an {@link IAuditingService} object which can be used to register event listeners and fire events.
+     *
+     * @return An {@link IAuditingService} object
+     */
+    public static IAuditingService createAuditingService() {
+        AuditingService result = AuditingService.INSTANCE;
 
-    void unregisterEventListener(TraDEEventListener listener);
+        if (!result.hasProperties()) {
+            result.setProperties(new TraDEProperties());
+        }
 
-    void fireEvent(TraDEEvent event);
+        return result;
+    }
+
 }

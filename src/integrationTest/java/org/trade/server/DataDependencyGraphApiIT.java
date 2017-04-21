@@ -21,7 +21,10 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.*;
+import io.swagger.trade.client.jersey.api.DataDependencyGraphApi;
+import io.swagger.trade.client.jersey.api.DataElementApi;
+import io.swagger.trade.client.jersey.api.DataModelApi;
+import io.swagger.trade.client.jersey.api.DataObjectApi;
 import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,13 +34,14 @@ import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
 /**
  * Created by hahnml on 31.01.2017.
  */
-public class TraDEClientServerIT {
+public class DataDependencyGraphApiIT {
 
     private static TraDEServer server;
 
@@ -50,8 +54,6 @@ public class TraDEClientServerIT {
     private static DataObjectApi dataObjectApiInstance;
 
     private static DataElementApi dataElementApiInstance;
-
-    private static DataValueApi dvApiInstance;
 
     @BeforeClass
     public static void setupEnvironment() {
@@ -69,99 +71,65 @@ public class TraDEClientServerIT {
         }
 
         ApiClient client = new ApiClient();
+
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+
         client.setBasePath("http://localhost:8080/api");
 
         ddgApiInstance = new DataDependencyGraphApi(client);
         dataModelApiInstance = new DataModelApi(client);
         dataObjectApiInstance = new DataObjectApi(client);
         dataElementApiInstance = new DataElementApi(client);
-        dvApiInstance = new DataValueApi(client);
     }
 
     @Test
-    public void dataValueApiRoundTripTest() throws Exception {
-        DataValueTestHelper helper = new DataValueTestHelper(dvApiInstance);
-        helper.addDataValues();
-
-        helper.getDataValues();
-
-        helper.getDataValue();
-
-        helper.pushDataValues();
-
-        helper.pullDataValues();
-
-        helper.deleteDataValues();
-    }
-
-    @Test
-    public void shouldRejectAddDataValueRequestTest() {
-        // Try to add a new data value without 'createdBy' value
-        DataValueData request = new DataValueData();
-
-        request.setName("inputData");
-        request.setType("binary");
-        request.setContentType("text/plain");
+    public void createAndQueryMultipleDataDependencyGraphsTest() throws Exception {
+        String[] entity = {"hahnml", "otherUser", "hahnml"};
+        String[] name = {"TestDataDependencyGraph", "DDG1", "DDG_B"};
+        String[] graphIds = new String[3];
 
         try {
-            DataValue result3 = dvApiInstance.addDataValue(request);
+
+            // Add three DDGs
+            for (int i = 0; i < entity.length; i++) {
+                DataDependencyGraphData ddg = new DataDependencyGraphData();
+                ddg.setEntity(entity[i]);
+                ddg.setName(name[i]);
+
+                DataDependencyGraphWithLinks resp = ddgApiInstance.addDataDependencyGraph(ddg);
+                graphIds[i] = resp.getDataDependencyGraph().getId();
+            }
+
+            // Upload a graph model to the first DDG to enable namespace-based queries
+            byte[] graph = TestUtils.getData("opalData.trade");
+            // Try to upload and compile a serialized DDG
+            ddgApiInstance.uploadGraphModel(graphIds[0], Long.valueOf(graph.length), graph);
+
+            DataDependencyGraphArrayWithLinks result = ddgApiInstance.getDataDependencyGraphs(null, null, null, null,
+                    null);
+            assertEquals(3, result.getDataDependencyGraphs().size());
+
+            result = ddgApiInstance.getDataDependencyGraphs(null, null, null, null,
+                    "hahnml");
+            assertEquals(2, result.getDataDependencyGraphs().size());
+
+            result = ddgApiInstance.getDataDependencyGraphs(null, null, null, "TestDataDependencyGraph",
+                    "hahnml");
+            assertEquals(1, result.getDataDependencyGraphs().size());
+
+            result = ddgApiInstance.getDataDependencyGraphs(null, null, "http://de.uni-stuttgart.iaas/opalChor",
+                    null,
+                    null);
+            assertEquals(1, result.getDataDependencyGraphs().size());
+
+            // Delete the three DDGs again
+            for (int i = 0; i < entity.length; i++) {
+                ddgApiInstance.deleteDataDependencyGraph(graphIds[i]);
+            }
         } catch (ApiException e) {
-            e.printStackTrace();
-
-            assertEquals(400, e.getCode());
-        }
-    }
-
-    @Test
-    public void shouldRejectDeleteDataValueRequestTest() {
-        try {
-            // Try to delete not existing data value
-            dvApiInstance.deleteDataValue("Not-Existing-Id");
-        } catch (ApiException e) {
-            e.printStackTrace();
-
-            assertEquals(404, e.getCode());
-        }
-    }
-
-    @Test
-    public void updateDataValueTest() {
-        DataValueData request = new DataValueData();
-
-        request.setName("inputData");
-        request.setCreatedBy("hahnml");
-        request.setType("binary");
-        request.setContentType("text/plain");
-
-        try {
-            DataValue result = dvApiInstance.addDataValue(request);
-
-            DataValue updateRequest = new DataValue();
-            updateRequest.setName("changedName");
-            updateRequest.setContentType("changedContentType");
-            updateRequest.setType("changedType");
-
-            dvApiInstance.updateDataValueDirectly(result.getId(), updateRequest);
-
-            DataValueWithLinks updated = dvApiInstance.getDataValueDirectly(result.getId());
-            // Check unchanged properties
-            assertEquals(result.getId(), updated.getDataValue().getId());
-            assertEquals(result.getStatus(), updated.getDataValue().getStatus());
-            assertEquals(result.getCreated(), updated.getDataValue().getCreated());
-            assertEquals(result.getSize(), updated.getDataValue().getSize());
-            assertEquals(result.getCreatedBy(), updated.getDataValue().getCreatedBy());
-
-            // Check changed properties
-            assertNotEquals(result.getLastModified(), updated.getDataValue().getLastModified());
-            assertNotEquals(result.getName(), updated.getDataValue().getName());
-            assertNotEquals(result.getContentType(), updated.getDataValue().getContentType());
-            assertNotEquals(result.getType(), updated.getDataValue().getType());
-
-            dvApiInstance.deleteDataValue(result.getId());
-        } catch (ApiException e) {
-            e.printStackTrace();
-
-            assertEquals(404, e.getCode());
+            throw e;
+        } catch (IOException e) {
+            throw e;
         }
     }
 
@@ -183,7 +151,7 @@ public class TraDEClientServerIT {
             assertEquals(entity, ddgResponse.getDataDependencyGraph().getEntity());
             assertEquals(name, ddgResponse.getDataDependencyGraph().getName());
 
-            printLinkArray(ddgResponse.getLinks());
+            TestUtils.printLinkArray(ddgResponse.getLinks());
 
             String graphId = ddgResponse.getDataDependencyGraph().getId();
 
@@ -192,16 +160,55 @@ public class TraDEClientServerIT {
             // Try to upload and compile a serialized DDG
             ddgApiInstance.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
 
+            // Links should be different, therefore objects should be not equal
+            DataDependencyGraphWithLinks ddgResponse2 = ddgApiInstance.getDataDependencyGraphDirectly(graphId);
+            assertNotEquals(ddgResponse, ddgResponse2);
+
             // Try to query the resulting data objects and data elements
             DataModelWithLinks dataModelResp = dataModelApiInstance.getDataModel(graphId);
             String dataModelId = dataModelResp.getDataModel().getId();
 
-            printLinkArray(dataModelResp.getLinks());
+            TestUtils.printLinkArray(dataModelResp.getLinks());
 
             DataObjectArrayWithLinks dataObjects = dataObjectApiInstance.getDataObjects(dataModelId, null, null);
             assertEquals(4, dataObjects.getDataObjects().size());
 
-            printLinkArray(dataObjects.getLinks());
+            TestUtils.printLinkArray(dataObjects.getLinks());
+
+            int[] sizes = {3, 2, 2, 2};
+            int index = 0;
+            for (DataObjectWithLinks dataObject : dataObjects.getDataObjects()) {
+                DataElementArrayWithLinks dataElements = dataElementApiInstance.getDataElements(dataObject
+                                .getDataObject().getId(), null, null,
+                        null, null);
+                assertEquals(sizes[index], dataElements.getDataElements().size());
+                index++;
+            }
+
+            byte[] graphData = ddgApiInstance.downloadGraphModel(graphId);
+            assertEquals(new String(graph, StandardCharsets.UTF_8), new String(graphData, StandardCharsets.UTF_8));
+
+            // Delete the DDG
+            ddgApiInstance.deleteDataDependencyGraph(graphId);
+
+            // Check if the DDG is deleted
+            DataDependencyGraphArrayWithLinks result = ddgApiInstance.getDataDependencyGraphs(null, null, null, null,
+                    null);
+            assertEquals(0, result.getDataDependencyGraphs().size());
+
+            // And all related resources are also deleted
+            // Data Model
+            DataModelArrayWithLinks models = dataModelApiInstance.getDataModels(null, null, null, null, null);
+            assertEquals(0, models.getDataModels().size());
+
+            // Data Objects
+            DataObjectArrayWithLinks objects = dataObjectApiInstance.getAllDataObjects(null, null, null, null,
+                    null);
+            assertEquals(0, objects.getDataObjects().size());
+
+            // Data Elements
+            DataElementArrayWithLinks elements = dataElementApiInstance.getAllDataElements(null, null, null, null);
+            assertEquals(0, elements.getDataElements().size());
         } catch (ApiException e) {
             throw e;
         } catch (IOException e) {
@@ -218,6 +225,7 @@ public class TraDEClientServerIT {
         ddg.setEntity(entity);
         ddg.setName(name);
 
+        String id = null;
         try {
             DataDependencyGraphWithLinks ddgResponse = ddgApiInstance.addDataDependencyGraph(ddg);
 
@@ -227,7 +235,7 @@ public class TraDEClientServerIT {
             assertEquals(entity, ddgResponse.getDataDependencyGraph().getEntity());
             assertEquals(name, ddgResponse.getDataDependencyGraph().getName());
 
-            String id = ddgResponse.getDataDependencyGraph().getId();
+            id = ddgResponse.getDataDependencyGraph().getId();
 
             byte[] graph = TestUtils.getData("opalDataFailure.trade");
 
@@ -237,6 +245,14 @@ public class TraDEClientServerIT {
             e.printStackTrace();
 
             assertEquals(500, e.getCode());
+
+            if (id != null) {
+                try {
+                    ddgApiInstance.deleteDataDependencyGraph(id);
+                } catch (ApiException e1) {
+                    e1.printStackTrace();
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -247,7 +263,6 @@ public class TraDEClientServerIT {
         // Cleanup the database
         MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
         MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION).drop();
         dataStore.getCollection(ModelConstants.DATA_MODEL_COLLECTION).drop();
         dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH_COLLECTION).drop();
         dataStoreClient.close();
@@ -257,17 +272,6 @@ public class TraDEClientServerIT {
             server.stopHTTPServer();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    public static void printLinkArray(LinkArray links) {
-        for (Link link : links) {
-            System.out.println("HREF: " + link.getHref());
-            System.out.println("REL: " + link.getRel());
-            System.out.println("TITLE: " + link.getTitle());
-            System.out.println("TYPE: " + link.getType());
-            System.out.println("HREF-LANG: " + link.getHreflang());
-            System.out.println("LENGTH: " + link.getLength());
         }
     }
 }

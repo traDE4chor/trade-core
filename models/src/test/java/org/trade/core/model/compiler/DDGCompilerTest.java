@@ -22,6 +22,7 @@ import org.trade.core.model.data.DataModel;
 import org.trade.core.model.ddg.DataDependenceGraph;
 import org.trade.core.model.lifecycle.DataModelLifeCycle;
 import org.trade.core.model.utils.DDGUtils;
+import org.trade.core.utils.ModelStates;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class DDGCompilerTest {
         // Get the resulting data model of this DDG
         DataModel dataModel = comp.getCompiledDataModel();
         assertNotNull(dataModel);
-        assertEquals(DataModelLifeCycle.States.READY.toString(), dataModel.getState());
+        assertEquals(ModelStates.READY.toString(), dataModel.getState());
         assertNotNull(dataModel.getDataObjects());
         assertTrue(dataModel.getDataObjects().size() > 0);
 
@@ -74,7 +75,7 @@ public class DDGCompilerTest {
         // Get the resulting data model of this DDG
         DataModel dataModel = comp.getCompiledDataModel();
         assertNotNull(dataModel);
-        assertEquals(DataModelLifeCycle.States.READY.toString(), dataModel.getState());
+        assertEquals(ModelStates.READY.toString(), dataModel.getState());
         assertNotNull(dataModel.getDataObjects());
         assertTrue(dataModel.getDataObjects().size() > 0);
 

@@ -52,7 +52,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataValue value = DataManager.getInstance().registerDataValue
+                org.trade.core.model.data.DataValue value = DataManager.INSTANCE.registerDataValue
                         (ResourceTransformationUtils.resource2Model
                                 (dataValueData));
 
@@ -78,7 +78,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     public Response getDataValueDirectly(String dataValueId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataValue value = DataManager.getInstance().getDataValue(dataValueId);
+        org.trade.core.model.data.DataValue value = DataManager.INSTANCE.getDataValue(dataValueId);
 
         try {
             if (value != null) {
@@ -116,7 +116,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataValue> dataValues = DataManager.getInstance().getAllDataValues(status, createdBy);
+            List<org.trade.core.model.data.DataValue> dataValues = DataManager.INSTANCE.getAllDataValues(status, createdBy);
             int filteredListSize = dataValues.size();
 
             // Check if the start index and the size are in still the range of the filtered result list, if not
@@ -170,7 +170,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataValue value = DataManager.getInstance().getDataValue(dataValueId);
+            org.trade.core.model.data.DataValue value = DataManager.INSTANCE.getDataValue(dataValueId);
 
             if (value != null) {
                 response = Response.ok(value.getData(), value.getContentType()).header("Content-Length", value.getSize())
@@ -195,7 +195,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataValue value = DataManager.getInstance().getDataValue(dataValueId);
+            org.trade.core.model.data.DataValue value = DataManager.INSTANCE.getDataValue(dataValueId);
 
             if (value != null) {
                 if (data != null && contentLength != null) {
@@ -228,10 +228,10 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataValue(dataValueId);
+            boolean exists = DataManager.INSTANCE.hasDataValue(dataValueId);
 
             if (exists) {
-                org.trade.core.model.data.DataValue value = DataManager.getInstance().updateDataValue(
+                org.trade.core.model.data.DataValue value = DataManager.INSTANCE.updateDataValue(
                         dataValueId, dataValue.getName(), dataValue.getContentType(), dataValue.getType());
 
                 DataValueWithLinks result = new DataValueWithLinks();
@@ -268,10 +268,10 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataValue(dataValueId);
+            boolean exists = DataManager.INSTANCE.hasDataValue(dataValueId);
 
             if (exists) {
-                DataManager.getInstance().deleteDataValue(dataValueId);
+                DataManager.INSTANCE.deleteDataValue(dataValueId);
 
                 response = Response.ok().build();
             } else {
@@ -293,12 +293,12 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     public Response getDataElementInstancesUsingDataValue(String dataValueId,  @Min(1) Integer start,  @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataValue(dataValueId);
+        boolean exists = DataManager.INSTANCE.hasDataValue(dataValueId);
 
         if (exists) {
             try {
                 List<org.trade.core.model.data.instance.DataElementInstance> elementInstances = DataManager
-                        .getInstance()
+                        .INSTANCE
                         .getAllDataElementInstancesOfDataValue(dataValueId);
                 int filteredListSize = elementInstances.size();
 

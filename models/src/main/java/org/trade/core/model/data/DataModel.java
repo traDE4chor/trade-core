@@ -27,10 +27,11 @@ import org.trade.core.model.ModelConstants;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DataModelCompiler;
 import org.trade.core.model.lifecycle.DataModelLifeCycle;
-import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.local.LocalPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.ModelStates;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -253,11 +254,11 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
             // Trigger the ready event for the data model after everything was compiled successfully
             try {
-                this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.ready);
+                this.lifeCycle.triggerEvent(this, ModelEvents.ready);
             } catch (TooBusyException e) {
                 logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                         "after maximal " +
-                        "amount of retries", this.getIdentifier(), DataModelLifeCycle.Events.ready);
+                        "amount of retries", this.getIdentifier(), ModelEvents.ready);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount " +
                         "of retries", e);
             }
@@ -294,11 +295,11 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
             if (everythingReady) {
                 // Trigger the ready event for the data model after everything was initialized successfully
                 try {
-                    this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.ready);
+                    this.lifeCycle.triggerEvent(this, ModelEvents.ready);
                 } catch (TooBusyException e) {
                     logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                             "after maximal " +
-                            "amount of retries", this.getIdentifier(), DataModelLifeCycle.Events.ready);
+                            "amount of retries", this.getIdentifier(), ModelEvents.ready);
                     throw new LifeCycleException("State transition could not be enacted after maximal amount " +
                             "of retries", e);
                 }
@@ -333,7 +334,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
                 // Trigger the archive event for the whole data model since all data objects are archived
                 // successfully.
-                this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.archive);
+                this.lifeCycle.triggerEvent(this, ModelEvents.archive);
             } catch (Exception e) {
                 logger.warn("Archiving data model '{}' not successful because archiving of one of its data objects " +
                         "caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -374,7 +375,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
                 // Trigger the unarchive event for the whole data model since all data objects are unarchived
                 // successfully.
-                this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.unarchive);
+                this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
             } catch (Exception e) {
                 logger.warn("Un-archiving data model '{}' not successful because un-archiving of one of its data " +
                         "objects caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -417,11 +418,11 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
                     // Trigger the delete event for the whole data model since all data objects are deleted
                     // successfully.
-                    this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.delete);
+                    this.lifeCycle.triggerEvent(this, ModelEvents.delete);
                 } catch (TooBusyException e) {
                     logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                             "after maximal " +
-                            "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                            "amount of retries", this.getIdentifier(), ModelEvents.ready);
                     throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                 } catch (Exception e) {
                     logger.error("Deletion data model '{}' not successful because deletion of one of its data " +
@@ -429,11 +430,11 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
                     // Trigger the initial event to disable the creation of new instances of the corrupted model
                     try {
-                        this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.initial);
+                        this.lifeCycle.triggerEvent(this, ModelEvents.initial);
                     } catch (TooBusyException ex) {
                         logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
-                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                                "amount of retries", this.getIdentifier(), ModelEvents.ready);
                         throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", ex);
                     }
 
@@ -485,11 +486,11 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
                 if (this.dataObjects.isEmpty()) {
                     // Change the state back to initial to disallow its instantiation
                     try {
-                        this.lifeCycle.triggerEvent(this, DataModelLifeCycle.Events.initial);
+                        this.lifeCycle.triggerEvent(this, ModelEvents.initial);
                     } catch (TooBusyException e) {
                         logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
-                                "amount of retries", this.getIdentifier(), DataObjectLifeCycle.Events.ready);
+                                "amount of retries", this.getIdentifier(), ModelEvents.ready);
                         throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
@@ -505,22 +506,22 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
     }
 
     public boolean isInitial() {
-        return getState() != null && this.getState().equals(DataModelLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
     public boolean isReady() {
-        return getState() != null && this.getState().equals(DataModelLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataModelLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataModelLifeCycle.States
+        return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());
     }
 

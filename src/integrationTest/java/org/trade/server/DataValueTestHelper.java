@@ -114,25 +114,35 @@ public class DataValueTestHelper {
             assertNotNull(result.getLinks());
             assertEquals(1, result.getDataValues().size());
 
+            TestUtils.printLinkArray(result.getLinks());
+
             result = dvApiInstance.getDataValuesDirectly(1, 2, null, null);
             assertNotNull(result);
             assertNotNull(result.getLinks());
             assertEquals(2, result.getDataValues().size());
+
+            TestUtils.printLinkArray(result.getLinks());
 
             result = dvApiInstance.getDataValuesDirectly(null, null, "created", null);
             assertNotNull(result);
             assertNotNull(result.getLinks());
             assertEquals(3, result.getDataValues().size());
 
+            TestUtils.printLinkArray(result.getLinks());
+
             result = dvApiInstance.getDataValuesDirectly(200, 200, "nonExistingState", null);
             assertNotNull(result);
             assertNotNull(result.getLinks());
             assertEquals(0, result.getDataValues().size());
 
+            TestUtils.printLinkArray(result.getLinks());
+
             result = dvApiInstance.getDataValuesDirectly(0, null, null, "hahnml");
             assertNotNull(result);
             assertNotNull(result.getLinks());
             assertEquals(2, result.getDataValues().size());
+
+            TestUtils.printLinkArray(result.getLinks());
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#getDataValuesDirectly");
             throw e;
@@ -145,13 +155,19 @@ public class DataValueTestHelper {
             assertNotNull(result);
             assertEquals(idOfDataValue1, result.getDataValue().getId());
 
+            TestUtils.printLinkArray(result.getLinks());
+
             result = dvApiInstance.getDataValueDirectly(idOfDataValue2);
             assertNotNull(result);
             assertEquals(idOfDataValue2, result.getDataValue().getId());
 
+            TestUtils.printLinkArray(result.getLinks());
+
             result = dvApiInstance.getDataValueDirectly(idOfDataValue3);
             assertNotNull(result);
             assertEquals(idOfDataValue3, result.getDataValue().getId());
+
+            TestUtils.printLinkArray(result.getLinks());
 
             try {
                 dvApiInstance.getDataValueDirectly("aNonExistingId");

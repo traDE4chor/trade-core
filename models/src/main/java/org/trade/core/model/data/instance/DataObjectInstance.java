@@ -25,6 +25,7 @@ import org.trade.core.model.data.BaseResource;
 import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.ILifeCycleInstanceObject;
 import org.trade.core.model.lifecycle.DataObjectInstanceLifeCycle;
+import org.trade.core.utils.InstanceStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -142,25 +143,25 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
 
     @Override
     public boolean isCreated() {
-        return getState() != null && this.getState().equals(DataObjectInstanceLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .CREATED.name());
     }
 
     @Override
     public boolean isInitialized() {
-        return getState() != null && this.getState().equals(DataObjectInstanceLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .INITIALIZED.name());
     }
 
     @Override
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataObjectInstanceLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .ARCHIVED.name());
     }
 
     @Override
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataObjectInstanceLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .DELETED.name());
     }
 

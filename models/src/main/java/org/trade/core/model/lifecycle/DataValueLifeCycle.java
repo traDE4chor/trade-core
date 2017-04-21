@@ -23,6 +23,8 @@ import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
 import org.trade.core.model.data.DataValue;
 import org.trade.core.model.lifecycle.actions.DataValueLogAction;
+import org.trade.core.utils.InstanceEvents;
+import org.trade.core.utils.InstanceStates;
 
 /**
  * Created by hahnml on 07.04.2017.
@@ -30,16 +32,6 @@ import org.trade.core.model.lifecycle.actions.DataValueLogAction;
 public class DataValueLifeCycle {
 
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.lifecycle.DataValueLifeCycle");
-
-    // defining states
-    public enum States {
-        CREATED, INITIALIZED, ARCHIVED, DELETED
-    }
-
-    // defining events
-    public enum Events {
-        create, initialize, archive, unarchive, delete
-    }
 
     private FSM<DataValue> fsm = null;
 
@@ -61,21 +53,21 @@ public class DataValueLifeCycle {
         DataValueLogAction action = new DataValueLogAction();
 
         fsmBuilder.
-                buildState(States.CREATED.name(), true)
-                .addTransition(Events.create.name(), States.CREATED.name())
-                .addTransition(Events.initialize.name(), States.INITIALIZED.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                buildState(InstanceStates.CREATED.name(), true)
+                .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name())
+                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action)
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
                 .done()
-                .buildState(States.INITIALIZED.name())
-                .addTransition(Events.initialize.name(), States.INITIALIZED.name(), action)
-                .addTransition(Events.archive.name(), States.ARCHIVED.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                .buildState(InstanceStates.INITIALIZED.name())
+                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action)
+                .addTransition(InstanceEvents.archive.name(), InstanceStates.ARCHIVED.name(), action)
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
                 .done()
-                .buildState(States.ARCHIVED.name())
-                .addTransition(Events.unarchive.name(), States.INITIALIZED.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                .buildState(InstanceStates.ARCHIVED.name())
+                .addTransition(InstanceEvents.unarchive.name(), InstanceStates.INITIALIZED.name(), action)
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
                 .done()
-                .buildState(States.DELETED.name())
+                .buildState(InstanceStates.DELETED.name())
                 .setEndState(true)
                 .done();
 
@@ -85,16 +77,16 @@ public class DataValueLifeCycle {
     private void init(DataValue dataValue) {
         if (dataValue.getState() == null) {
             try {
-                this.fsm.onEvent(dataValue, Events.create.name());
+                this.fsm.onEvent(dataValue, InstanceEvents.create.name());
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public States triggerEvent(DataValue dataValue, Events event) throws TooBusyException {
+    public InstanceStates triggerEvent(DataValue dataValue, InstanceEvents event) throws TooBusyException {
         State state = this.fsm.onEvent(dataValue, event.name());
 
-        return States.valueOf(state.getName());
+        return InstanceStates.valueOf(state.getName());
     }
 }

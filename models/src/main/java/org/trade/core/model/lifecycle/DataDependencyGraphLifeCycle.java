@@ -23,6 +23,8 @@ import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
 import org.trade.core.model.data.DataDependencyGraph;
 import org.trade.core.model.lifecycle.actions.DataDependencyGraphLogAction;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.ModelStates;
 
 /**
  * Created by hahnml on 10.04.2017.
@@ -30,16 +32,6 @@ import org.trade.core.model.lifecycle.actions.DataDependencyGraphLogAction;
 public class DataDependencyGraphLifeCycle {
 
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.lifecycle.DataDependencyGraphLifeCycle");
-
-    // defining states
-    public enum States {
-        INITIAL, READY, ARCHIVED, DELETED
-    }
-
-    // defining events
-    public enum Events {
-        initial, ready, archive, unarchive, delete
-    }
 
     private FSM<DataDependencyGraph> fsm = null;
 
@@ -61,21 +53,21 @@ public class DataDependencyGraphLifeCycle {
         DataDependencyGraphLogAction action = new DataDependencyGraphLogAction();
 
         fsmBuilder.
-                buildState(States.INITIAL.name(), true)
-                .addTransition(Events.initial.name(), States.INITIAL.name())
-                .addTransition(Events.ready.name(), States.READY.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                buildState(ModelStates.INITIAL.name(), true)
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name())
+                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), action)
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
                 .done()
-                .buildState(States.READY.name())
-                .addTransition(Events.initial.name(), States.INITIAL.name(), action)
-                .addTransition(Events.archive.name(), States.ARCHIVED.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                .buildState(ModelStates.READY.name())
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), action)
+                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), action)
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
                 .done()
-                .buildState(States.ARCHIVED.name())
-                .addTransition(Events.unarchive.name(), States.READY.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                .buildState(ModelStates.ARCHIVED.name())
+                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), action)
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
                 .done()
-                .buildState(States.DELETED.name())
+                .buildState(ModelStates.DELETED.name())
                 .setEndState(true)
                 .done();
 
@@ -85,16 +77,16 @@ public class DataDependencyGraphLifeCycle {
     private void init(DataDependencyGraph ddg) {
         if (ddg.getState() == null) {
             try {
-                this.fsm.onEvent(ddg, Events.initial.name());
+                this.fsm.onEvent(ddg, ModelEvents.initial.name());
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public States triggerEvent(DataDependencyGraph ddg, Events event) throws TooBusyException {
+    public ModelStates triggerEvent(DataDependencyGraph ddg, ModelEvents event) throws TooBusyException {
         State state = this.fsm.onEvent(ddg, event.name());
 
-        return States.valueOf(state.getName());
+        return ModelStates.valueOf(state.getName());
     }
 }

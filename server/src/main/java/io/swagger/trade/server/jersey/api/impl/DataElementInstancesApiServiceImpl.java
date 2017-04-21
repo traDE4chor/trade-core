@@ -37,7 +37,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
     public Response getDataElementInstance(String instanceId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.getInstance()
+        org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.INSTANCE
                 .getDataElementInstance(instanceId);
 
         try {
@@ -77,10 +77,10 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
             NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataElementInstance(elementInstanceId);
+        boolean exists = DataManager.INSTANCE.hasDataElementInstance(elementInstanceId);
 
         if (exists) {
-            org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.getInstance()
+            org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.INSTANCE
                     .getDataElementInstance(elementInstanceId);
 
             try {
@@ -126,17 +126,17 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
 
         org.trade.core.model.data.DataValue value = null;
 
-        boolean exists = DataManager.getInstance().hasDataElementInstance(elementInstanceId);
+        boolean exists = DataManager.INSTANCE.hasDataElementInstance(elementInstanceId);
 
         if (exists) {
-            org.trade.core.model.data.instance.DataElementInstance elementInstance = DataManager.getInstance()
+            org.trade.core.model.data.instance.DataElementInstance elementInstance = DataManager.INSTANCE
                     .getDataElementInstance(elementInstanceId);
 
             if (dataValueData.getId() != null) {
                 // Try to set an existing data value
-                exists = DataManager.getInstance().hasDataValue(dataValueData.getId());
+                exists = DataManager.INSTANCE.hasDataValue(dataValueData.getId());
                 if (exists) {
-                    org.trade.core.model.data.DataValue dataValue = DataManager.getInstance().getDataValue(dataValueData.getId());
+                    org.trade.core.model.data.DataValue dataValue = DataManager.INSTANCE.getDataValue(dataValueData.getId());
 
                     try {
                         // Set the data value to the data element instance
@@ -157,7 +157,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                 }
             } else {
                 // Try to create a new data value and associate it to this data element instance
-                org.trade.core.model.data.DataValue dataValue = DataManager.getInstance().registerDataValue
+                org.trade.core.model.data.DataValue dataValue = DataManager.INSTANCE.registerDataValue
                         (ResourceTransformationUtils.resource2Model
                                 (dataValueData));
 
@@ -203,7 +203,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                                              @NotNull String dataElementName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstance = DataManager.getInstance()
+        List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstance = DataManager.INSTANCE
                 .queryDataElementInstance(dataModelNamespace, dataModelName, dataObjectName, dataElementName,
                         ResourceTransformationUtils.resource2Model(correlationProperties));
 

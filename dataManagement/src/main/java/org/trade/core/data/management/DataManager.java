@@ -16,10 +16,18 @@
 
 package org.trade.core.data.management;
 
+import org.trade.core.auditing.AuditingServiceFactory;
+import org.trade.core.auditing.TraDEEventListener;
+import org.trade.core.auditing.events.InstanceStateChangeEvent;
+import org.trade.core.auditing.events.ModelStateChangeEvent;
+import org.trade.core.auditing.events.TraDEEvent;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.data.*;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
+import org.trade.core.utils.InstanceEvents;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.TraDEProperties;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,9 +39,12 @@ import java.util.stream.Stream;
 /**
  * Created by hahnml on 25.10.2016.
  */
-public class DataManager {
+public enum DataManager implements TraDEEventListener {
+    INSTANCE;
 
-    private static DataManager instance = new DataManager();
+    private DataManager() {
+        AuditingServiceFactory.createAuditingService().registerEventListener(this);
+    }
 
     // TODO: Should we split this to multiple, type-specific DataManager classes?
 
@@ -48,14 +59,6 @@ public class DataManager {
     private HashMap<String, DataElement> dataElements = new LinkedHashMap<>();
     private HashMap<String, DataElementInstance> dataElementInstances = new LinkedHashMap<>();
     private HashMap<String, DataValue> dataValues = new LinkedHashMap<>();
-
-    private DataManager() {
-        // Block instantiation
-    }
-
-    public static DataManager getInstance() {
-        return instance;
-    }
 
     public DataDependencyGraph registerDataDependencyGraph(DataDependencyGraph graph) {
         this.dataDependencyGraphs.put(graph.getIdentifier(), graph);
@@ -73,18 +76,6 @@ public class DataManager {
         this.dataObjects.put(dataObject.getIdentifier(), dataObject);
 
         return dataObject;
-    }
-
-    public DataObjectInstance registerDataObjectInstance(DataObjectInstance dataObjectInstance) {
-        this.dataObjectInstances.put(dataObjectInstance.getIdentifier(), dataObjectInstance);
-
-        return dataObjectInstance;
-    }
-
-    public DataElementInstance registerDataElementInstance(DataElementInstance dataElementInstance) {
-        this.dataElementInstances.put(dataElementInstance.getIdentifier(), dataElementInstance);
-
-        return dataElementInstance;
     }
 
     public DataValue registerDataValue(DataValue value) {
@@ -616,8 +607,11 @@ public class DataManager {
 
             // Check if the data element belongs to a data model
             if (result.getParent().getDataModel() == null) {
-                result = this.dataElements.remove(dataElementId);
-                result.delete();
+                // Remove the element from the map
+                this.dataElements.remove(dataElementId);
+
+                // Delete the element from its parent data object
+                result.getParent().deleteDataElement(result);
             } else {
                 throw new IllegalModificationException("Trying to delete data element '" + dataElementId + "' which " +
                         "belongs to a data model (" + result.getParent().getDataModel()
@@ -674,5 +668,53 @@ public class DataManager {
                 this.dataElements.put(element.getIdentifier(), element);
             }
         }
+    }
+
+    // Implement IAuditingService methods
+    @Override
+    public void onEvent(TraDEEvent event) {
+        // TODO: 21.04.2017 Handle events!
+        switch (event.getType()) {
+            case dataHandling:
+                break;
+            case modelLifecycle:
+                ModelStateChangeEvent modelStateChangeEvent = (ModelStateChangeEvent) event;
+                // Remove all deleted model objects from the corresponding maps if they are still contained
+                if (modelStateChangeEvent.getEvent().equals(ModelEvents.delete)) {
+                    if (modelStateChangeEvent.getModelClass() == DataDependencyGraph.class) {
+                        this.dataDependencyGraphs.remove(modelStateChangeEvent.getIdentifier());
+                    } else if (modelStateChangeEvent.getModelClass() == DataModel.class) {
+                        this.dataModels.remove(modelStateChangeEvent.getIdentifier());
+                    } else if (modelStateChangeEvent.getModelClass() == DataObject.class) {
+                        this.dataObjects.remove(modelStateChangeEvent.getIdentifier());
+                    } else if (modelStateChangeEvent.getModelClass() == DataElement.class) {
+                        this.dataElements.remove(modelStateChangeEvent.getIdentifier());
+                    }
+                }
+                break;
+            case instanceLifecycle:
+                InstanceStateChangeEvent instanceStateChangeEvent = (InstanceStateChangeEvent) event;
+                // Remove all deleted instance objects from the corresponding maps if they are still contained.
+                if (instanceStateChangeEvent.getEvent().equals(InstanceEvents.delete)) {
+                    if (instanceStateChangeEvent.getModelClass() == DataValue.class) {
+                        this.dataValues.remove(instanceStateChangeEvent.getIdentifier());
+                    } else if (instanceStateChangeEvent.getModelClass() == DataObjectInstance.class) {
+                        this.dataObjectInstances.remove(instanceStateChangeEvent.getIdentifier());
+                    } else if (instanceStateChangeEvent.getModelClass() == DataElementInstance.class) {
+                        this.dataElementInstances.remove(instanceStateChangeEvent.getIdentifier());
+                    }
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void startup(TraDEProperties properties) {
+        // TODO: 21.04.2017 ?
+    }
+
+    @Override
+    public void shutdown() {
+        // TODO: 21.04.2017 ?
     }
 }

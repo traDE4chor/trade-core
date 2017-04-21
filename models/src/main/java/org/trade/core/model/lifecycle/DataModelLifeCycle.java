@@ -23,6 +23,8 @@ import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
 import org.trade.core.model.data.DataModel;
 import org.trade.core.model.lifecycle.actions.DataModelLogAction;
+import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.ModelStates;
 
 /**
  * Created by hahnml on 07.04.2017.
@@ -30,16 +32,6 @@ import org.trade.core.model.lifecycle.actions.DataModelLogAction;
 public class DataModelLifeCycle {
 
     Logger logger = LoggerFactory.getLogger("org.trade.core.model.lifecycle.DataModelLifeCycle");
-
-    // defining states
-    public enum States {
-        INITIAL, READY, ARCHIVED, DELETED
-    }
-
-    // defining events
-    public enum Events {
-        initial, ready, archive, unarchive, delete
-    }
 
     private FSM<DataModel> fsm = null;
 
@@ -61,21 +53,21 @@ public class DataModelLifeCycle {
         DataModelLogAction action = new DataModelLogAction();
 
         fsmBuilder.
-                buildState(States.INITIAL.name(), true)
-                .addTransition(Events.initial.name(), States.INITIAL.name())
-                .addTransition(Events.ready.name(), States.READY.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                buildState(ModelStates.INITIAL.name(), true)
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name())
+                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), action)
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
                 .done()
-                .buildState(States.READY.name())
-                .addTransition(Events.initial.name(), States.INITIAL.name(), action)
-                .addTransition(Events.archive.name(), States.ARCHIVED.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                .buildState(ModelStates.READY.name())
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), action)
+                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), action)
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
                 .done()
-                .buildState(States.ARCHIVED.name())
-                .addTransition(Events.unarchive.name(), States.READY.name(), action)
-                .addTransition(Events.delete.name(), States.DELETED.name(), action)
+                .buildState(ModelStates.ARCHIVED.name())
+                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), action)
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
                 .done()
-                .buildState(States.DELETED.name())
+                .buildState(ModelStates.DELETED.name())
                 .setEndState(true)
                 .done();
 
@@ -85,16 +77,16 @@ public class DataModelLifeCycle {
     private void init(DataModel dataModel) {
         if (dataModel.getState() == null) {
             try {
-                this.fsm.onEvent(dataModel, Events.initial.name());
+                this.fsm.onEvent(dataModel, ModelEvents.initial.name());
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public States triggerEvent(DataModel model, Events event) throws TooBusyException {
+    public ModelStates triggerEvent(DataModel model, ModelEvents event) throws TooBusyException {
         State state = this.fsm.onEvent(model, event.name());
 
-        return States.valueOf(state.getName());
+        return ModelStates.valueOf(state.getName());
     }
 }

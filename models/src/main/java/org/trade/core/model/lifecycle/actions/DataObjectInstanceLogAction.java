@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.model.Action;
+import org.trade.core.auditing.AuditingServiceFactory;
+import org.trade.core.auditing.events.InstanceStateChangeEvent;
 import org.trade.core.model.data.instance.DataObjectInstance;
 
 /**
@@ -34,6 +36,9 @@ public class DataObjectInstanceLogAction implements Action<DataObjectInstance> {
         logger.info("State of data object instance ({}) changed to '{}' on event '{}'.", stateful.getIdentifier(),
                 stateful.getState()
                 , event);
+
+        AuditingServiceFactory.createAuditingService().fireEvent(new InstanceStateChangeEvent(stateful.getIdentifier(),
+                DataObjectInstance.class, stateful.getState(), event));
     }
 
 }

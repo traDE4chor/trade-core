@@ -21,6 +21,7 @@ import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.junit.Test;
+import org.trade.core.utils.ModelStates;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,7 +39,7 @@ public class DataObjectTest {
     @Test
     public void testStartState() throws Exception {
         DataObject obj = new DataObject("modelA", "inputData");
-        assertEquals(DataObjectLifeCycle.States.INITIAL.name(), obj.getState());
+        assertEquals(ModelStates.INITIAL.name(), obj.getState());
     }
 
     @Test(expected = LifeCycleException.class)
@@ -65,7 +66,7 @@ public class DataObjectTest {
         obj.addDataElement(elm);
 
         assertFalse(obj.getDataElements().isEmpty());
-        assertEquals(DataObjectLifeCycle.States.READY.name(), obj.getState());
+        assertEquals(ModelStates.READY.name(), obj.getState());
     }
 
     @Test
@@ -79,7 +80,7 @@ public class DataObjectTest {
         obj.deleteDataElement(elm);
 
         assertTrue(obj.getDataElements().isEmpty());
-        assertEquals(DataObjectLifeCycle.States.INITIAL.name(), obj.getState());
+        assertEquals(ModelStates.INITIAL.name(), obj.getState());
     }
 
     @Test
@@ -94,8 +95,8 @@ public class DataObjectTest {
         obj.delete();
 
         assertNull(obj.getDataElements());
-        assertEquals(obj.getState(), DataObjectLifeCycle.States.DELETED.name());
-        assertEquals(elm.getState(), DataElementLifeCycle.States.DELETED.name());
+        assertEquals(obj.getState(), ModelStates.DELETED.name());
+        assertEquals(elm.getState(), ModelStates.DELETED.name());
     }
 
     @Test
@@ -121,7 +122,7 @@ public class DataObjectTest {
 
         obj2.archive();
 
-        assertEquals(obj2.getState(), DataObjectLifeCycle.States.ARCHIVED.name());
+        assertEquals(obj2.getState(), ModelStates.ARCHIVED.name());
     }
 
     @Test(expected = LifeCycleException.class)

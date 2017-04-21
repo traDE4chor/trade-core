@@ -28,6 +28,8 @@ import org.trade.core.model.lifecycle.DataValueLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.local.LocalPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
+import org.trade.core.utils.InstanceEvents;
+import org.trade.core.utils.InstanceStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -203,13 +205,13 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
                     // value is now initialized
 
                     // Trigger the initialized event for the data value
-                    this.lifeCycle.triggerEvent(this, DataValueLifeCycle.Events.initialize);
+                    this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
                 } else if (this.isInitialized() && data == null) {
                     // If the data value is already initialized (i.e., has associated data) we have to change the state
                     // back to created when the associated data is deleted (data==null)
 
                     // Trigger the created event for the data value
-                    this.lifeCycle.triggerEvent(this, DataValueLifeCycle.Events.create);
+                    this.lifeCycle.triggerEvent(this, InstanceEvents.create);
                 }
             } catch (Exception e) {
                 logger.error("Setting data on data value '" + this.getIdentifier() + "' caused an exception.", e);
@@ -313,25 +315,25 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
 
     @Override
     public boolean isCreated() {
-        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .CREATED.name());
     }
 
     @Override
     public boolean isInitialized() {
-        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .INITIALIZED.name());
     }
 
     @Override
     public boolean isArchived() {
-        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .ARCHIVED.name());
     }
 
     @Override
     public boolean isDeleted() {
-        return getState() != null && this.getState().equals(DataValueLifeCycle.States
+        return getState() != null && this.getState().equals(InstanceStates
                 .DELETED.name());
     }
 

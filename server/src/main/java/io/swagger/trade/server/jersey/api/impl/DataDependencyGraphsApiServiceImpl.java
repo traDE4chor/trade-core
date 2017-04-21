@@ -51,9 +51,10 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataDependencyGraph graph = DataManager.getInstance().registerDataDependencyGraph(
-                        (ResourceTransformationUtils.resource2Model
-                                (dataDependencyGraphData)));
+                org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE
+                        .registerDataDependencyGraph(
+                                (ResourceTransformationUtils.resource2Model
+                                        (dataDependencyGraphData)));
 
                 DataDependencyGraphWithLinks result = new DataDependencyGraphWithLinks();
 
@@ -84,10 +85,10 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         Response response = null;
 
         try {
-            boolean exists = DataManager.getInstance().hasDataDependencyGraph(graphId);
+            boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
 
             if (exists) {
-                DataManager.getInstance().deleteDataDependencyGraph(graphId);
+                DataManager.INSTANCE.deleteDataDependencyGraph(graphId);
 
                 response = Response.ok().build();
             } else {
@@ -110,7 +111,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataDependencyGraph graph = DataManager.getInstance().getDataDependencyGraph(graphId);
+            org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE.getDataDependencyGraph(graphId);
 
             if (graph != null) {
                 response = Response.ok(graph.getSerializedModel()).build();
@@ -133,7 +134,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response getDataDependencyGraphDirectly(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataDependencyGraph graph = DataManager.getInstance().getDataDependencyGraph(graphId);
+        org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE.getDataDependencyGraph(graphId);
 
         try {
             if (graph != null) {
@@ -173,7 +174,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataDependencyGraph> dataDependencyGraphs = DataManager.getInstance()
+            List<org.trade.core.model.data.DataDependencyGraph> dataDependencyGraphs = DataManager.INSTANCE
                     .getAllDataDependencyGraphs
                             (targetNamespace, name, entity);
             int filteredListSize = dataDependencyGraphs.size();
@@ -229,10 +230,10 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response getDataModel(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataDependencyGraph(graphId);
+        boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
 
         if (exists) {
-            org.trade.core.model.data.DataDependencyGraph ddg = DataManager.getInstance().getDataDependencyGraph
+            org.trade.core.model.data.DataDependencyGraph ddg = DataManager.INSTANCE.getDataDependencyGraph
                     (graphId);
 
             try {
@@ -276,14 +277,14 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
             throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataDependencyGraph(graphId);
+        boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
 
         if (exists) {
 
-            exists = DataManager.getInstance().hasDataModel(dataModelId);
+            exists = DataManager.INSTANCE.hasDataModel(dataModelId);
             if (exists) {
-                org.trade.core.model.data.DataDependencyGraph graph = DataManager.getInstance().getDataDependencyGraph(graphId);
-                org.trade.core.model.data.DataModel model = DataManager.getInstance().getDataModel(dataModelId);
+                org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE.getDataDependencyGraph(graphId);
+                org.trade.core.model.data.DataModel model = DataManager.INSTANCE.getDataModel(dataModelId);
 
                 try {
                     // Set the data model to the graph
@@ -313,16 +314,16 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response uploadGraphModel(String graphId, Long contentLength, byte[] graph, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.getInstance().hasDataDependencyGraph(graphId);
+        boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
 
         if (exists) {
             // Since we don't support the recompilation (updates) of data dependency graphs, at the moment, this
             // method automatically invokes the compilation of the provided serialized data dependency graph.
             try {
-                DataManager.getInstance().setSerializedModelOfDDG(graphId, graph);
+                DataManager.INSTANCE.setSerializedModelOfDDG(graphId, graph);
 
                 // TODO: We need to add the list of issues as part of the response!
-                List<CompilationIssue> issues = DataManager.getInstance().compileDataDependencyGraph(graphId, graph);
+                List<CompilationIssue> issues = DataManager.INSTANCE.compileDataDependencyGraph(graphId, graph);
             } catch (CompilationException e) {
                 // TODO: We need some special response type that allows us to forward the list of CompilationIssue's!
                 e.printStackTrace();

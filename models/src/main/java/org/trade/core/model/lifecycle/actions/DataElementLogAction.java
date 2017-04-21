@@ -16,11 +16,13 @@
 
 package org.trade.core.model.lifecycle.actions;
 
-import org.trade.core.model.data.DataElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.model.Action;
+import org.trade.core.auditing.AuditingServiceFactory;
+import org.trade.core.auditing.events.ModelStateChangeEvent;
+import org.trade.core.model.data.DataElement;
 
 /**
  * Created by hahnml on 28.10.2016.
@@ -33,5 +35,8 @@ public class DataElementLogAction implements Action<DataElement> {
 
         logger.info("State of data element ({}) changed to '{}' on event '{}'.", stateful.getIdentifier(), stateful.getState()
                 , event);
+
+        AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(stateful.getIdentifier(),
+                DataElement.class, stateful.getState(), event));
     }
 }

@@ -43,9 +43,7 @@ public class DEInstanceTest {
 
             elm = new DataElement(obj, entity, deName);
             elm.initialize();
-        } catch (LifeCycleException e) {
-            e.printStackTrace();
-        }  catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
