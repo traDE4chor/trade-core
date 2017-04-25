@@ -34,8 +34,9 @@ public abstract class BaseResource implements Serializable, PersistableObject {
 
     private static final long serialVersionUID = 1666273823086587345L;
 
+    // We directly initialize the id to avoid problems with non-initialized @Id fields during runtime
     @Id
-    protected ObjectId id;
+    protected ObjectId id = new ObjectId(); ;
 
     @Version
     private Long version;

@@ -265,6 +265,12 @@ public class DataDependencyGraphApiIT {
         MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
         dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
         dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
+
+        dataStore.getCollection("dataElements").drop();
+        dataStore.getCollection("dataObjects").drop();
+        dataStore.getCollection("dataModels").drop();
+        dataStore.getCollection("dataDependencyGraphs").drop();
+
         dataStoreClient.close();
 
         // Stop the server

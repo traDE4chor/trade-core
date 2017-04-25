@@ -165,6 +165,9 @@ public class DataValueApiIT {
         MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
         MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
         dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
+
+        dataStore.getCollection("dataValues").drop();
+
         dataStoreClient.close();
 
         // Stop the server

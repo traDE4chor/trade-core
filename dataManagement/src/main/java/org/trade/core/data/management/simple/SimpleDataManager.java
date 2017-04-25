@@ -539,9 +539,10 @@ public enum SimpleDataManager implements IDataManager {
         List<CompilationIssue> result = Collections.emptyList();
 
         if (hasDataDependencyGraph(graphId)) {
-            result = this.dataDependencyGraphs.get(graphId).compileDataDependencyGraph(graph);
+            DataDependencyGraph ddg = this.dataDependencyGraphs.get(graphId);
+            result = ddg.compileDataDependencyGraph(graph);
 
-            registerContentsOfDataDependencyGraph(graphId);
+            registerContentsOfDataDependencyGraph(ddg);
         }
 
         return result;
@@ -557,9 +558,10 @@ public enum SimpleDataManager implements IDataManager {
         List<CompilationIssue> result = Collections.emptyList();
 
         if (hasDataModel(dataModelId)) {
-            result = this.dataModels.get(dataModelId).compileDataModel(model);
+            DataModel dataModel = this.dataModels.get(dataModelId);
+            result = dataModel.compileDataModel(model);
 
-            registerContentsOfDataModel(dataModelId);
+            registerContentsOfDataModel(dataModel);
         }
 
         return result;
@@ -665,29 +667,25 @@ public enum SimpleDataManager implements IDataManager {
         }
     }
 
-    private void registerContentsOfDataDependencyGraph(String graphId) {
-        DataDependencyGraph graph = this.dataDependencyGraphs.get(graphId);
-
+    private void registerContentsOfDataDependencyGraph(DataDependencyGraph graph) {
         // Retrieve the data model generated during compilation
         DataModel model = graph.getDataModel();
 
+        // Register its child elements
+        registerContentsOfDataModel(model);
+
         // Add the data model to the map
         this.dataModels.put(model.getIdentifier(), model);
-
-        // Register its child elements
-        registerContentsOfDataModel(model.getIdentifier());
     }
 
-    private void registerContentsOfDataModel(String dataModelId) {
-        DataModel model = this.dataModels.get(dataModelId);
-
+    private void registerContentsOfDataModel(DataModel dataModel) {
         // Extract all child elements of the model to make them available through the respective maps
-        for (DataObject dataObject : model.getDataObjects()) {
-            this.dataObjects.put(dataObject.getIdentifier(), dataObject);
-
+        for (DataObject dataObject : dataModel.getDataObjects()) {
             for (DataElement element : dataObject.getDataElements()) {
                 this.dataElements.put(element.getIdentifier(), element);
             }
+
+            this.dataObjects.put(dataObject.getIdentifier(), dataObject);
         }
     }
 
