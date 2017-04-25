@@ -3,6 +3,7 @@
 # Ignore generated and log files
 *.log
 ssl/
+/client/src/main/resources/swagger.json
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
