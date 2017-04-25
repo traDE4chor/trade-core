@@ -16,11 +16,16 @@
 
 package org.trade.core.persistence.local;
 
+import org.trade.core.persistence.IPersistenceProvider;
+import org.trade.core.persistence.PersistableObject;
 import org.trade.core.persistence.local.filesystem.FileSystemPersistence;
 import org.trade.core.persistence.local.mongo.MongoPersistence;
 import org.trade.core.utils.TraDEProperties;
 
 /**
+ * This factory creates a new {@link IPersistenceProvider} object based on the specified objectType and
+ * configuration of the middleware (i.e., {@link org.trade.core.utils.TraDEProperties}).
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
 public class LocalPersistenceProviderFactory {
@@ -30,20 +35,23 @@ public class LocalPersistenceProviderFactory {
      *
      * @return the local persistence provider according to the defined property in 'config.properties'.
      */
-    public static LocalPersistenceProvider createLocalPersistenceProvider() {
-        LocalPersistenceProvider result = null;
+    public static <T extends PersistableObject> IPersistenceProvider<T> createLocalPersistenceProvider(Class<T> objectType) {
+        IPersistenceProvider<T> result = null;
 
         TraDEProperties props = new TraDEProperties();
 
         switch (props.getDataPersistenceMode()) {
             case DB:
                 result = new MongoPersistence();
+                result.initProvider(objectType, props);
                 break;
             case FILE:
                 result = new FileSystemPersistence();
+                result.initProvider(objectType, props);
                 break;
             default:
                 result = new FileSystemPersistence();
+                result.initProvider(objectType, props);
         }
 
         return result;

@@ -21,12 +21,14 @@ import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.statefulj.persistence.annotations.State;
 import org.trade.core.model.data.BaseResource;
 import org.trade.core.model.data.DataElement;
 import org.trade.core.model.data.DataValue;
 import org.trade.core.model.data.ILifeCycleInstanceObject;
 import org.trade.core.model.lifecycle.DataElementInstanceLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.utils.InstanceEvents;
 import org.trade.core.utils.InstanceStates;
 
 import java.io.IOException;
@@ -36,6 +38,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 /**
+ * This class represents an instance of a data element within the middleware.
+ * <p>
  * Created by hahnml on 26.10.2016.
  */
 @Entity("dataElementInstances")
@@ -44,7 +48,7 @@ public class DataElementInstance extends BaseResource implements Serializable, I
     private static final long serialVersionUID = -7695419620536264095L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
     private transient DataElementInstanceLifeCycle lifeCycle = null;
 
@@ -52,7 +56,8 @@ public class DataElementInstance extends BaseResource implements Serializable, I
 
     private String createdBy = "";
 
-    private String state = "";
+    @State
+    private String state;
 
     @Reference
     private DataElement model = null;
@@ -110,9 +115,9 @@ public class DataElementInstance extends BaseResource implements Serializable, I
         return correlationProperties;
     }
 
-    public void setDataValue(DataValue dataValue) throws LifeCycleException {
+    public void setDataValue(DataValue dataValue) throws Exception {
         if (dataValue != null) {
-            if (dataValue.isCreated()) {
+            if (dataValue.isCreated() || dataValue.isInitialized()) {
                 // Check if another data value was set before
                 if (this.dataValue != null && this.dataValue != dataValue) {
                     // Remove the association between this data element instance and the data value
@@ -124,6 +129,8 @@ public class DataElementInstance extends BaseResource implements Serializable, I
 
                 // Associate the data element instance with the new data value
                 this.dataValue.associateWithDataElementInstance(this);
+
+                this.initialize();
             } else {
                 logger.info("The data value ({}) can not be used by data element instance ({}) because it is in state " +
                         "'{}'.", dataValue.getIdentifier(), this.getIdentifier(), dataValue.getState());
@@ -143,24 +150,66 @@ public class DataElementInstance extends BaseResource implements Serializable, I
     }
 
     @Override
-    public void create() throws Exception {
+    public void initialize() throws Exception {
+        if (this.isCreated() || this.isInitialized()) {
 
+            boolean hasChanged = false;
+            // Check if an initialized data value is present
+            if (this.dataValue != null && this.dataValue.isInitialized()) {
+                // Trigger state change if the data element instance is not initialized already
+                if (isCreated()) {
+                    // Trigger the initialized event for the data element instance since it has now an associated data value
+                    this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
+                    hasChanged = true;
+                }
+            } else {
+                if (isInitialized()) {
+                    // Trigger the create event for the data element instance since it does not have any associated data
+                    // value and is therefore not initialized anymore
+                    this.lifeCycle.triggerEvent(this, InstanceEvents.create);
+                    hasChanged = true;
+                }
+            }
+
+            // If the state has changed propagate it to the parent data object instance
+            if (hasChanged) {
+                // Trigger the initialize method of the parent data object instance to check if the whole data object
+                // instance is initialized or not
+                this.getDataObjectInstance().initialize();
+            }
+        } else {
+            logger.info("The data element instance ({}) can not be initialized because it is in state '{}'.", this
+                            .getIdentifier(),
+                    getState());
+
+            throw new LifeCycleException("The data element instance (" + this.getIdentifier() +
+                    ") can not be initialized because it is in state '" + getState() + "'.");
+        }
     }
 
     @Override
     public void archive() throws Exception {
-
+        // TODO: 24.04.2017 Implement archiving of data element instances
     }
 
     @Override
     public void unarchive() throws Exception {
-
+        // TODO: 24.04.2017 Implement un-archiving of data element instances
     }
 
     @Override
     public void delete() throws Exception {
         // Remove the data element instance from the data element
         getDataElement().removeDataElementInstance(this);
+
+        // Remove the data element instance from the data object instance
+        dataObjectInstance.removeDataElementInstance(this);
+
+        // If a data value was set before, remove the reference to this data element instance
+        if (this.dataValue != null) {
+            this.dataValue.removeAssociationWithDataElementInstance(this);
+            this.dataValue = null;
+        }
     }
 
     @Override

@@ -19,14 +19,18 @@ package org.trade.core.model.data;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Version;
+import org.trade.core.persistence.PersistableObject;
 
 import java.io.Serializable;
 import java.util.UUID;
 
 /**
+ * This class specifies the basic attributes and methods of all model objects. Therefore, model objects have to
+ * extend this class.
+ * <p>
  * Created by hahnml on 22.11.2016.
  */
-public abstract class BaseResource implements Serializable {
+public abstract class BaseResource implements Serializable, PersistableObject {
 
     private static final long serialVersionUID = 1666273823086587345L;
 
@@ -41,17 +45,28 @@ public abstract class BaseResource implements Serializable {
     /**
      * Provides the identifier of the model object.
      *
-     * @return The UUID which identifies the model object.
+     * @return A UUID which identifies the model object.
      */
+    @Override
     public String getIdentifier() {
         return identifier;
     }
 
-    public ObjectId getDatabaseId() {
+    /**
+     * Provides access to the data source id under which the object is persisted at a data source.
+     *
+     * @return the data source id of the object
+     */
+    public ObjectId getId() {
         return this.id;
     }
 
-    public void setDatabaseId(ObjectId id) {
+    /**
+     * Sets the data source id under which the object is persisted at a data source.
+     *
+     * @param id the data source id of the object
+     */
+    public void setId(ObjectId id) {
         this.id = id;
     }
 

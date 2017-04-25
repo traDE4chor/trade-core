@@ -16,24 +16,49 @@
 
 package org.trade.core.model.data.instance;
 
-import org.junit.Before;
+import org.junit.Test;
+import org.trade.core.model.data.DataElement;
 import org.trade.core.model.data.DataObject;
+import org.trade.core.model.lifecycle.LifeCycleException;
+
+import java.util.HashMap;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
+ * Test class for {@link DataObjectInstance} model object.
+ * <p>
  * Created by hahnml on 11.11.2016.
  */
 public class DOInstanceTest {
-
-    private DataObject obj = null;
 
     private String entity = "someEntity";
 
     private String doName = "dataObject1";
 
-    @Before
-    public void createDataObject() {
-            this.obj = new DataObject(entity, doName);
+    @Test(expected = LifeCycleException.class)
+    public void instantiationOfDataObjectShouldCauseException() throws Exception {
+        DataObject obj = new DataObject("modelA", "inputData");
+
+        HashMap<String, String> correlationProps = new HashMap<>();
+        correlationProps.put("customerId", "1234");
+
+        DataObjectInstance inst = obj.instantiate("owner", correlationProps);
     }
 
-    // TODO: 07.04.2017
+    @Test
+    public void testDataObjectInstantiation() throws Exception {
+        DataObject obj = new DataObject(entity, doName);
+        DataElement elm = new DataElement(obj);
+        elm.initialize();
+
+        HashMap<String, String> correlationProps = new HashMap<>();
+        correlationProps.put("customerId", "1234");
+
+        DataObjectInstance inst = obj.instantiate("owner", correlationProps);
+
+        assertNotNull(inst);
+        assertTrue(inst.isCreated());
+    }
 }

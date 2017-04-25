@@ -20,7 +20,7 @@ import io.swagger.trade.server.jersey.api.DataObjectInstancesApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import org.trade.core.data.management.DataManager;
+import org.trade.core.data.management.DataManagerFactory;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -39,10 +39,10 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataObjectInstance(instanceId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataObjectInstance(instanceId);
 
             if (exists) {
-                DataManager.INSTANCE.deleteDataObjectInstance(instanceId);
+                DataManagerFactory.createDataManager().deleteDataObjectInstance(instanceId);
 
                 response = Response.ok().build();
             } else {
@@ -65,12 +65,12 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
                                                             SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataObjectInstance(dataObjectInstanceId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataObjectInstance(dataObjectInstanceId);
 
         if (exists) {
             try {
-                org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.INSTANCE
-                        .getDataElementInstanceForDataElement(dataObjectInstanceId, dataElementName);
+                org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManagerFactory.createDataManager()
+                        .getDataElementInstanceFromDataObjectInstanceByName(dataObjectInstanceId, dataElementName);
 
                 DataElementInstanceWithLinks result = new DataElementInstanceWithLinks();
                 result.setInstance(ResourceTransformationUtils.model2Resource(dataElementInstance));
@@ -104,12 +104,11 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response getDataElementInstances(String dataObjectInstanceId, @Min(1) Integer start, @Min(1) Integer size, String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataObjectInstance(dataObjectInstanceId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataObjectInstance(dataObjectInstanceId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManager
-                        .INSTANCE
+                List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManagerFactory.createDataManager()
                         .getAllDataElementInstancesOfDataObjectInstance(dataObjectInstanceId, status);
                 int filteredListSize = dataElementInstances.size();
 
@@ -170,7 +169,7 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response getDataObjectInstance(String instanceId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManager.INSTANCE
+        org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManagerFactory.createDataManager()
                 .getDataObjectInstance(instanceId);
 
         try {
@@ -209,7 +208,7 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response queryDataObjectInstance(@NotNull String dataModelNamespace, @NotNull String dataModelName, @NotNull String dataObjectName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstance = DataManager.INSTANCE
+        List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstance = DataManagerFactory.createDataManager()
                 .queryDataObjectInstance(dataModelNamespace, dataModelName, dataObjectName,
                         ResourceTransformationUtils.resource2Model(correlationProperties));
 

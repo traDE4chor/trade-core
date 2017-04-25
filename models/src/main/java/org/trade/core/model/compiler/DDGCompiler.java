@@ -32,11 +32,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class provides functionality to compile data dependency graphs. This means a serialized, XML-based
+ * representation is used as input which will be resolved into a collection of hierarchically related model objects.
+ * <p>
  * Created by hahnml on 02.11.2016.
  */
 public class DDGCompiler extends ACompiler {
 
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.compiler.DDGCompiler");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.compiler.DDGCompiler");
 
     private String ddgId = "";
 
@@ -201,7 +204,6 @@ public class DDGCompiler extends ACompiler {
             DataElement compiledDataElement = compile(compiledDataObject, dataElement, entity);
             try {
                 compiledDataElement.initialize();
-                compiledDataObject.addDataElement(compiledDataElement);
             } catch (LifeCycleException e) {
                 logger.error("The generated data element '{}' could not be added to data object '{}'. " +
                         "Please check if the corresponding data element is generated and initialized " +

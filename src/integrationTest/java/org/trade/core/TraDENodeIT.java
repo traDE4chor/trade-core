@@ -73,6 +73,7 @@ public class TraDENodeIT {
         instance = Hazelcast.newHazelcastInstance(config);
 
         Morphia morphia = new Morphia();
+        morphia.getMapper().getOptions().setMapSubPackages(true);
 
         // Map model classes to db collections
         morphia.mapPackage("org.trade.core.model.data");
@@ -143,7 +144,7 @@ public class TraDENodeIT {
 
                 value.setData(data, data.length);
 
-                MongoCollection<Document> collection = dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION);
+                MongoCollection<Document> collection = dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION);
                 Document doc = collection.find(Filters.eq("urn", value.getIdentifier())).limit(1).first();
                 assertNotNull(((Binary) doc.get("data")).getData());
             } catch (Exception e) {
@@ -164,7 +165,7 @@ public class TraDENodeIT {
         cacheStore.createQuery(DataObject.class).getCollection().drop();
         cacheStore.createQuery(DataValue.class).getCollection().drop();
 
-        dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION).drop();
+        dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
         dataStoreClient.close();
 
         instance.shutdown();

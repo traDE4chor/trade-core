@@ -27,6 +27,12 @@ import org.trade.core.utils.InstanceEvents;
 import org.trade.core.utils.InstanceStates;
 
 /**
+ * This class implements the lifecycle of a {@link DataValue} using a finite state machine in order to reflect the
+ * currents state of the object through its {@link DataValue#state} attribute. The lifecycle can be managed by
+ * triggering corresponding events which result in state changes of the managed object, if the underlying
+ * state transition is allowed or lead to a corresponding {@link LifeCycleException}, if the transition is not
+ * allowed.
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
 public class DataValueLifeCycle {
@@ -59,6 +65,7 @@ public class DataValueLifeCycle {
                 .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
                 .done()
                 .buildState(InstanceStates.INITIALIZED.name())
+                .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name(), action)
                 .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action)
                 .addTransition(InstanceEvents.archive.name(), InstanceStates.ARCHIVED.name(), action)
                 .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)

@@ -27,7 +27,7 @@ import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DDGCompiler;
 import org.trade.core.model.lifecycle.DataDependencyGraphLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.persistence.local.LocalPersistenceProvider;
+import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.ModelEvents;
 import org.trade.core.utils.ModelStates;
@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * This class represents a data dependency graph within the middleware.
+ * <p>
  * Created by hahnml on 10.04.2017.
  */
 @Entity("dataDependencyGraphs")
@@ -48,7 +50,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     private static final long serialVersionUID = 2549294173554279537L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataDependencyGraph");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataDependencyGraph");
 
     private String entity = null;
 
@@ -58,7 +60,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
 
     private transient DataDependencyGraphLifeCycle lifeCycle = null;
 
-    private transient LocalPersistenceProvider persistProv = null;
+    private transient IPersistenceProvider<DataDependencyGraph> persistProv = null;
 
     @State
     private String state;
@@ -77,7 +79,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
         this.entity = entity;
 
         this.lifeCycle = new DataDependencyGraphLifeCycle(this);
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataDependencyGraph.class);
     }
 
     /**
@@ -85,7 +87,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
      */
     private DataDependencyGraph() {
         this.lifeCycle = new DataDependencyGraphLifeCycle(this, false);
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataDependencyGraph.class);
     }
 
     /**
@@ -175,7 +177,8 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     }
 
     public byte[] getSerializedModel() throws Exception {
-        byte[] result = this.persistProv.loadData(ModelConstants.DATA_DEPENDENCY_GRAPH_COLLECTION, getIdentifier());
+        byte[] result = this.persistProv.loadBinaryData(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION,
+                getIdentifier());
 
         return result;
     }
@@ -193,7 +196,8 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
         if (this.isInitial()) {
             try {
                 // Persist the serialized graph
-                this.persistProv.storeData(data, ModelConstants.DATA_DEPENDENCY_GRAPH_COLLECTION, getIdentifier());
+                this.persistProv.storeBinaryData(data, ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION,
+                        getIdentifier());
             } catch (Exception e) {
                 logger.error("Setting the serialized model data for data dependency graph '" + this.getIdentifier() +
                         "' caused an exception.", e);
@@ -300,8 +304,9 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
                 }
             }
 
-            // Delete the associated data of the graph
-            this.persistProv.removeData(ModelConstants.DATA_DEPENDENCY_GRAPH_COLLECTION, getIdentifier());
+            // Delete the associated data of the graph and destroy the persistence provider
+            this.persistProv.deleteBinaryData(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION, getIdentifier());
+            this.persistProv.destroyProvider();
 
             // Trigger the delete event for the whole data dependency graph since all related model objects are deleted
             // successfully.
@@ -348,7 +353,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
             ois.defaultReadObject();
 
             lifeCycle = new DataDependencyGraphLifeCycle(this, false);
-            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataDependencyGraph.class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data dependency graph '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data dependency graph.");

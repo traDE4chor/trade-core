@@ -37,6 +37,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * This class represents a data element within the middleware.
+ * <p>
  * Created by hahnml on 25.10.2016.
  */
 @Entity("dataElements")
@@ -45,7 +47,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     private static final long serialVersionUID = -2632920295003689320L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataElement");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataElement");
 
     private String entity = null;
 
@@ -116,7 +118,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     /**
      * Set the entity. Only allowed if the data object is not part of a data model.
      *
-     * @param entity
+     * @param entity to set
      */
     public void setEntity(String entity) {
         if (this.parent != null && this.parent.getDataModel() == null) {
@@ -136,7 +138,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     /**
      * Set the name. Only allowed if the data object is not part of a data model.
      *
-     * @param name
+     * @param name to set
      */
     public void setName(String name) {
         if (this.parent != null && this.parent.getDataModel() == null) {
@@ -248,6 +250,9 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
         // Trigger the ready event
         try {
             this.lifeCycle.triggerEvent(this, ModelEvents.ready);
+
+            // Add the data element to the specified data object after it is initialized
+            this.getParent().addDataElement(this);
         } catch (TooBusyException e) {
             logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                     "amount of retries", this.getIdentifier(), ModelEvents.ready);
@@ -349,6 +354,9 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
 
             // Add the new instance to the list of instances
             this.instances.add(result);
+
+            // Associate the data element instance with the data object instance
+            dataObjectInstance.addDataElementInstance(result);
         } else {
             logger.info("The data element ({}) can not be instantiated because it is in state '{}'.", this
                             .getIdentifier(),

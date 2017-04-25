@@ -22,21 +22,15 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
+ * This singleton provides functionality for the management of notifications.
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
-public class NotificationManager {
-
-    private static NotificationManager instance = new NotificationManager();
+public enum NotificationManager {
+    INSTANCE;
 
     // TODO: Use Hazelcast, etc. instead of local maps
     private HashMap<String, NotificationRegistration> notifications = new LinkedHashMap<>();
 
-    private NotificationManager() {
-        // Block instantiation
-    }
-
-    public static NotificationManager getInstance() {
-        return instance;
-    }
 
 }

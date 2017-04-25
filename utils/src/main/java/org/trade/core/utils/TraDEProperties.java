@@ -24,11 +24,14 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
+ * This class defines and provides all TraDE-related properties, e.g., deployment mode or configuration of the
+ * embedded Jetty HTTP server.
+ * <p>
  * Created by hahnml on 24.11.2016.
  */
 public class TraDEProperties extends Properties {
 
-    Logger logger = LoggerFactory.getLogger("org.trade.core.utils.TraDEProperties");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.utils.TraDEProperties");
 
     private static final long serialVersionUID = -7722413438150969901L;
 
@@ -40,6 +43,12 @@ public class TraDEProperties extends Properties {
     public enum DataPersistenceMode {
         FILE, DB
     }
+
+    public enum DeploymentMode {
+        SINGLE_NODE, MULTI_NODE
+    }
+
+    public static final String PROPERTY_DEPLOYMENT_MODE = "deployment.mode";
 
     public static final String PROPERTY_DATA_PERSIST_MODE = "data.persistence.mode";
     public static final String PROPERTY_DATA_PERSIST_DB_URL = "data.persistence.db.url";
@@ -73,6 +82,10 @@ public class TraDEProperties extends Properties {
 
     public DataPersistenceMode getDataPersistenceMode() {
         return DataPersistenceMode.valueOf(getProperty(PROPERTY_DATA_PERSIST_MODE, "FILE"));
+    }
+
+    public DeploymentMode getDeploymentMode() {
+        return DeploymentMode.valueOf(getProperty(PROPERTY_DEPLOYMENT_MODE, "SINGLE_NODE"));
     }
 
     public String getDataPersistenceDbUrl() {

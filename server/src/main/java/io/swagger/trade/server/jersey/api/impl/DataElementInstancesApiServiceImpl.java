@@ -20,7 +20,7 @@ import io.swagger.trade.server.jersey.api.DataElementInstancesApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import org.trade.core.data.management.DataManager;
+import org.trade.core.data.management.DataManagerFactory;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
@@ -37,7 +37,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
     public Response getDataElementInstance(String instanceId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.INSTANCE
+        org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManagerFactory.createDataManager()
                 .getDataElementInstance(instanceId);
 
         try {
@@ -77,10 +77,10 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
             NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataElementInstance(elementInstanceId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataElementInstance(elementInstanceId);
 
         if (exists) {
-            org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManager.INSTANCE
+            org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManagerFactory.createDataManager()
                     .getDataElementInstance(elementInstanceId);
 
             try {
@@ -126,17 +126,17 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
 
         org.trade.core.model.data.DataValue value = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataElementInstance(elementInstanceId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataElementInstance(elementInstanceId);
 
         if (exists) {
-            org.trade.core.model.data.instance.DataElementInstance elementInstance = DataManager.INSTANCE
+            org.trade.core.model.data.instance.DataElementInstance elementInstance = DataManagerFactory.createDataManager()
                     .getDataElementInstance(elementInstanceId);
 
             if (dataValueData.getId() != null) {
                 // Try to set an existing data value
-                exists = DataManager.INSTANCE.hasDataValue(dataValueData.getId());
+                exists = DataManagerFactory.createDataManager().hasDataValue(dataValueData.getId());
                 if (exists) {
-                    org.trade.core.model.data.DataValue dataValue = DataManager.INSTANCE.getDataValue(dataValueData.getId());
+                    org.trade.core.model.data.DataValue dataValue = DataManagerFactory.createDataManager().getDataValue(dataValueData.getId());
 
                     try {
                         // Set the data value to the data element instance
@@ -157,7 +157,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                 }
             } else {
                 // Try to create a new data value and associate it to this data element instance
-                org.trade.core.model.data.DataValue dataValue = DataManager.INSTANCE.registerDataValue
+                org.trade.core.model.data.DataValue dataValue = DataManagerFactory.createDataManager().registerDataValue
                         (ResourceTransformationUtils.resource2Model
                                 (dataValueData));
 
@@ -203,7 +203,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                                              @NotNull String dataElementName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstance = DataManager.INSTANCE
+        List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstance = DataManagerFactory.createDataManager()
                 .queryDataElementInstance(dataModelNamespace, dataModelName, dataObjectName, dataElementName,
                         ResourceTransformationUtils.resource2Model(correlationProperties));
 

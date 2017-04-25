@@ -16,12 +16,11 @@
 
 package io.swagger.trade.server.jersey.api.impl;
 
-import io.swagger.trade.server.jersey.api.ApiResponseMessage;
 import io.swagger.trade.server.jersey.api.DataModelsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import org.trade.core.data.management.DataManager;
+import org.trade.core.data.management.DataManagerFactory;
 import org.trade.core.model.compiler.CompilationException;
 import org.trade.core.model.compiler.CompilationIssue;
 
@@ -52,7 +51,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataModel graph = DataManager.INSTANCE.registerDataModel(
+                org.trade.core.model.data.DataModel graph = DataManagerFactory.createDataManager().registerDataModel(
                         (ResourceTransformationUtils.resource2Model
                                 (dataModelData)));
 
@@ -79,10 +78,10 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataModel(dataModelId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataModel(dataModelId);
 
             if (exists) {
-                DataManager.INSTANCE.deleteDataModel(dataModelId);
+                DataManagerFactory.createDataManager().deleteDataModel(dataModelId);
 
                 response = Response.ok().build();
             } else {
@@ -105,7 +104,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataModel model = DataManager.INSTANCE.getDataModel(dataModelId);
+            org.trade.core.model.data.DataModel model = DataManagerFactory.createDataManager().getDataModel(dataModelId);
 
             if (model != null) {
                 response = Response.ok(model.getSerializedModel()).build();
@@ -128,7 +127,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     public Response getDataModelDirectly(String dataModelId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataModel model = DataManager.INSTANCE.getDataModel(dataModelId);
+        org.trade.core.model.data.DataModel model = DataManagerFactory.createDataManager().getDataModel(dataModelId);
 
         try {
             if (model != null) {
@@ -169,7 +168,7 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataModel> dataModels = DataManager.INSTANCE
+            List<org.trade.core.model.data.DataModel> dataModels = DataManagerFactory.createDataManager()
                     .getAllDataModels
                             (targetNamespace, name, entity);
             int filteredListSize = dataModels.size();
@@ -225,11 +224,11 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     public Response getDataObjects(String dataModelId, @Min(1) Integer start, @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataModel(dataModelId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataModel(dataModelId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.DataObject> dataObjects = DataManager.INSTANCE
+                List<org.trade.core.model.data.DataObject> dataObjects = DataManagerFactory.createDataManager()
                         .getAllDataObjectsOfDataModel(dataModelId);
                 int filteredListSize = dataObjects.size();
 
@@ -288,15 +287,15 @@ public class DataModelsApiServiceImpl extends DataModelsApiService {
     public Response uploadDataModel(String dataModelId, Long contentLength, byte[] model, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataModel(dataModelId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataModel(dataModelId);
         if (exists) {
             // Since we don't support the recompilation (updates) of data models, at the moment, this
             // method automatically invokes the compilation of the provided serialized data model.
             try {
-                DataManager.INSTANCE.setSerializedModelOfDataModel(dataModelId, model);
+                DataManagerFactory.createDataManager().setSerializedModelOfDataModel(dataModelId, model);
 
                 // TODO: We need to add the list of issues as part of the response!
-                List<CompilationIssue> issues = DataManager.INSTANCE.compileDataModel(dataModelId, model);
+                List<CompilationIssue> issues = DataManagerFactory.createDataManager().compileDataModel(dataModelId, model);
             } catch (CompilationException e) {
                 // TODO: We need some special response type that allows us to forward the list of CompilationIssue's!
                 e.printStackTrace();

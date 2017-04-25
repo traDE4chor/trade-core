@@ -27,6 +27,12 @@ import org.trade.core.utils.ModelEvents;
 import org.trade.core.utils.ModelStates;
 
 /**
+ * This class implements the lifecycle of a {@link DataObject} using a finite state machine in order to reflect the
+ * currents state of the object through its {@link DataObject#state} attribute. The lifecycle can be managed by
+ * triggering corresponding events which result in state changes of the managed object, if the underlying
+ * state transition is allowed or lead to a corresponding {@link LifeCycleException}, if the transition is not
+ * allowed.
+ * <p>
  * Created by hahnml on 25.10.2016.
  */
 public class DataObjectLifeCycle {

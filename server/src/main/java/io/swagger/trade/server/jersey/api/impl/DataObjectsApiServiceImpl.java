@@ -16,14 +16,11 @@
 
 package io.swagger.trade.server.jersey.api.impl;
 
-import io.swagger.trade.server.jersey.api.ApiResponseMessage;
 import io.swagger.trade.server.jersey.api.DataObjectsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import io.swagger.trade.server.jersey.model.DataObject;
-import org.trade.core.data.management.DataManager;
-import org.trade.core.model.data.*;
+import org.trade.core.data.management.DataManagerFactory;
 
 import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
@@ -53,7 +50,7 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataObject dataObject = DataManager.INSTANCE.registerDataObject(
+                org.trade.core.model.data.DataObject dataObject = DataManagerFactory.createDataManager().registerDataObject(
                         (ResourceTransformationUtils.resource2Model
                                 (dataObjectData)));
 
@@ -82,10 +79,10 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataObject(dataObjectId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
             if (exists) {
-                DataManager.INSTANCE.deleteDataObject(dataObjectId);
+                DataManagerFactory.createDataManager().deleteDataObject(dataObjectId);
 
                 response = Response.ok().build();
             } else {
@@ -109,7 +106,7 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataObject> dataObjects = DataManager.INSTANCE
+            List<org.trade.core.model.data.DataObject> dataObjects = DataManagerFactory.createDataManager()
                     .getAllDataObjects
                             (name, entity, status);
             int filteredListSize = dataObjects.size();
@@ -164,11 +161,11 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
     public Response getDataElements(String dataObjectId,  @Min(1) Integer start,  @Min(1) Integer size,  String name,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataObject(dataObjectId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.DataElement> dataElements = DataManager.INSTANCE
+                List<org.trade.core.model.data.DataElement> dataElements = DataManagerFactory.createDataManager()
                         .getAllDataElementsOfDataObject(dataObjectId);
                 int filteredListSize = dataElements.size();
 
@@ -229,10 +226,10 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataObject(dataObjectId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
             if (exists) {
-                org.trade.core.model.data.DataElement dataElement = DataManager.INSTANCE
+                org.trade.core.model.data.DataElement dataElement = DataManagerFactory.createDataManager()
                         .addDataElementToDataObject(
                                 dataObjectId, dataElementData.getEntity(), dataElementData.getName(), dataElementData
                                         .getContentType(), dataElementData.getType());
@@ -271,7 +268,7 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
     public Response getDataObjectById(String dataObjectId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataObject dataObject = DataManager.INSTANCE.getDataObject(dataObjectId);
+        org.trade.core.model.data.DataObject dataObject = DataManagerFactory.createDataManager().getDataObject(dataObjectId);
 
         try {
             if (dataObject != null) {
@@ -310,10 +307,10 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataObject(dataObjectId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
             if (exists) {
-                org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManager.INSTANCE
+                org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManagerFactory.createDataManager()
                         .instantiateDataObject(
                                 dataObjectId, dataObjectInstanceData.getCreatedBy(), ResourceTransformationUtils.resource2Model(dataObjectInstanceData
                 .getCorrelationProperties()));
@@ -352,11 +349,11 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
     public Response getDataObjectInstances(String dataObjectId,  @Min(1) Integer start,  @Min(1) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataObject(dataObjectId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstances = DataManager.INSTANCE
+                List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstances = DataManagerFactory.createDataManager()
                         .getAllDataObjectInstancesOfDataObject(dataObjectId);
                 int filteredListSize = dataObjectInstances.size();
 
@@ -416,10 +413,10 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataValue(dataObjectId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataValue(dataObjectId);
 
             if (exists) {
-                org.trade.core.model.data.DataObject value = DataManager.INSTANCE.updateDataObject(
+                org.trade.core.model.data.DataObject value = DataManagerFactory.createDataManager().updateDataObject(
                         dataObjectId, dataObject.getName(), dataObject.getEntity());
 
                 DataObjectWithLinks result = new DataObjectWithLinks();

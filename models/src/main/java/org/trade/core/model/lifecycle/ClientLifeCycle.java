@@ -16,6 +16,12 @@
 package org.trade.core.model.lifecycle;
 
 /**
+ * This class implements the lifecycle of a client using a finite state machine in order to reflect the
+ * currents state of the object through its state attribute. The lifecycle can be managed by
+ * triggering corresponding events which result in state changes of the managed object, if the underlying
+ * state transition is allowed or lead to a corresponding {@link LifeCycleException}, if the transition is not
+ * allowed.
+ * <p>
  * Created by hahnml on 25.10.2016.
  */
 public class ClientLifeCycle {

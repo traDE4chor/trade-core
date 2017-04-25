@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Michael Hahn
+ * Copyright 2017 Michael Hahn
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,51 +14,53 @@
  * limitations under the License.
  */
 
-package org.trade.core.data.management;
+package org.trade.core.data.management.simple;
 
 import org.trade.core.auditing.AuditingServiceFactory;
-import org.trade.core.auditing.TraDEEventListener;
 import org.trade.core.auditing.events.InstanceStateChangeEvent;
 import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.data.management.IDataManager;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.data.*;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
+import org.trade.core.persistence.PersistableHashMap;
 import org.trade.core.utils.InstanceEvents;
 import org.trade.core.utils.ModelEvents;
 import org.trade.core.utils.TraDEProperties;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * Simple implementation of {@link IDataManager} for single-node deployments of the middleware.
+ * <p>
  * Created by hahnml on 25.10.2016.
  */
-public enum DataManager implements TraDEEventListener {
+public enum SimpleDataManager implements IDataManager {
     INSTANCE;
 
-    private DataManager() {
+    private SimpleDataManager() {
         AuditingServiceFactory.createAuditingService().registerEventListener(this);
     }
-
-    // TODO: Should we split this to multiple, type-specific DataManager classes?
 
     // TODO: Is the use of a singleton object appropriate or will this become a bottleneck in future?
     // But how to access the managers from API service implementations?
 
-    // TODO: Use Hazelcast, etc. instead of local maps
-    private HashMap<String, DataDependencyGraph> dataDependencyGraphs = new LinkedHashMap<>();
-    private HashMap<String, DataModel> dataModels = new LinkedHashMap<>();
-    private HashMap<String, DataObject> dataObjects = new LinkedHashMap<>();
-    private HashMap<String, DataObjectInstance> dataObjectInstances = new LinkedHashMap<>();
-    private HashMap<String, DataElement> dataElements = new LinkedHashMap<>();
-    private HashMap<String, DataElementInstance> dataElementInstances = new LinkedHashMap<>();
-    private HashMap<String, DataValue> dataValues = new LinkedHashMap<>();
+    private PersistableHashMap<DataDependencyGraph> dataDependencyGraphs = new PersistableHashMap<>
+            (DataDependencyGraph.class);
+    private PersistableHashMap<DataModel> dataModels = new PersistableHashMap<>(DataModel.class);
+    private PersistableHashMap<DataObject> dataObjects = new PersistableHashMap<>(DataObject.class);
+    private PersistableHashMap<DataObjectInstance> dataObjectInstances = new PersistableHashMap<>
+            (DataObjectInstance.class);
+    private PersistableHashMap<DataElement> dataElements = new PersistableHashMap<>(DataElement.class);
+    private PersistableHashMap<DataElementInstance> dataElementInstances = new PersistableHashMap<>
+            (DataElementInstance.class);
+    private PersistableHashMap<DataValue> dataValues = new PersistableHashMap<>(DataValue.class);
 
     public DataDependencyGraph registerDataDependencyGraph(DataDependencyGraph graph) {
         this.dataDependencyGraphs.put(graph.getIdentifier(), graph);
@@ -102,9 +104,6 @@ public enum DataManager implements TraDEEventListener {
                 // Initialize the data element
                 dataElement.initialize();
 
-                // Add the data element to the specified data object
-                dataObject.addDataElement(dataElement);
-
                 // Register and return the data element
                 this.dataElements.put(dataElement.getIdentifier(), dataElement);
 
@@ -136,8 +135,6 @@ public enum DataManager implements TraDEEventListener {
             // TODO: 15.04.2017 Maybe we will change this behavior in a future version again...
             for (DataElement element : dataObject.getDataElements()) {
                 DataElementInstance elmInstance = element.instantiate(dataObjectInstance, createdBy, correlationProperties);
-
-                dataObjectInstance.addDataElementInstance(elmInstance);
 
                 this.dataElementInstances.put(elmInstance.getIdentifier(), elmInstance);
             }
@@ -333,7 +330,7 @@ public enum DataManager implements TraDEEventListener {
         return Collections.unmodifiableList(result);
     }
 
-    public DataElementInstance getDataElementInstanceForDataElement(String dataObjectInstanceId, String
+    public DataElementInstance getDataElementInstanceFromDataObjectInstanceByName(String dataObjectInstanceId, String
             dataElementName) {
         DataElementInstance result = null;
 
@@ -570,17 +567,25 @@ public enum DataManager implements TraDEEventListener {
 
     public void deleteDataDependencyGraph(String graphId) throws Exception {
         if (hasDataDependencyGraph(graphId)) {
-            DataDependencyGraph result = this.dataDependencyGraphs.remove(graphId);
+            DataDependencyGraph result = this.dataDependencyGraphs.get(graphId);
 
+            // Try to delete the DDG
             result.delete();
+
+            // After the DDG is successfully deleted, we can remove it from the map
+            this.dataDependencyGraphs.remove(graphId);
         }
     }
 
     public void deleteDataModel(String dataModelId) throws Exception {
         if (hasDataModel(dataModelId)) {
-            DataModel result = this.dataModels.remove(dataModelId);
+            DataModel result = this.dataModels.get(dataModelId);
 
+            // Try to delete the data model
             result.delete();
+
+            // After the data model is successfully deleted, we can remove it from the map
+            this.dataModels.remove(dataModelId);
         }
     }
 
@@ -590,8 +595,11 @@ public enum DataManager implements TraDEEventListener {
 
             // Check if the data object belongs to a data model
             if (result.getDataModel() == null) {
-                result = this.dataObjects.remove(dataObjectId);
+                // Try to delete the data object
                 result.delete();
+
+                // After the data object is successfully deleted, we can remove it from the map
+                this.dataObjects.remove(dataObjectId);
             } else {
                 throw new IllegalModificationException("Trying to delete data object '" + dataObjectId + "' which " +
                         "belongs to a data model (" + result.getDataModel()
@@ -607,11 +615,11 @@ public enum DataManager implements TraDEEventListener {
 
             // Check if the data element belongs to a data model
             if (result.getParent().getDataModel() == null) {
-                // Remove the element from the map
-                this.dataElements.remove(dataElementId);
-
-                // Delete the element from its parent data object
+                // Try to delete the element from its parent data object
                 result.getParent().deleteDataElement(result);
+
+                // After the data element is successfully deleted, we can remove it from the map
+                this.dataElements.remove(dataElementId);
             } else {
                 throw new IllegalModificationException("Trying to delete data element '" + dataElementId + "' which " +
                         "belongs to a data model (" + result.getParent().getDataModel()
@@ -623,24 +631,37 @@ public enum DataManager implements TraDEEventListener {
 
     public void deleteDataObjectInstance(String instanceId) throws Exception {
         if (hasDataObjectInstance(instanceId)) {
-            DataObjectInstance result = this.dataObjectInstances.remove(instanceId);
+            DataObjectInstance result = this.dataObjectInstances.get(instanceId);
 
-            // Also delete all data element instances
+            // By convention we also directly delete all related data element instances of the data object instance
+            // TODO: 24.04.2017 Maybe we will change this behavior in a future version again...
             for (DataElementInstance elmInstance : result.getDataElementInstances()) {
-                this.dataElementInstances.remove(elmInstance.getIdentifier());
+                // Remove the data element instance from the data object instance
+                result.removeDataElementInstance(elmInstance);
 
+                // Try to delete the data element instance
                 elmInstance.delete();
+
+                this.dataElementInstances.remove(elmInstance.getIdentifier());
             }
 
+            // Try to delete the data object instance
             result.delete();
+
+            // After the data object instance is successfully deleted, we can remove it from the map
+            this.dataObjectInstances.remove(instanceId);
         }
     }
 
     public void deleteDataValue(String dataValueId) throws Exception {
         if (hasDataValue(dataValueId)) {
-            DataValue result = this.dataValues.remove(dataValueId);
+            DataValue result = this.dataValues.get(dataValueId);
 
+            // Try to delete the data value
             result.delete();
+
+            // After the data value is successfully deleted, we can remove it from the map
+            this.dataValues.remove(dataValueId);
         }
     }
 
@@ -670,7 +691,7 @@ public enum DataManager implements TraDEEventListener {
         }
     }
 
-    // Implement IAuditingService methods
+    // Implementation of IAuditingService methods
     @Override
     public void onEvent(TraDEEvent event) {
         // TODO: 21.04.2017 Handle events!

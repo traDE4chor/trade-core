@@ -17,6 +17,9 @@
 package org.trade.core.model.lifecycle;
 
 /**
+ * This class indicates that a lifecycle phase transition has taken place which is not allowed and therefore results
+ * in an exception.
+ * <p>
  * Created by hahnml on 31.10.2016.
  */
 public class LifeCycleException extends Exception {

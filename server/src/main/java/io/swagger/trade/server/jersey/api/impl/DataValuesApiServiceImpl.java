@@ -20,7 +20,7 @@ import io.swagger.trade.server.jersey.api.DataValuesApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import org.trade.core.data.management.DataManager;
+import org.trade.core.data.management.DataManagerFactory;
 
 import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
@@ -52,7 +52,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataValue value = DataManager.INSTANCE.registerDataValue
+                org.trade.core.model.data.DataValue value = DataManagerFactory.createDataManager().registerDataValue
                         (ResourceTransformationUtils.resource2Model
                                 (dataValueData));
 
@@ -78,7 +78,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     public Response getDataValueDirectly(String dataValueId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataValue value = DataManager.INSTANCE.getDataValue(dataValueId);
+        org.trade.core.model.data.DataValue value = DataManagerFactory.createDataManager().getDataValue(dataValueId);
 
         try {
             if (value != null) {
@@ -116,7 +116,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataValue> dataValues = DataManager.INSTANCE.getAllDataValues(status, createdBy);
+            List<org.trade.core.model.data.DataValue> dataValues = DataManagerFactory.createDataManager().getAllDataValues(status, createdBy);
             int filteredListSize = dataValues.size();
 
             // Check if the start index and the size are in still the range of the filtered result list, if not
@@ -170,7 +170,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataValue value = DataManager.INSTANCE.getDataValue(dataValueId);
+            org.trade.core.model.data.DataValue value = DataManagerFactory.createDataManager().getDataValue(dataValueId);
 
             if (value != null) {
                 response = Response.ok(value.getData(), value.getContentType()).header("Content-Length", value.getSize())
@@ -195,7 +195,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataValue value = DataManager.INSTANCE.getDataValue(dataValueId);
+            org.trade.core.model.data.DataValue value = DataManagerFactory.createDataManager().getDataValue(dataValueId);
 
             if (value != null) {
                 if (data != null && contentLength != null) {
@@ -228,10 +228,10 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataValue(dataValueId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataValue(dataValueId);
 
             if (exists) {
-                org.trade.core.model.data.DataValue value = DataManager.INSTANCE.updateDataValue(
+                org.trade.core.model.data.DataValue value = DataManagerFactory.createDataManager().updateDataValue(
                         dataValueId, dataValue.getName(), dataValue.getContentType(), dataValue.getType());
 
                 DataValueWithLinks result = new DataValueWithLinks();
@@ -268,10 +268,10 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataValue(dataValueId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataValue(dataValueId);
 
             if (exists) {
-                DataManager.INSTANCE.deleteDataValue(dataValueId);
+                DataManagerFactory.createDataManager().deleteDataValue(dataValueId);
 
                 response = Response.ok().build();
             } else {
@@ -293,12 +293,11 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     public Response getDataElementInstancesUsingDataValue(String dataValueId,  @Min(1) Integer start,  @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataValue(dataValueId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataValue(dataValueId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.instance.DataElementInstance> elementInstances = DataManager
-                        .INSTANCE
+                List<org.trade.core.model.data.instance.DataElementInstance> elementInstances = DataManagerFactory.createDataManager()
                         .getAllDataElementInstancesOfDataValue(dataValueId);
                 int filteredListSize = elementInstances.size();
 

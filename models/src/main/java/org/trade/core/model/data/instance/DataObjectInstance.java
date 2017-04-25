@@ -21,21 +21,23 @@ import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.statefulj.persistence.annotations.State;
 import org.trade.core.model.data.BaseResource;
 import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.ILifeCycleInstanceObject;
 import org.trade.core.model.lifecycle.DataObjectInstanceLifeCycle;
+import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.utils.InstanceEvents;
 import org.trade.core.utils.InstanceStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
+ * This class represents an instance of a data object within the middleware.
+ * <p>
  * Created by hahnml on 26.10.2016.
  */
 @Entity("dataObjectInstances")
@@ -44,13 +46,14 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
     private static final long serialVersionUID = 4504379941592896623L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
     private Date timestamp = new Date();
 
     private String createdBy = "";
 
-    private String state = "";
+    @State
+    private String state;
 
     private transient DataObjectInstanceLifeCycle lifeCycle = null;
 
@@ -76,10 +79,6 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
      */
     private DataObjectInstance() {
         this.lifeCycle = new DataObjectInstanceLifeCycle(this, false);
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     public Date getCreationTimestamp() {
@@ -121,18 +120,49 @@ public class DataObjectInstance extends BaseResource implements Serializable, IL
     }
 
     @Override
-    public void create() throws Exception {
+    public void initialize() throws Exception {
+        if (this.isCreated() || this.isInitialized()) {
 
+            // Check if all related data element instance are initialized or not
+            boolean areInitialized = true;
+            Iterator<DataElementInstance> iter = this.dataElementInstances.iterator();
+            while (areInitialized && iter.hasNext()) {
+                if (!iter.next().isInitialized()) {
+                    // Found one element instance which is not initialized.
+                    // Stop iteration and trigger state changes, if required.
+                    areInitialized = false;
+                }
+            }
+
+            if (areInitialized) {
+                // Trigger the initialized event for the data object instance since now all related data element
+                // instance are initialized successfully
+                this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
+            } else {
+                if (isInitialized()) {
+                    // Trigger the create event for the data object instance since at least one of its related data
+                    // element instances is not initialized (anymore)
+                    this.lifeCycle.triggerEvent(this, InstanceEvents.create);
+                }
+            }
+        } else {
+            logger.info("The data object instance ({}) can not be initialized because it is in state '{}'.", this
+                            .getIdentifier(),
+                    getState());
+
+            throw new LifeCycleException("The data object instance (" + this.getIdentifier() +
+                    ") can not be initialized because it is in state '" + getState() + "'.");
+        }
     }
 
     @Override
     public void archive() throws Exception {
-
+        // TODO: 24.04.2017 Implement archiving of data object instances
     }
 
     @Override
     public void unarchive() throws Exception {
-
+        // TODO: 24.04.2017 Implement un-archiving of data object instances
     }
 
     @Override

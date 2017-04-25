@@ -28,7 +28,7 @@ import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DataModelCompiler;
 import org.trade.core.model.lifecycle.DataModelLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.persistence.local.LocalPersistenceProvider;
+import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.ModelEvents;
 import org.trade.core.utils.ModelStates;
@@ -40,6 +40,8 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
+ * This class represents a data model within the middleware.
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
 @Entity("dataModels")
@@ -48,7 +50,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
     private static final long serialVersionUID = 2549294173554279537L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataModel");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataModel");
 
     private String entity = null;
 
@@ -58,7 +60,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
 
     private transient DataModelLifeCycle lifeCycle = null;
 
-    private transient LocalPersistenceProvider persistProv = null;
+    private transient IPersistenceProvider<DataModel> persistProv = null;
 
     @State
     private String state;
@@ -82,7 +84,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
         this.targetNamespace = targetNamespace;
 
         this.lifeCycle = new DataModelLifeCycle(this);
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataModel.class);
     }
 
     /**
@@ -100,7 +102,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
      */
     private DataModel() {
         this.lifeCycle = new DataModelLifeCycle(this, false);
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataModel.class);
     }
 
     /**
@@ -168,7 +170,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
     }
 
     public byte[] getSerializedModel() throws Exception {
-        byte[] result = this.persistProv.loadData(ModelConstants.DATA_MODEL_COLLECTION, getIdentifier());
+        byte[] result = this.persistProv.loadBinaryData(ModelConstants.DATA_MODEL__DATA_COLLECTION, getIdentifier());
 
         return result;
     }
@@ -186,7 +188,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
         if (this.isInitial()) {
             try {
                 // Persist the serialized model
-                this.persistProv.storeData(data, ModelConstants.DATA_MODEL_COLLECTION, getIdentifier());
+                this.persistProv.storeBinaryData(data, ModelConstants.DATA_MODEL__DATA_COLLECTION, getIdentifier());
             } catch (Exception e) {
                 logger.error("Setting the serialized model data for data model '" + this.getIdentifier() +
                         "' caused an exception.", e);
@@ -410,8 +412,9 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
             // Check if the data model is used by any data dependency graph, if not we can delete it
             if (this.dataDependencyGraphs.isEmpty()) {
                 try {
-                    // Delete the associated data
-                    this.persistProv.removeData(ModelConstants.DATA_MODEL_COLLECTION, getIdentifier());
+                    // Delete the associated data and destroy the persistence provider
+                    this.persistProv.deleteBinaryData(ModelConstants.DATA_MODEL__DATA_COLLECTION, getIdentifier());
+                    this.persistProv.destroyProvider();
 
                     // Delete all data objects
                     deleteDataObjects();
@@ -530,7 +533,7 @@ public class DataModel extends BaseResource implements Serializable, ILifeCycleM
             ois.defaultReadObject();
 
             lifeCycle = new DataModelLifeCycle(this, false);
-            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataModel.class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data model '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data model.");

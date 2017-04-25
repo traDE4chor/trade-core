@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This class defines a set of basic model constants used throughout the whole middleware.
+ * <p>
  * Created by hahnml on 26.10.2016.
  */
 public class ModelConstants {
@@ -30,11 +32,11 @@ public class ModelConstants {
 
     public static final String DDG_FILE_EXTENSION = "trade";
 
-    public static final String DATA_VALUE_COLLECTION = "dataValues";
+    public static final String DATA_VALUE__DATA_COLLECTION = "dataValueData";
 
-    public static final String DATA_MODEL_COLLECTION = "dataModels";
+    public static final String DATA_MODEL__DATA_COLLECTION = "dataModelData";
 
-    public static final String DATA_DEPENDENCY_GRAPH_COLLECTION = "dataDependencyGraphs";
+    public static final String DATA_DEPENDENCY_GRAPH__DATA_COLLECTION = "dataDependencyGraphData";
 
     public static final String BINARY_TYPE = "binary";
 }

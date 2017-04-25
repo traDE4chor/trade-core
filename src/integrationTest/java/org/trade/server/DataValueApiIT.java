@@ -21,8 +21,10 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.*;
-import io.swagger.trade.client.jersey.model.*;
+import io.swagger.trade.client.jersey.api.DataValueApi;
+import io.swagger.trade.client.jersey.model.DataValue;
+import io.swagger.trade.client.jersey.model.DataValueData;
+import io.swagger.trade.client.jersey.model.DataValueWithLinks;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,9 +32,8 @@ import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
-import java.io.IOException;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Created by hahnml on 31.01.2017.
@@ -163,7 +164,7 @@ public class DataValueApiIT {
         // Cleanup the database
         MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
         MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_VALUE_COLLECTION).drop();
+        dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
         dataStoreClient.close();
 
         // Stop the server

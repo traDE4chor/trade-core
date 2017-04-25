@@ -26,7 +26,7 @@ import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.lifecycle.DataValueLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.persistence.local.LocalPersistenceProvider;
+import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.InstanceEvents;
 import org.trade.core.utils.InstanceStates;
@@ -38,6 +38,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * This class represents a data value within the middleware.
+ * <p>
  * Created by hahnml on 26.10.2016.
  */
 @Entity("dataValues")
@@ -46,7 +48,7 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
     private static final long serialVersionUID = -1774719861199414867L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataValue");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataValue");
 
     private String name = null;
 
@@ -56,7 +58,9 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
 
     private transient DataValueLifeCycle lifeCycle = null;
 
-    private transient LocalPersistenceProvider persistProv = null;
+    private transient IPersistenceProvider<DataValue> persistProv = null;
+
+    private boolean hasData = false;
 
     @State
     private String state;
@@ -83,7 +87,7 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
         this.name = name;
 
         this.lifeCycle = new DataValueLifeCycle(this);
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataValue.class);
     }
 
     /**
@@ -91,7 +95,7 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
      */
     private DataValue() {
         this.lifeCycle = new DataValueLifeCycle(this, false);
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataValue.class);
     }
 
     /**
@@ -184,8 +188,12 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
         return this.size;
     }
 
+    public boolean hasData() {
+        return hasData;
+    }
+
     public byte[] getData() throws Exception {
-        byte[] result = this.persistProv.loadData(ModelConstants.DATA_VALUE_COLLECTION, getIdentifier());
+        byte[] result = this.persistProv.loadBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
 
         return result;
     }
@@ -196,23 +204,14 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
             this.size = size;
 
             try {
-                this.persistProv.storeData(data, ModelConstants.DATA_VALUE_COLLECTION, getIdentifier());
+                this.persistProv.storeBinaryData(data, ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
+
+                // Remember if data is set or not (setting a NULL value deletes the data by convention)
+                hasData = data != null;
 
                 this.lastModified = new Date();
 
-                if (this.isCreated()) {
-                    // If this is the first time data is set, we trigger the corresponding state change that the data
-                    // value is now initialized
-
-                    // Trigger the initialized event for the data value
-                    this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
-                } else if (this.isInitialized() && data == null) {
-                    // If the data value is already initialized (i.e., has associated data) we have to change the state
-                    // back to created when the associated data is deleted (data==null)
-
-                    // Trigger the created event for the data value
-                    this.lifeCycle.triggerEvent(this, InstanceEvents.create);
-                }
+                this.initialize();
             } catch (Exception e) {
                 logger.error("Setting data on data value '" + this.getIdentifier() + "' caused an exception.", e);
 
@@ -279,8 +278,32 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
     }
 
     @Override
-    public void create() throws Exception {
-        // TODO: Do we have to put some logic here?
+    public void initialize() throws Exception {
+        boolean hasChanged = false;
+
+        if (this.isCreated()) {
+            // If this is the first time data is set, we trigger the corresponding state change that the data
+            // value is now initialized
+
+            // Trigger the initialized event for the data value
+            this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
+            hasChanged = true;
+        } else if (this.isInitialized() && !hasData()) {
+            // If the data value was already initialized (i.e., has associated data) we have to change the state
+            // back to created when the associated data is deleted (data==null or hasData()==false)
+
+            // Trigger the created event for the data value
+            this.lifeCycle.triggerEvent(this, InstanceEvents.create);
+            hasChanged = true;
+        }
+
+        // If the state of this data value has changed, we have to inform all related data element instance which are
+        // using this data value
+        if (hasChanged) {
+            for (DataElementInstance elmInstance : this.getDataElementInstances()) {
+                elmInstance.initialize();
+            }
+        }
     }
 
     @Override
@@ -297,8 +320,9 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
     public void delete() throws Exception {
         // Check if the data value is used by any data element, if not delete it
         if (this.dataElementInstances.isEmpty()) {
-            // Delete the associated data
-            this.persistProv.removeData(ModelConstants.DATA_VALUE_COLLECTION, getIdentifier());
+            // Delete the associated data and destroy the persistence provider
+            this.persistProv.deleteBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
+            this.persistProv.destroyProvider();
         } else {
             // If the data value is used by any data element instance, we deny its deletion
             logger.warn("Someone tried to delete data value ({}) which is used by '{}' data element instances. " +
@@ -343,7 +367,7 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
             ois.defaultReadObject();
 
             lifeCycle = new DataValueLifeCycle(this, false);
-            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider();
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataValue.class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data value '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data value.");

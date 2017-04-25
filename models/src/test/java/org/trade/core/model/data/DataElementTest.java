@@ -18,18 +18,13 @@ package org.trade.core.model.data;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.trade.core.model.data.instance.DataElementInstance;
-import org.trade.core.model.data.instance.DataObjectInstance;
-import org.trade.core.model.lifecycle.DataElementLifeCycle;
-import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.utils.ModelStates;
 
-import java.util.HashMap;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
+ * Test class for {@link DataElement} model object.
+ * <p>
  * Created by hahnml on 27.10.2016.
  */
 public class DataElementTest {
@@ -55,27 +50,5 @@ public class DataElementTest {
         assertEquals(entity, elm.getEntity());
     }
 
-    @Test(expected = LifeCycleException.class)
-    public void instantiationOfDataElementShouldCauseException() throws Exception {
-        DataElement elm = new DataElement(obj);
-
-        HashMap<String, String> correlationProps = new HashMap<>();
-
-        elm.instantiate(new DataObjectInstance(obj, "someone", correlationProps), "owner", correlationProps);
-    }
-
-    @Test
-    public void testDataElementInstantiation() throws Exception {
-        DataElement elm = new DataElement(obj);
-        elm.initialize();
-
-        HashMap<String, String> correlationProps = new HashMap<>();
-        correlationProps.put("customerId", "1234");
-
-        DataElementInstance inst = elm.instantiate(new DataObjectInstance(obj, "someone", correlationProps), "owner",
-                correlationProps);
-
-        assertNotNull(inst);
-    }
     // TODO: 28.10.2016 Add test cases for the different life cycle transitions
 }

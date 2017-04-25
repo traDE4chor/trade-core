@@ -20,7 +20,7 @@ import io.swagger.trade.server.jersey.api.DataDependencyGraphsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import org.trade.core.data.management.DataManager;
+import org.trade.core.data.management.DataManagerFactory;
 import org.trade.core.model.compiler.CompilationException;
 import org.trade.core.model.compiler.CompilationIssue;
 
@@ -51,7 +51,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
                                 "}"))
                         .build();
             } else {
-                org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE
+                org.trade.core.model.data.DataDependencyGraph graph = DataManagerFactory.createDataManager()
                         .registerDataDependencyGraph(
                                 (ResourceTransformationUtils.resource2Model
                                         (dataDependencyGraphData)));
@@ -85,10 +85,10 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataDependencyGraph(graphId);
 
             if (exists) {
-                DataManager.INSTANCE.deleteDataDependencyGraph(graphId);
+                DataManagerFactory.createDataManager().deleteDataDependencyGraph(graphId);
 
                 response = Response.ok().build();
             } else {
@@ -111,7 +111,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         Response response = null;
 
         try {
-            org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE.getDataDependencyGraph(graphId);
+            org.trade.core.model.data.DataDependencyGraph graph = DataManagerFactory.createDataManager().getDataDependencyGraph(graphId);
 
             if (graph != null) {
                 response = Response.ok(graph.getSerializedModel()).build();
@@ -134,7 +134,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response getDataDependencyGraphDirectly(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE.getDataDependencyGraph(graphId);
+        org.trade.core.model.data.DataDependencyGraph graph = DataManagerFactory.createDataManager().getDataDependencyGraph(graphId);
 
         try {
             if (graph != null) {
@@ -174,7 +174,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataDependencyGraph> dataDependencyGraphs = DataManager.INSTANCE
+            List<org.trade.core.model.data.DataDependencyGraph> dataDependencyGraphs = DataManagerFactory.createDataManager()
                     .getAllDataDependencyGraphs
                             (targetNamespace, name, entity);
             int filteredListSize = dataDependencyGraphs.size();
@@ -230,10 +230,10 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response getDataModel(String graphId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataDependencyGraph(graphId);
 
         if (exists) {
-            org.trade.core.model.data.DataDependencyGraph ddg = DataManager.INSTANCE.getDataDependencyGraph
+            org.trade.core.model.data.DataDependencyGraph ddg = DataManagerFactory.createDataManager().getDataDependencyGraph
                     (graphId);
 
             try {
@@ -277,14 +277,14 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
             throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataDependencyGraph(graphId);
 
         if (exists) {
 
-            exists = DataManager.INSTANCE.hasDataModel(dataModelId);
+            exists = DataManagerFactory.createDataManager().hasDataModel(dataModelId);
             if (exists) {
-                org.trade.core.model.data.DataDependencyGraph graph = DataManager.INSTANCE.getDataDependencyGraph(graphId);
-                org.trade.core.model.data.DataModel model = DataManager.INSTANCE.getDataModel(dataModelId);
+                org.trade.core.model.data.DataDependencyGraph graph = DataManagerFactory.createDataManager().getDataDependencyGraph(graphId);
+                org.trade.core.model.data.DataModel model = DataManagerFactory.createDataManager().getDataModel(dataModelId);
 
                 try {
                     // Set the data model to the graph
@@ -314,16 +314,16 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response uploadGraphModel(String graphId, Long contentLength, byte[] graph, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataDependencyGraph(graphId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataDependencyGraph(graphId);
 
         if (exists) {
             // Since we don't support the recompilation (updates) of data dependency graphs, at the moment, this
             // method automatically invokes the compilation of the provided serialized data dependency graph.
             try {
-                DataManager.INSTANCE.setSerializedModelOfDDG(graphId, graph);
+                DataManagerFactory.createDataManager().setSerializedModelOfDDG(graphId, graph);
 
                 // TODO: We need to add the list of issues as part of the response!
-                List<CompilationIssue> issues = DataManager.INSTANCE.compileDataDependencyGraph(graphId, graph);
+                List<CompilationIssue> issues = DataManagerFactory.createDataManager().compileDataDependencyGraph(graphId, graph);
             } catch (CompilationException e) {
                 // TODO: We need some special response type that allows us to forward the list of CompilationIssue's!
                 e.printStackTrace();

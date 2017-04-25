@@ -16,13 +16,11 @@
 
 package io.swagger.trade.server.jersey.api.impl;
 
-import io.swagger.trade.server.jersey.api.ApiResponseMessage;
 import io.swagger.trade.server.jersey.api.DataElementsApiService;
 import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
-import org.trade.core.data.management.DataManager;
-import org.trade.core.model.data.DataObject;
+import org.trade.core.data.management.DataManagerFactory;
 
 import javax.validation.constraints.Min;
 import javax.ws.rs.core.Response;
@@ -40,10 +38,10 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataElement(dataElementId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataElement(dataElementId);
 
             if (exists) {
-                DataManager.INSTANCE.deleteDataElement(dataElementId);
+                DataManagerFactory.createDataManager().deleteDataElement(dataElementId);
 
                 response = Response.ok().build();
             } else {
@@ -65,7 +63,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         Response response = null;
 
         try {
-            List<org.trade.core.model.data.DataElement> dataElements = DataManager.INSTANCE
+            List<org.trade.core.model.data.DataElement> dataElements = DataManagerFactory.createDataManager()
                     .getAllDataElements
                             (name, status);
             int filteredListSize = dataElements.size();
@@ -120,7 +118,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
     public Response getDataElementDirectly(String dataElementId, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        org.trade.core.model.data.DataElement dataElement = DataManager.INSTANCE.getDataElement(dataElementId);
+        org.trade.core.model.data.DataElement dataElement = DataManagerFactory.createDataManager().getDataElement(dataElementId);
 
         try {
             if (dataElement != null) {
@@ -157,11 +155,11 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
     public Response getDataElementInstancesOfDataElement(String dataElementId,  @Min(1) Integer start,  @Min(1) Integer size,  String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManager.INSTANCE.hasDataElement(dataElementId);
+        boolean exists = DataManagerFactory.createDataManager().hasDataElement(dataElementId);
 
         if (exists) {
             try {
-                List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManager.INSTANCE
+                List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManagerFactory.createDataManager()
                         .getAllDataElementInstancesOfDataElement(dataElementId);
                 int filteredListSize = dataElementInstances.size();
 
@@ -222,10 +220,10 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
         Response response = null;
 
         try {
-            boolean exists = DataManager.INSTANCE.hasDataElement(dataElementId);
+            boolean exists = DataManagerFactory.createDataManager().hasDataElement(dataElementId);
 
             if (exists) {
-                org.trade.core.model.data.DataElement value = DataManager.INSTANCE.updateDataElement(
+                org.trade.core.model.data.DataElement value = DataManagerFactory.createDataManager().updateDataElement(
                         dataElementId, dataElement.getName(), dataElement.getType(), dataElement.getContentType());
 
                 DataElementWithLinks result = new DataElementWithLinks();

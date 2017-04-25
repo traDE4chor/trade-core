@@ -16,22 +16,20 @@
 
 package org.trade.core.model.data;
 
-import org.trade.core.model.data.instance.DataObjectInstance;
-import org.trade.core.model.lifecycle.DataElementLifeCycle;
-import org.trade.core.model.lifecycle.DataObjectLifeCycle;
-import org.trade.core.model.lifecycle.LifeCycleException;
 import org.junit.Test;
+import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.utils.ModelStates;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
 
 import static org.junit.Assert.*;
 
 /**
+ * Test class for {@link DataObject} model object.
+ * <p>
  * Created by hahnml on 27.10.2016.
  */
 public class DataObjectTest {
@@ -63,8 +61,6 @@ public class DataObjectTest {
         DataElement elm = new DataElement(obj);
         elm.initialize();
 
-        obj.addDataElement(elm);
-
         assertFalse(obj.getDataElements().isEmpty());
         assertEquals(ModelStates.READY.name(), obj.getState());
     }
@@ -76,7 +72,6 @@ public class DataObjectTest {
         DataElement elm = new DataElement(obj);
         elm.initialize();
 
-        obj.addDataElement(elm);
         obj.deleteDataElement(elm);
 
         assertTrue(obj.getDataElements().isEmpty());
@@ -90,8 +85,6 @@ public class DataObjectTest {
         DataElement elm = new DataElement(obj);
         elm.initialize();
 
-        obj.addDataElement(elm);
-
         obj.delete();
 
         assertNull(obj.getDataElements());
@@ -104,7 +97,6 @@ public class DataObjectTest {
         DataObject obj = new DataObject("modelA", "inputData");
         DataElement elm = new DataElement(obj);
         elm.initialize();
-        obj.addDataElement(elm);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -123,33 +115,6 @@ public class DataObjectTest {
         obj2.archive();
 
         assertEquals(obj2.getState(), ModelStates.ARCHIVED.name());
-    }
-
-    @Test(expected = LifeCycleException.class)
-    public void instantiationOfDataObjectShouldCauseException() throws Exception {
-        DataObject obj = new DataObject("modelA", "inputData");
-
-        HashMap<String, String> correlationProps = new HashMap<>();
-        correlationProps.put("customerId", "1234");
-
-        DataObjectInstance inst = obj.instantiate("owner", correlationProps);
-    }
-
-    @Test
-    public void testDataObjectInstantiation() throws Exception {
-        DataObject obj = new DataObject("modelA", "inputData");
-
-        DataElement elm = new DataElement(obj);
-        elm.initialize();
-
-        obj.addDataElement(elm);
-
-        HashMap<String, String> correlationProps = new HashMap<>();
-        correlationProps.put("customerId", "1234");
-
-        DataObjectInstance inst = obj.instantiate("owner", correlationProps);
-
-        assertNotNull(inst);
     }
 
     // TODO: 28.10.2016 Add test cases for the different life cycle transitions

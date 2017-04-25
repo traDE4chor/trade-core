@@ -17,54 +17,56 @@
 package org.trade.core.model.data;
 
 /**
+ * This interface defines basic methods for the lifecycle management of all model object instances.
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
 public interface ILifeCycleInstanceObject {
     /**
-     * Create the instance object according to its life cycle.
+     * Initialize the instance object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void create() throws Exception;
+    void initialize() throws Exception;
 
     /**
      * Archive the instance object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void archive() throws Exception;
+    void archive() throws Exception;
 
     /**
      * Unarchive the instance object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void unarchive() throws Exception;
+    void unarchive() throws Exception;
 
     /**
      * Delete the instance object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void delete() throws Exception;
+    void delete() throws Exception;
 
     /**
      * @return If the instance object is in state 'CREATED'
      */
-    public boolean isCreated();
+    boolean isCreated();
 
     /**
      * @return If the instance object is in state 'INITIALIZED'
      */
-    public boolean isInitialized();
+    boolean isInitialized();
 
     /**
      * @return If the instance object is in state 'ARCHIVED'
      */
-    public boolean isArchived();
+    boolean isArchived();
 
     /**
      * @return If the instance object is in state 'DELETED'
      */
-    public boolean isDeleted();
+    boolean isDeleted();
 }

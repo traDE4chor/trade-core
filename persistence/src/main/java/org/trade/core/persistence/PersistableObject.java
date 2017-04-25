@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.trade.core.persistence.local;
+package org.trade.core.persistence;
+
+import java.io.Serializable;
 
 /**
- * Created by hahnml on 07.04.2017.
+ * This interface defines basic methods for persistable objects so that they can be stored and loaded by an
+ * {@link IPersistenceProvider}.
+ * <p>
+ * Created by hahnml on 25.04.2017.
  */
-public interface LocalPersistenceProvider {
-    public byte[] loadData(String collectionName, String identifier) throws Exception;
+public interface PersistableObject extends Serializable {
 
-    public void storeData(byte[] data, String collectionName, String identifier) throws Exception;
-
-    public void removeData(String collectionName, String identifier) throws Exception;
+    /**
+     * Provides the identifier of the persistable object.
+     *
+     * @return An ID which uniquely identifies the object.
+     */
+    String getIdentifier();
 }

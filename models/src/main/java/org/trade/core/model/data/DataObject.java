@@ -36,6 +36,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * This class represents a data object within the middleware.
+ * <p>
  * Created by hahnml on 25.10.2016.
  */
 @Entity("dataObjects")
@@ -44,7 +46,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     private static final long serialVersionUID = 2549294173554279537L;
 
     @Transient
-    Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataObject");
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataObject");
 
     private String entity = null;
 
@@ -116,7 +118,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     /**
      * Set the entity. Only allowed if the data object is not part of a data model.
      *
-     * @param entity
+     * @param entity the entity to set
      */
     public void setEntity(String entity) {
         if (this.model == null) {
@@ -136,7 +138,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
     /**
      * Set the name. Only allowed if the data object is not part of a data model.
      *
-     * @param name
+     * @param name the name to set
      */
     public void setName(String name) {
         if (this.model == null) {
@@ -241,13 +243,15 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
      * @param element The element to add.
      * @throws LifeCycleException the life cycle exception
      */
-    public void addDataElement(DataElement element) throws LifeCycleException {
+    void addDataElement(DataElement element) throws LifeCycleException {
         if (element != null) {
             // Only try to add the data element if the data object is not archived or deleted.
             if (this.isInitial() || this.isReady()) {
                 // Check if the data element is ready, else reject
                 if (element.isReady()) {
-                    this.dataElements.add(element);
+                    if (!this.dataElements.contains(element)) {
+                        this.dataElements.add(element);
+                    }
 
                     // If the data object is in INITIAL state, we trigger the transition to READY since it is now ready for
                     // instantiation.
@@ -537,7 +541,6 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
 
     /**
      * Removes the data object instance from this data object.
-     *
      */
     public void removeDataObjectInstance(DataObjectInstance instance) {
         // Check if the object instance belongs to this data object
