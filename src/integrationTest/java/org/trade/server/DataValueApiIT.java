@@ -154,8 +154,6 @@ public class DataValueApiIT {
             dvApiInstance.deleteDataValue(result.getId());
         } catch (ApiException e) {
             e.printStackTrace();
-
-            assertEquals(404, e.getCode());
         }
     }
 
