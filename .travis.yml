@@ -1,8 +1,11 @@
 language: java
 
+jdk:
+  - oraclejdk8
+
 script:
-- gradle check
-- gradle integrationTest
+- ./gradlew check
+- ./gradlew integrationTest
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
