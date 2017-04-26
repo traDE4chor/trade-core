@@ -27,7 +27,7 @@ task generateSources {
 
 // Load the specified port number from the config.properties file
 Properties properties = new Properties()
-properties.load(project.parent.file('/config/config.properties').newDataInputStream())
+properties.load(file('../config/config.properties').newDataInputStream())
 def httpPort = properties.getProperty('server.port.http')
 
 // Copy the swagger.json file to the static swaggerui resources to make it accessible
