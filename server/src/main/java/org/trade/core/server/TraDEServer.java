@@ -25,6 +25,10 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.trade.core.data.management.DataManagerFactory;
+import org.trade.core.data.management.IDataManager;
+import org.trade.core.notification.management.INotificationManager;
+import org.trade.core.notification.management.NotificationManagerFactory;
 import org.trade.core.utils.TraDEProperties;
 
 import java.io.File;
@@ -36,6 +40,10 @@ public class TraDEServer {
 
     private Server server = null;
 
+    private IDataManager dataManager = null;
+
+    private INotificationManager notificationManager = null;
+
     public void startHTTPServer(TraDEProperties properties) throws Exception {
         QueuedThreadPool threadPool = new QueuedThreadPool(properties.getServerMaxNumberOfThreads(), 10);
         server = new Server(threadPool);
@@ -43,6 +51,8 @@ public class TraDEServer {
         setupConnectors(properties);
 
         setupHandlers(properties);
+
+        initializeManagers();
 
         server.start();
     }
@@ -135,5 +145,10 @@ public class TraDEServer {
         ContextHandlerCollection handlers = new ContextHandlerCollection();
         handlers.setHandlers(new Handler[]{apiContext, docContext});
         server.setHandler(handlers);
+    }
+
+    private void initializeManagers() {
+        dataManager = DataManagerFactory.createDataManager();
+        notificationManager = NotificationManagerFactory.createNotificationManager();
     }
 }

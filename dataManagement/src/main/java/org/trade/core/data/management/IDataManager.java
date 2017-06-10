@@ -147,7 +147,7 @@ public interface IDataManager extends TraDEEventListener {
     DataValue getDataValue(String dataValueId);
 
     /**
-     * Gets all data dependency graphs based on the provIDed criteria.
+     * Gets all data dependency graphs based on the provided criteria.
      *
      * @param targetNamespace the target namespace to search for
      * @param name            the name to search for
@@ -157,7 +157,7 @@ public interface IDataManager extends TraDEEventListener {
     List<DataDependencyGraph> getAllDataDependencyGraphs(String targetNamespace, String name, String entity);
 
     /**
-     * Gets all data models based on the provIDed criteria.
+     * Gets all data models based on the provided criteria.
      *
      * @param targetNamespace the target namespace to search for
      * @param name            the name to search for
@@ -465,4 +465,5 @@ public interface IDataManager extends TraDEEventListener {
      * @throws Exception the exception
      */
     void deleteDataValue(String dataValueId) throws Exception;
+
 }

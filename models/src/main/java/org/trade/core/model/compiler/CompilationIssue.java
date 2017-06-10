@@ -17,6 +17,9 @@
 package org.trade.core.model.compiler;
 
 /**
+ * This class represents an issue identified during compilation of model objects. For example, if an required
+ * attribute value is missing.
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
 public class CompilationIssue {

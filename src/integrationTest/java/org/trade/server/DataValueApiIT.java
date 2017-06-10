@@ -165,6 +165,7 @@ public class DataValueApiIT {
         dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
 
         dataStore.getCollection("dataValues").drop();
+        dataStore.getCollection("notifications").drop();
 
         dataStoreClient.close();
 

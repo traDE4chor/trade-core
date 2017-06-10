@@ -59,7 +59,7 @@ ext {
 }
 
 dependencies {
-    compile project (':utils'), project(':dataManagement')
+    compile project (':utils'), project(':dataManagement'), project(':notification')
 
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.14.v20161028'
     compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.3.14.v20161028'

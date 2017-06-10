@@ -84,7 +84,7 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
             if (exists) {
                 DataManagerFactory.createDataManager().deleteDataObject(dataObjectId);
 
-                response = Response.ok().build();
+                response = Response.status(Response.Status.NO_CONTENT).build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                         .singletonList(dataObjectId)).message("A data object with id = '" + dataObjectId + "' " +

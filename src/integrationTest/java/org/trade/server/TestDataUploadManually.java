@@ -21,6 +21,8 @@ import io.swagger.trade.client.jersey.api.DataDependencyGraphApi;
 import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataDependencyGraphData;
 import io.swagger.trade.client.jersey.model.DataDependencyGraphWithLinks;
+import io.swagger.trade.client.jersey.model.DataValue;
+import io.swagger.trade.client.jersey.model.DataValueData;
 
 import java.io.IOException;
 
@@ -33,7 +35,8 @@ import static org.junit.Assert.assertNotNull;
 public class TestDataUploadManually {
 
     public static void main(String[] args) {
-        createAndUploadDataDependencyGraphTest();
+        testDataValueApi();
+        //createAndUploadDataDependencyGraphTest();
     }
 
     private static void createAndUploadDataDependencyGraphTest() {
@@ -69,24 +72,26 @@ public class TestDataUploadManually {
         }
     }
 
-    private void testDataValueApi() {
+    private static void testDataValueApi() {
         DataValueApi dvApiInstance = new DataValueApi();
         dvApiInstance.getApiClient().setBasePath("http://localhost:8081/api");
 
         try {
-            String idOfDataValue1 = "";
-            String idOfDataValue2 = "";
+            // Add a new data value
+            DataValueData value = new DataValueData();
 
-            byte[] data1 = TestUtils.getData("data.dat");
+            value.setName("inputData");
+            value.setCreatedBy("hahnml");
+            value.setType("binary");
+            value.setContentType("text/plain");
 
-            // Push data to first data value
-            dvApiInstance.pushDataValue(idOfDataValue1, new Long(data1.length), data1);
+            DataValue result = dvApiInstance.addDataValue(value);
+            String idOfDataValue = result.getId();
 
-            byte[] data2 = TestUtils.getData("video.mp4");
+            byte[] data = TestUtils.getData("video.mp4");
 
             // Push data to second data value
-            dvApiInstance.pushDataValue(idOfDataValue2, new Long(data1.length), data2);
-
+            dvApiInstance.pushDataValue(idOfDataValue, new Long(data.length), data);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ApiException e) {

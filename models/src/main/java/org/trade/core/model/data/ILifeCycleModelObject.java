@@ -26,39 +26,39 @@ public interface ILifeCycleModelObject {
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void archive() throws Exception;
+    void archive() throws Exception;
 
     /**
      * Unarchive the model object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void unarchive() throws Exception;
+    void unarchive() throws Exception;
 
     /**
      * Delete the model object according to its life cycle.
      *
      * @throws Exception any exception thrown during execution of the method
      */
-    public void delete() throws Exception;
+    void delete() throws Exception;
 
     /**
      * @return If the model object is in state 'INITIAL'
      */
-    public boolean isInitial();
+    boolean isInitial();
 
     /**
      * @return If the model object is in state 'READY'
      */
-    public boolean isReady();
+    boolean isReady();
 
     /**
      * @return If the model object is in state 'ARCHIVED'
      */
-    public boolean isArchived();
+    boolean isArchived();
 
     /**
      * @return If the model object is in state 'DELETED'
      */
-    public boolean isDeleted();
+    boolean isDeleted();
 }

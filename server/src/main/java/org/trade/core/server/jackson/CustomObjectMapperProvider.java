@@ -44,6 +44,7 @@ public class CustomObjectMapperProvider implements ContextResolver<ObjectMapper>
 
     /**
      * Set the date format for JSON (de)serialization with Date properties.
+     * @param dateFormat to set
      */
     public void setDateFormat(DateFormat dateFormat) {
         mapper.setDateFormat(dateFormat);

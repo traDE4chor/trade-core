@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Abstract class for model compilation functionality.
+ * <p>
  * Created by hahnml on 10.04.2017.
  */
 public class ACompiler {

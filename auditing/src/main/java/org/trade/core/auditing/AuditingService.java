@@ -17,13 +17,16 @@ package org.trade.core.auditing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.auditing.events.ATraDEEvent;
 import org.trade.core.utils.TraDEProperties;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
+ * Singleton implementation of the {@link IAuditingService} interface which provides functionality for the management of
+ * event listeners and to fire events.
+ * <p>
  * Created by hahnml on 21.04.2017.
  */
 public enum AuditingService implements IAuditingService {
@@ -67,7 +70,7 @@ public enum AuditingService implements IAuditingService {
     }
 
     @Override
-    public void fireEvent(TraDEEvent event) {
+    public void fireEvent(ATraDEEvent event) {
         // Trigger the event on all registered event listeners
         for (TraDEEventListener l : eventListeners) {
             l.onEvent(event);

@@ -273,7 +273,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
             if (exists) {
                 DataManagerFactory.createDataManager().deleteDataValue(dataValueId);
 
-                response = Response.ok().build();
+                response = Response.status(Response.Status.NO_CONTENT).build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                         .singletonList(dataValueId)).message("A Data Value with ID='" + dataValueId + "' is " +

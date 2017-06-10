@@ -19,15 +19,15 @@ package org.trade.core.data.management.simple;
 import org.trade.core.auditing.AuditingServiceFactory;
 import org.trade.core.auditing.events.InstanceStateChangeEvent;
 import org.trade.core.auditing.events.ModelStateChangeEvent;
-import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.auditing.events.ATraDEEvent;
 import org.trade.core.data.management.IDataManager;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.data.*;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.persistence.PersistableHashMap;
-import org.trade.core.utils.InstanceEvents;
-import org.trade.core.utils.ModelEvents;
+import org.trade.core.utils.events.InstanceEvents;
+import org.trade.core.utils.events.ModelEvents;
 import org.trade.core.utils.TraDEProperties;
 
 import java.util.Collections;
@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 public enum SimpleDataManager implements IDataManager {
     INSTANCE;
 
-    private SimpleDataManager() {
+    SimpleDataManager() {
         AuditingServiceFactory.createAuditingService().registerEventListener(this);
     }
 
@@ -691,7 +691,7 @@ public enum SimpleDataManager implements IDataManager {
 
     // Implementation of IAuditingService methods
     @Override
-    public void onEvent(TraDEEvent event) {
+    public void onEvent(ATraDEEvent event) {
         // TODO: 21.04.2017 Handle events!
         switch (event.getType()) {
             case dataHandling:

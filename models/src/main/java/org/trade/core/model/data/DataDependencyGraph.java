@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DDGCompiler;
@@ -29,13 +30,13 @@ import org.trade.core.model.lifecycle.DataDependencyGraphLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
-import org.trade.core.utils.ModelEvents;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.events.ModelEvents;
+import org.trade.core.utils.states.ModelStates;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,7 +46,7 @@ import java.util.List;
  * Created by hahnml on 10.04.2017.
  */
 @Entity("dataDependencyGraphs")
-public class DataDependencyGraph extends BaseResource implements Serializable, ILifeCycleModelObject {
+public class DataDependencyGraph extends ABaseResource implements ILifeCycleModelObject {
 
     private static final long serialVersionUID = 2549294173554279537L;
 
@@ -177,10 +178,8 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     }
 
     public byte[] getSerializedModel() throws Exception {
-        byte[] result = this.persistProv.loadBinaryData(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION,
+        return this.persistProv.loadBinaryData(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION,
                 getIdentifier());
-
-        return result;
     }
 
     /**
@@ -219,6 +218,7 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
      * Compile the serialized data dependency graph to generate and expose the specified data model with its data
      * objects and data elements.
      *
+     * @param data the serialized data dependency graph to compile
      * @return A list of issues identified during the compilation of the data dependency graph
      * @throws Exception An exception thrown during the execution of this method
      */
@@ -264,7 +264,9 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     @Override
     public void archive() throws Exception {
         if (this.isReady()) {
-            // TODO: 10.04.2017 Implement 
+            // TODO: 10.04.2017 Implement
+
+            this.lifeCycle.triggerEvent(this, ModelEvents.archive);
         } else {
             logger.info("The data dependency graph ({}) can not be archived because it is in state '{}'.", this
                             .getIdentifier(),
@@ -278,7 +280,9 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
     @Override
     public void unarchive() throws Exception {
         if (this.isArchived()) {
-            // TODO: 10.04.2017 Implement 
+            // TODO: 10.04.2017 Implement
+
+            this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
         } else {
             logger.info("The data dependency graph ({}) can not be un-archived because it is in state '{}'.", this
                             .getIdentifier(),
@@ -360,4 +364,27 @@ public class DataDependencyGraph extends BaseResource implements Serializable, I
         }
     }
 
+    // Special implementation for this class since the getSerializedModel() method should not invoked
+    public String toString() {
+        StringBuilder sb = new StringBuilder(resourceName(this) + ":");
+
+        Method[] methods = getClass().getMethods();
+        for (Method method : methods) {
+            if (method.getName().startsWith("get") && !method.getName().equals("getSerializedModel")
+                    && method.getParameterTypes().length == 0) {
+                try {
+                    String field = method.getName().substring(3);
+                    Object value = method.invoke(this);
+                    if (value == null) {
+                        continue;
+                    }
+                    sb.append("\n\t").append(field).append(" = ")
+                            .append(value.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return sb.toString();
+    }
 }

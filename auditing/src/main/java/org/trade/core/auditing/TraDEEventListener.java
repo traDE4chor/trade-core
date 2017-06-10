@@ -15,10 +15,11 @@
 
 package org.trade.core.auditing;
 
-import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.auditing.events.ATraDEEvent;
 import org.trade.core.utils.TraDEProperties;
 
 /**
+ * This interface specifies the common methods of a TraDE event listener implementation.
  * Created by hahnml on 21.04.2017.
  */
 public interface TraDEEventListener {
@@ -26,16 +27,16 @@ public interface TraDEEventListener {
     /**
      * Handle an event.
      *
-     * @param event
+     * @param event to handle
      */
-    void onEvent(TraDEEvent event);
+    void onEvent(ATraDEEvent event);
 
 
     /**
      * Startup the event listener after its registration and pass available properties which can be used to access
      * configuration data such as database information.
      *
-     * @param properties
+     * @param properties of the middleware
      */
     void startup(TraDEProperties properties);
 

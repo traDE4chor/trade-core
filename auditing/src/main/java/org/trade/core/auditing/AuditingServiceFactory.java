@@ -18,6 +18,8 @@ package org.trade.core.auditing;
 import org.trade.core.utils.TraDEProperties;
 
 /**
+ * A service factory for {@link IAuditingService} implementations.
+ * <p>
  * Created by hahnml on 21.04.2017.
  */
 public class AuditingServiceFactory {

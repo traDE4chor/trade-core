@@ -41,19 +41,28 @@ public class TraDEProperties extends Properties {
     public static final String PROPERTY_CACHE_DB_NAME = "cache.db.name";
 
     public enum DataPersistenceMode {
-        FILE, DB
+        FILE, DB, CUSTOM
     }
 
     public enum DeploymentMode {
-        SINGLE_NODE, MULTI_NODE
+        SINGLE_NODE, MULTI_NODE, CUSTOM
+    }
+
+    public enum NotificationMode {
+        CAMEL, CUSTOM
     }
 
     public static final String PROPERTY_DEPLOYMENT_MODE = "deployment.mode";
+    public static final String PROPERTY_DATA_MANAGER_CLASS = "data.manager.class";
+
+    public static final String PROPERTY_NOTIFICATION_MODE = "notification.mode";
+    public static final String PROPERTY_NOTIFICATION_MANAGER_CLASS = "notification.manager.class";
 
     public static final String PROPERTY_DATA_PERSIST_MODE = "data.persistence.mode";
     public static final String PROPERTY_DATA_PERSIST_DB_URL = "data.persistence.db.url";
     public static final String PROPERTY_DATA_PERSIST_DB_NAME = "data.persistence.db.name";
     public static final String PROPERTY_DATA_PERSIST_FILE_DIRECTORY = "data.persistence.file.directory";
+    public static final String PROPERTY_DATA_PERSIST_PROVIDER_CLASS = "data.persistence.provider.class";
 
     public static final String PROPERTY_HTTP_SERVER_PORT = "server.port.http";
     public static final String PROPERTY_HTTPS_SERVER_PORT = "server.port.https";
@@ -80,12 +89,28 @@ public class TraDEProperties extends Properties {
         return getProperty(PROPERTY_CACHE_DB_NAME, "tradeCacheDB");
     }
 
+    public DeploymentMode getDeploymentMode() {
+        return DeploymentMode.valueOf(getProperty(PROPERTY_DEPLOYMENT_MODE, "SINGLE_NODE"));
+    }
+
+    public String getDataManagerClass() {
+        return getProperty(PROPERTY_DATA_MANAGER_CLASS, "org.trade.core.data.management.simple.SimpleDataManager");
+    }
+
+    public NotificationMode getNotificationMode() {
+        return NotificationMode.valueOf(getProperty(PROPERTY_NOTIFICATION_MODE, "CAMEL"));
+    }
+
+    public String getNotificationManagerClass() {
+        return getProperty(PROPERTY_NOTIFICATION_MANAGER_CLASS, "org.trade.core.notification.management.camel.CamelNotificationManager");
+    }
+
     public DataPersistenceMode getDataPersistenceMode() {
         return DataPersistenceMode.valueOf(getProperty(PROPERTY_DATA_PERSIST_MODE, "FILE"));
     }
 
-    public DeploymentMode getDeploymentMode() {
-        return DeploymentMode.valueOf(getProperty(PROPERTY_DEPLOYMENT_MODE, "SINGLE_NODE"));
+    public String getDataPersistProviderClass() {
+        return getProperty(PROPERTY_DATA_PERSIST_PROVIDER_CLASS, "org.trade.core.persistence.local.filesystem.FileSystemPersistence");
     }
 
     public String getDataPersistenceDbUrl() {

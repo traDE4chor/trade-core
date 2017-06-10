@@ -19,7 +19,6 @@ package org.trade.core.model.lifecycle.actions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.RetryException;
-import org.statefulj.fsm.model.Action;
 import org.trade.core.auditing.AuditingServiceFactory;
 import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.model.data.DataModel;
@@ -27,17 +26,17 @@ import org.trade.core.model.data.DataModel;
 /**
  * Created by hahnml on 07.04.2017.
  */
-public class DataModelLogAction implements Action<DataModel> {
+public class DataModelLogAction extends AModelLogAction<DataModel> {
 
     @Override
     public void execute(DataModel stateful, String event, Object... args) throws RetryException {
         Logger logger = LoggerFactory.getLogger(stateful.getClass().getCanonicalName());
 
-        logger.info("State of data model ({}) changed to '{}' on event '{}'.", stateful.getIdentifier(), stateful.getState()
-                , event);
+        logger.info("State of data model ({}) changed from '{}' to '{}' on event '{}'.", stateful.getIdentifier(),
+                this.oldState, stateful.getState(), event);
 
         AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(stateful.getIdentifier(),
-                DataModel.class, stateful.getState(), event));
+                DataModel.class, this.oldState, stateful.getState(), event));
     }
 
 }

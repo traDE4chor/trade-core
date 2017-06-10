@@ -44,7 +44,7 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
             if (exists) {
                 DataManagerFactory.createDataManager().deleteDataObjectInstance(instanceId);
 
-                response = Response.ok().build();
+                response = Response.status(Response.Status.NO_CONTENT).build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                         .singletonList(instanceId)).message("A data object instance with id = '" + instanceId +

@@ -18,7 +18,7 @@ package org.trade.core.model.data;
 
 import org.junit.Test;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.states.ModelStates;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

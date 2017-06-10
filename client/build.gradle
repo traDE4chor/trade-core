@@ -17,6 +17,7 @@ task generateClient {
                 'modelPackage'     : 'io.swagger.trade.client.jersey.model',
                 'apiPackage'       : 'io.swagger.trade.client.jersey.api',
                 'library'          : 'jersey2',
+                'jackson'          : 'true',
                 'serializableModel': 'true',
                 'dateLibrary'      : 'java8'
         ]

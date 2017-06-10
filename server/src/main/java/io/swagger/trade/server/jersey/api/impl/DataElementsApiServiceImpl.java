@@ -43,7 +43,7 @@ public class DataElementsApiServiceImpl extends DataElementsApiService {
             if (exists) {
                 DataManagerFactory.createDataManager().deleteDataElement(dataElementId);
 
-                response = Response.ok().build();
+                response = Response.status(Response.Status.NO_CONTENT).build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                         .singletonList(dataElementId)).message("A data element with id = '" + dataElementId + "' " +

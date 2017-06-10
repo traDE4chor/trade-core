@@ -16,9 +16,18 @@
 
 package io.swagger.trade.server.jersey.api.util;
 
+import io.swagger.trade.server.jersey.api.impl.LinkUtils;
 import io.swagger.trade.server.jersey.model.*;
+import org.trade.core.auditing.events.EventFilterInformation;
+import org.trade.core.data.management.DataManagerFactory;
+import org.trade.core.data.management.IDataManager;
+import org.trade.core.model.ABaseResource;
+import org.trade.core.notifiers.INotifierService;
 
+import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by hahnml on 26.01.2017.
@@ -66,24 +75,110 @@ public class ResourceTransformationUtils {
     }
 
     public static org.trade.core.model.data.DataDependencyGraph resource2Model(DataDependencyGraphData dataDependencyGraphData) {
-        org.trade.core.model.data.DataDependencyGraph graph = new org.trade.core.model.data.DataDependencyGraph
+        return new org.trade.core.model.data.DataDependencyGraph
                 (dataDependencyGraphData.getEntity(), dataDependencyGraphData.getName());
-
-        return graph;
     }
 
     public static org.trade.core.model.data.DataModel resource2Model(DataModelData dataModelData) {
-        org.trade.core.model.data.DataModel model = new org.trade.core.model.data.DataModel
+        return new org.trade.core.model.data.DataModel
                 (dataModelData.getEntity(), dataModelData.getName());
-
-        return model;
     }
 
     public static org.trade.core.model.data.DataObject resource2Model(DataObjectData dataObjectData) {
-        org.trade.core.model.data.DataObject object = new org.trade.core.model.data.DataObject(dataObjectData
+        return new org.trade.core.model.data.DataObject(dataObjectData
                 .getEntity(), dataObjectData.getName());
+    }
 
-        return object;
+    public static org.trade.core.model.notification.Notification resource2Model(UriInfo uriInfo, NotificationData
+            notificationData) {
+
+        ABaseResource modelResource = null;
+        String resourceURL = null;
+        if (notificationData.getIdOfResourceToObserve() != null) {
+            String resourceId = notificationData.getIdOfResourceToObserve();
+
+            modelResource = resolveModelResource(resourceId, notificationData.getTypeOfResourceToObserve());
+
+            // Try to resolve the correct resource URL
+            resourceURL = LinkUtils.resolveResourceURI(uriInfo, modelResource);
+        } else if (notificationData.getTypeOfResourceToObserve() != null) {
+            // Try to resolve the URL of the collection of the specified resource type, e.g., the collection of data
+            // objects
+            resourceURL = LinkUtils.resolveResourceCollectionURI(uriInfo, notificationData.getTypeOfResourceToObserve());
+        }
+
+        org.trade.core.model.notification.Notification notification = null;
+
+        if (modelResource != null) {
+            notification = new org.trade.core.model.notification
+                    .Notification(notificationData.getName(), modelResource, resourceURL);
+        } else {
+            notification = new org.trade.core.model.notification
+                    .Notification(notificationData.getName());
+            notification.setResourceURL(resourceURL);
+        }
+
+        notification.setSelectedNotifierServiceId(notificationData.getSelectedNotifierServiceId());
+        notification.setNotifierParameters(resource2Model(notificationData.getNotifierParameterValues()));
+        notification.setResourceFilters(resource2Model(notificationData.getResourceFilters()));
+
+        return notification;
+    }
+
+    public static org.trade.core.model.ABaseResource resolveModelResource(String resourceId, ResourceTypeEnum
+            resourceType) {
+        ABaseResource modelResource = null;
+
+        if (resourceId != null) {
+            // Resolve model object through the id and the type of object (enum constants equal model class names)
+            IDataManager mgr = DataManagerFactory.createDataManager();
+
+            switch (resourceType) {
+                case DATADEPENDENCYGRAPH:
+                    modelResource = mgr.getDataDependencyGraph(resourceId);
+                    break;
+                case DATAMODEL:
+                    modelResource = mgr.getDataModel(resourceId);
+                    break;
+                case DATAOBJECT:
+                    modelResource = mgr.getDataObject(resourceId);
+                    break;
+                case DATAELEMENT:
+                    modelResource = mgr.getDataElement(resourceId);
+                    break;
+                case DATAOBJECTINSTANCE:
+                    modelResource = mgr.getDataObjectInstance(resourceId);
+                    break;
+                case DATAELEMENTINSTANCE:
+                    modelResource = mgr.getDataElementInstance(resourceId);
+                    break;
+                case DATAVALUE:
+                    modelResource = mgr.getDataValue(resourceId);
+                    break;
+            }
+        }
+
+        return modelResource;
+    }
+
+    public static Map<String, String> resource2Model(NotifierServiceParameterArray notifierParameterValues) {
+        Map<String, String> result = new HashMap<>();
+
+        for (NotifierServiceParameter notifierParameterValue : notifierParameterValues) {
+            result.put(notifierParameterValue.getParameterName(), notifierParameterValue.getValue());
+        }
+
+        return result;
+    }
+
+    public static Map<String, String> resource2Model(ResourceEventFilterArray resourceFilters) {
+        Map<String, String> result = new HashMap<>();
+
+        for (ResourceEventFilter resourceFilter : resourceFilters) {
+            result.put(resourceFilter.getFilterName(), resourceFilter.getFilterValue());
+        }
+
+        return result;
     }
 
     public static DataDependencyGraph model2Resource(org.trade.core.model.data.DataDependencyGraph graph) {
@@ -162,6 +257,97 @@ public class ResourceTransformationUtils {
         return result;
     }
 
+    public static Notification model2Resource(org.trade.core.model.notification.Notification notification) {
+        Notification result = new Notification();
+
+        result.setId(notification.getIdentifier());
+        result.setIdOfResourceToObserve(notification.getResource() != null ? notification.getResource().getIdentifier
+                () : null);
+        result.setName(notification.getName());
+        result.setNotifierParameterValues(model2ResourceNotifierParams(notification.getNotifierParameters()));
+        result.setResourceFilters(model2ResourceResourceFilters(notification.getResourceFilters()));
+        result.setSelectedNotifierServiceId(notification.getSelectedNotifierServiceId());
+
+        return result;
+    }
+
+    private static NotifierServiceParameterArray model2ResourceNotifierParams(Map<String, String> notifierParameters) {
+        NotifierServiceParameterArray result = new NotifierServiceParameterArray();
+
+        for (String key : notifierParameters.keySet()) {
+            NotifierServiceParameter param = new NotifierServiceParameter();
+
+            param.setParameterName(key);
+            param.setValue(notifierParameters.get(key));
+
+            result.add(param);
+        }
+
+        return result;
+    }
+
+    private static ResourceEventFilterArray model2ResourceResourceFilters(Map<String, String> resourceFilters) {
+        ResourceEventFilterArray result = new ResourceEventFilterArray();
+
+        for (String key : resourceFilters.keySet()) {
+            ResourceEventFilter param = new ResourceEventFilter();
+
+            param.setFilterName(key);
+            param.setFilterValue(resourceFilters.get(key));
+
+            result.add(param);
+        }
+
+        return result;
+    }
+
+    public static NotifierService model2Resource(INotifierService notifierService) {
+        NotifierService service = new NotifierService();
+
+        service.setId(notifierService.getNotifierServiceId());
+        service.setParameters(model2ResourceNotifierServiceParams(notifierService
+                .getAvailableNotifierServiceParametersAndDescriptions()));
+
+        return service;
+    }
+
+    public static ResourceEventFilterDescriptionArray model2Resource(List<EventFilterInformation> matchingFilters) {
+        ResourceEventFilterDescriptionArray result = new ResourceEventFilterDescriptionArray();
+
+        for (EventFilterInformation matchingFilter : matchingFilters) {
+            result.add(model2Resource(matchingFilter));
+        }
+
+        return result;
+    }
+
+    public static ResourceEventFilterDescription model2Resource(EventFilterInformation matchingFilter) {
+        ResourceEventFilterDescription result = new ResourceEventFilterDescription();
+
+        result.setEventType(matchingFilter.getEventType());
+        result.setFilterName(matchingFilter.getFilterName());
+        result.setDescription(matchingFilter.getDescription());
+        result.setValueDomainConstraints(matchingFilter.getConstrainedValueDomain());
+
+        return result;
+    }
+
+    private static NotifierServiceParameterDescriptionArray model2ResourceNotifierServiceParams(Map<String, String>
+                                                                                                        parameterDescriptions) {
+        NotifierServiceParameterDescriptionArray result = new NotifierServiceParameterDescriptionArray();
+
+        for (String key : parameterDescriptions.keySet()) {
+            NotifierServiceParameterDescription param = new NotifierServiceParameterDescription();
+
+            param.setParameterName(key);
+            param.setDescription(parameterDescriptions.get(key));
+
+            result.add(param);
+        }
+
+        return result;
+    }
+
     public static HashMap<String, String> resource2Model(CorrelationPropertyArray correlationProperties) {
         HashMap<String, String> result = new HashMap<>();
 
@@ -196,7 +382,7 @@ public class ResourceTransformationUtils {
             return StatusEnum.READY;
         }
 
-        return null;
+        return StatusEnum.CREATED;
     }
 
     public static InstanceStatusEnum string2InstanceStatus(String value) {
@@ -208,6 +394,6 @@ public class ResourceTransformationUtils {
             return InstanceStatusEnum.INITIALIZED;
         }
 
-        return null;
+        return InstanceStatusEnum.CREATED;
     }
 }

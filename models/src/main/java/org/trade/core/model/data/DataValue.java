@@ -22,18 +22,19 @@ import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.lifecycle.DataValueLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
-import org.trade.core.utils.InstanceEvents;
-import org.trade.core.utils.InstanceStates;
+import org.trade.core.utils.events.InstanceEvents;
+import org.trade.core.utils.states.InstanceStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
  * Created by hahnml on 26.10.2016.
  */
 @Entity("dataValues")
-public class DataValue extends BaseResource implements Serializable, ILifeCycleInstanceObject {
+public class DataValue extends ABaseResource implements ILifeCycleInstanceObject {
 
     private static final long serialVersionUID = -1774719861199414867L;
 
@@ -193,9 +194,7 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
     }
 
     public byte[] getData() throws Exception {
-        byte[] result = this.persistProv.loadBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
-
-        return result;
+        return this.persistProv.loadBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
     }
 
     public void setData(byte[] data, long size) throws Exception {
@@ -274,7 +273,7 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
      */
     public DataElementInstance getDataElementInstanceById(String identifier) {
         Optional<DataElementInstance> opt = this.dataElementInstances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
-        return opt.isPresent() ? opt.get() : null;
+        return opt.orElse(null);
     }
 
     @Override
@@ -309,11 +308,15 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
     @Override
     public void archive() throws Exception {
         // TODO: Add logic for archiving data values. Only archive a data value if it is not used by any existing (non-archived) data element instance!
+
+        this.lifeCycle.triggerEvent(this, InstanceEvents.archive);
     }
 
     @Override
     public void unarchive() throws Exception {
         // TODO: Add logic for unarchiving data values.
+
+        this.lifeCycle.triggerEvent(this, InstanceEvents.unarchive);
     }
 
     @Override
@@ -323,6 +326,9 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
             // Delete the associated data and destroy the persistence provider
             this.persistProv.deleteBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
             this.persistProv.destroyProvider();
+
+            // Trigger the delete event for the data value
+            this.lifeCycle.triggerEvent(this, InstanceEvents.delete);
         } else {
             // If the data value is used by any data element instance, we deny its deletion
             logger.warn("Someone tried to delete data value ({}) which is used by '{}' data element instances. " +
@@ -372,5 +378,29 @@ public class DataValue extends BaseResource implements Serializable, ILifeCycleI
             logger.error("Class not found during deserialization of data value '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data value.");
         }
+    }
+
+    // Special implementation for this class since the getData() method should not invoked
+    public String toString() {
+        StringBuilder sb = new StringBuilder(resourceName(this) + ":");
+
+        Method[] methods = getClass().getMethods();
+        for (Method method : methods) {
+            if (method.getName().startsWith("get") && !method.getName().equals("getData")
+                    && method.getParameterTypes().length == 0) {
+                try {
+                    String field = method.getName().substring(3);
+                    Object value = method.invoke(this);
+                    if (value == null) {
+                        continue;
+                    }
+                    sb.append("\n\t").append(field).append(" = ")
+                            .append(value.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return sb.toString();
     }
 }

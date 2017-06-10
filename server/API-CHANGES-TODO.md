@@ -9,7 +9,7 @@
     marked as not being *required*? 
 
 # General API ToDos
-  * [ ] Add '500 Server Error' where applicable and useful
+  * [ ] Improve all operation definitions so that each of them has a short **summary and a description**
   * [ ] Synchronize and align all descriptions
   * [ ] Improve all methods/definitions regarding the creation and handling of DataObject and DataElement instances!
   * [ ] Introduce methods for the management of 'links' between Data Element Instances and Data Values

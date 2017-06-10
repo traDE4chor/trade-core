@@ -24,14 +24,16 @@ import com.mongodb.MongoClientURI;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
-import org.trade.core.model.data.BaseResource;
+import org.trade.core.model.ABaseResource;
 
 import java.util.*;
 
 /**
+ * Abstract class for the persistence of TraDE model objects ({@link ABaseResource}) for Hazelcast maps.
+ * <p>
  * Created by hahnml on 29.11.2016.
  */
-public abstract class AMongoStore<T extends BaseResource> implements MapStore<String, T>, MapLoaderLifecycleSupport {
+public abstract class AMongoStore<T extends ABaseResource> implements MapStore<String, T>, MapLoaderLifecycleSupport {
 
     private Datastore store;
 

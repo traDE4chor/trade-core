@@ -1,3 +1,26 @@
+ext {
+    camelVersion = '2.18.3'
+    activeMQVersion = '5.14.5'
+    freemarkerVersion = '2.3.26-incubating'
+    commonsIOVersion = '2.5'
+}
+
 dependencies {
+    compile group: 'org.apache.camel', name: 'camel-core', version: "$camelVersion"
+
+    // Add some Camel components by default to enable their use in notifications
+
+    // Enable the notification by sending a message over HTTP (REST & SOAP)
+    compile group: 'org.apache.camel', name: 'camel-http', version: "$camelVersion"
+
+    // Enabling the notification by sending a message over JMS using ActiveMQ
+    compile group: 'org.apache.camel', name: 'camel-jms', version: "$camelVersion"
+    compile group: 'org.apache.activemq', name: 'activemq-camel', version: "$activeMQVersion"
+
+    // We use Apache Freemarker template engine to generate notification messages
+    compile group: 'org.freemarker', name: 'freemarker', version: "$freemarkerVersion"
+
+    compile group: 'commons-io', name: 'commons-io', version: "$commonsIOVersion"
+
     compile project(':models')
 }

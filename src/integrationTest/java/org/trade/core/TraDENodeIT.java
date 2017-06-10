@@ -37,6 +37,7 @@ import org.mongodb.morphia.Morphia;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.DataValue;
+import org.trade.core.persistence.local.mongo.MongoPersistence;
 import org.trade.core.utils.TraDEProperties;
 
 import java.io.InputStream;
@@ -129,7 +130,7 @@ public class TraDENodeIT {
         assertEquals(0, cacheStore.createQuery(DataValue.class).asList().size());
 
         List<String> dvKeys = new ArrayList<String>();
-        for (DataValue value : cacheStore.createQuery(DataValue.class).retrievedFields(true, "identifier").asList()) {
+        for (DataValue value : cacheStore.createQuery(DataValue.class).retrievedFields(true, MongoPersistence.IDENTIFIER_FIELD).asList()) {
             dvKeys.add(value.getIdentifier());
         }
 
@@ -145,8 +146,10 @@ public class TraDENodeIT {
                 value.setData(data, data.length);
 
                 MongoCollection<Document> collection = dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION);
-                Document doc = collection.find(Filters.eq("urn", value.getIdentifier())).limit(1).first();
-                assertNotNull(((Binary) doc.get("data")).getData());
+                Document doc = collection.find(Filters.eq(MongoPersistence.IDENTIFIER_FIELD, value.getIdentifier()))
+                        .limit(1)
+                        .first();
+                assertNotNull(((Binary) doc.get(MongoPersistence.DATA_FIELD)).getData());
             } catch (Exception e) {
                 e.printStackTrace();
             }

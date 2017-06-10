@@ -23,8 +23,8 @@ import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.lifecycle.actions.DataElementInstanceLogAction;
-import org.trade.core.utils.InstanceEvents;
-import org.trade.core.utils.InstanceStates;
+import org.trade.core.utils.events.InstanceEvents;
+import org.trade.core.utils.states.InstanceStates;
 
 /**
  * This class implements the lifecycle of a {@link DataElementInstance} using a finite state machine in order to reflect the
@@ -61,18 +61,17 @@ public class DataElementInstanceLifeCycle {
         fsmBuilder.
                 buildState(InstanceStates.CREATED.name(), true)
                 .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name())
-                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action)
-                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
+                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action.oldState(InstanceStates.CREATED.name()))
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action.oldState(InstanceStates.CREATED.name()))
                 .done()
                 .buildState(InstanceStates.INITIALIZED.name())
-                .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name(), action)
-                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action)
-                .addTransition(InstanceEvents.archive.name(), InstanceStates.ARCHIVED.name(), action)
-                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
+                .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name(), action.oldState(InstanceStates.INITIALIZED.name()))
+                .addTransition(InstanceEvents.archive.name(), InstanceStates.ARCHIVED.name(), action.oldState(InstanceStates.INITIALIZED.name()))
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action.oldState(InstanceStates.INITIALIZED.name()))
                 .done()
                 .buildState(InstanceStates.ARCHIVED.name())
-                .addTransition(InstanceEvents.unarchive.name(), InstanceStates.INITIALIZED.name(), action)
-                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action)
+                .addTransition(InstanceEvents.unarchive.name(), InstanceStates.INITIALIZED.name(), action.oldState(InstanceStates.ARCHIVED.name()))
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action.oldState(InstanceStates.ARCHIVED.name()))
                 .done()
                 .buildState(InstanceStates.DELETED.name())
                 .setEndState(true)

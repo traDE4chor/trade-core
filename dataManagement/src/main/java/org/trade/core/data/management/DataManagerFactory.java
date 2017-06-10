@@ -33,7 +33,7 @@ public class DataManagerFactory {
      * @return the data manager according to the defined property in 'config.properties'.
      */
     public static IDataManager createDataManager() {
-        IDataManager result;
+        IDataManager result = null;
 
         TraDEProperties props = new TraDEProperties();
 
@@ -43,6 +43,17 @@ public class DataManagerFactory {
                 break;
             case MULTI_NODE:
                 result = HazelcastDataManager.INSTANCE;
+                break;
+            case CUSTOM:
+                try {
+                    // Try to load the class from the classpath
+                    Class clazz = Class.forName(props.getDataManagerClass());
+                    // Try to get the first and only ("INSTANCE") enum constant from the class implementing the
+                    // singleton design pattern
+                    result = (IDataManager) clazz.getEnumConstants()[0];
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 result = SimpleDataManager.INSTANCE;

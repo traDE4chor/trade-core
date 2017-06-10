@@ -24,6 +24,8 @@ package org.trade.core.model.lifecycle;
  */
 public class LifeCycleException extends Exception {
 
+    private static final long serialVersionUID = -59457589201314085L;
+
     public LifeCycleException(String message) {
         super(message);
     }

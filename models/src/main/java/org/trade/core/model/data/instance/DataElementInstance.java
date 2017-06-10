@@ -22,18 +22,17 @@ import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.persistence.annotations.State;
-import org.trade.core.model.data.BaseResource;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.data.DataElement;
 import org.trade.core.model.data.DataValue;
 import org.trade.core.model.data.ILifeCycleInstanceObject;
 import org.trade.core.model.lifecycle.DataElementInstanceLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.utils.InstanceEvents;
-import org.trade.core.utils.InstanceStates;
+import org.trade.core.utils.events.InstanceEvents;
+import org.trade.core.utils.states.InstanceStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -43,7 +42,7 @@ import java.util.HashMap;
  * Created by hahnml on 26.10.2016.
  */
 @Entity("dataElementInstances")
-public class DataElementInstance extends BaseResource implements Serializable, ILifeCycleInstanceObject {
+public class DataElementInstance extends ABaseResource implements ILifeCycleInstanceObject {
 
     private static final long serialVersionUID = -7695419620536264095L;
 

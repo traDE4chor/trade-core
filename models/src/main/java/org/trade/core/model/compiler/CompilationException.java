@@ -20,9 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * An exeption occured during the compilation of model objects.
+ * <p>
  * Created by hahnml on 07.04.2017.
  */
 public class CompilationException extends Exception {
+
+    private static final long serialVersionUID = 4415585724489667357L;
 
     private List<CompilationIssue> compilationErrors = new ArrayList<CompilationIssue>();
 

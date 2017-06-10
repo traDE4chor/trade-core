@@ -16,6 +16,8 @@
 package org.trade.core.model.compiler;
 
 /**
+ * This enum represents possible type constants for compilation issues.
+ * <p>
  * Created by hahnml on 10.04.2017.
  */
 public enum CompilationIssueType {

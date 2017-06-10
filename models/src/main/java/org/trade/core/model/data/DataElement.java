@@ -23,16 +23,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.utils.ModelEvents;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.events.ModelEvents;
+import org.trade.core.utils.states.ModelStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * Created by hahnml on 25.10.2016.
  */
 @Entity("dataElements")
-public class DataElement extends BaseResource implements Serializable, ILifeCycleModelObject {
+public class DataElement extends ABaseResource implements ILifeCycleModelObject {
 
     private static final long serialVersionUID = -2632920295003689320L;
 
@@ -72,6 +72,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
      * Instantiates a new data element and associates it to the given data object.
      *
      * @param object the data object to which the data element belongs
+     * @param entity the name of the entity the data element belongs to
      * @param name   the name of the data element
      */
     public DataElement(DataObject object, String entity, String name) {
@@ -87,6 +88,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
      *
      * @param object     the data object to which the data element belongs
      * @param identifier the identifier to use for the data element
+     * @param entity     the name of the entity the data element belongs to
      * @param name       the name of the data element
      */
     public DataElement(DataObject object, String identifier, String entity, String name) {
@@ -241,7 +243,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
      */
     public DataElementInstance getDataElementInstanceById(String identifier) {
         Optional<DataElementInstance> opt = this.instances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
-        return opt.isPresent() ? opt.get() : null;
+        return opt.orElse(null);
     }
 
     public void initialize() throws Exception {
@@ -372,6 +374,7 @@ public class DataElement extends BaseResource implements Serializable, ILifeCycl
     /**
      * Removes the data element instance from this data element.
      *
+     * @param instance an instance of this data element which should be removed from this data element.
      */
     public void removeDataElementInstance(DataElementInstance instance) {
         // Check if the data element instance belongs to this data element

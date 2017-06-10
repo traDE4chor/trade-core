@@ -15,22 +15,32 @@
 
 package org.trade.core.auditing.events;
 
-import org.trade.core.utils.ModelEvents;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.events.ModelEvents;
+import org.trade.core.utils.states.ModelStates;
+
+import java.util.List;
 
 /**
+ * This class represents the event of a state change of a model object within the middleware.
+ * <p>
  * Created by hahnml on 21.04.2017.
  */
-public class ModelStateChangeEvent extends TraDEEvent {
+public class ModelStateChangeEvent extends ATraDEEvent {
 
-    private String identifier;
-    private Class modelClass;
+    private static final long serialVersionUID = -1975865994826066258L;
+
+    private static final String EVENT_FILTER__OLD_STATE = "OldState";
+    private static final String EVENT_FILTER__NEW_STATE = "NewState";
+    private static final String EVENT_FILTER__EVENT = "Event";
+
+    private ModelStates oldState;
     private ModelStates newState;
     private ModelEvents event;
 
-    public ModelStateChangeEvent(String identifier, Class modelClass, String newState, String event) {
+    public ModelStateChangeEvent(String identifier, Class modelClass, String oldState, String newState, String event) {
         this.identifier = identifier;
         this.modelClass = modelClass;
+        this.oldState = ModelStates.valueOf(oldState);
         this.newState = ModelStates.valueOf(newState);
         this.event = ModelEvents.valueOf(event);
     }
@@ -40,19 +50,62 @@ public class ModelStateChangeEvent extends TraDEEvent {
         return TYPE.modelLifecycle;
     }
 
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public Class getModelClass() {
-        return modelClass;
-    }
-
     public ModelStates getNewState() {
         return newState;
     }
 
+    public ModelStates getOldState() {
+        return oldState;
+    }
+
     public ModelEvents getEvent() {
         return event;
+    }
+
+    protected static List<EventFilterInformation> getPossibleEventFilters() {
+        // Add the generic filters
+        List<EventFilterInformation> result = ATraDEEvent.getPossibleEventFilters(ModelStateChangeEvent.class);
+
+        // Add the specific filters of this event class
+        EventFilterInformation oldState = new EventFilterInformation(ModelStateChangeEvent.class.getSimpleName(),
+                EVENT_FILTER__OLD_STATE, "With the " +
+                "event filter key [" + EVENT_FILTER__OLD_STATE + "] the " +
+                "old state value of model objects can be specified. This is useful if someone is " +
+                "interested in events emitted as a reason of a specific state of model objects, e.g., the " +
+                "state of a data element changed from 'INITIAL' to 'READY' after its successful initialization. " +
+                "By specifying a filter with '" + EVENT_FILTER__OLD_STATE + "=READY' only event messages with a" +
+                " matching old state are forwarded.\n" +
+                "The following list contains all valid state values that can be specified: INITIAL, " +
+                "READY, ARCHIVED, DELETED.");
+        oldState.setConstrainedValueDomain(getEnumValues(ModelStates.class));
+        result.add(oldState);
+
+        EventFilterInformation newState = new EventFilterInformation(ModelStateChangeEvent.class.getSimpleName(),
+                EVENT_FILTER__NEW_STATE, "With the " +
+                "event filter key [" + EVENT_FILTER__NEW_STATE + "] the " +
+                "new state value of model objects can be specified. This is useful if someone is " +
+                "interested in events emitted as a reason of a specific state of model objects, e.g., the " +
+                "state of a data element changed to 'READY' after its successful initialization. By" +
+                " specifying a filter with '" + EVENT_FILTER__NEW_STATE + "=READY' only event messages with a" +
+                " matching new state are forwarded.\n" +
+                "The following list contains all valid state values that can be specified: INITIAL, " +
+                "READY, ARCHIVED, DELETED.");
+        newState.setConstrainedValueDomain(getEnumValues(ModelStates.class));
+        result.add(newState);
+
+        EventFilterInformation event = new EventFilterInformation(ModelStateChangeEvent.class.getSimpleName(),
+                EVENT_FILTER__EVENT, "With the event filter key [" +
+                EVENT_FILTER__EVENT + "] the " +
+                "event which triggers a state change of a model object can be specified. This is useful if someone " +
+                "is interested in events emitted as a reason of a specific event trigger, e.g., the 'archive' trigger" +
+                " was called for a data element (which will lead to a state change to 'ARCHIVED'). By" +
+                " specifying a filter with '" + EVENT_FILTER__EVENT + "=archive' only event messages with a" +
+                " matching event trigger are forwarded.\n" +
+                "The following list contains all valid event values that can be specified: initial, ready, archive, " +
+                "unarchive, delete.");
+        event.setConstrainedValueDomain(getEnumValues(ModelEvents.class));
+        result.add(event);
+
+        return result;
     }
 }

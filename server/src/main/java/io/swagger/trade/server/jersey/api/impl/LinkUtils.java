@@ -18,9 +18,12 @@ package io.swagger.trade.server.jersey.api.impl;
 
 import io.swagger.trade.server.jersey.model.Link;
 import io.swagger.trade.server.jersey.model.LinkArray;
+import io.swagger.trade.server.jersey.model.ResourceTypeEnum;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.data.*;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
+import org.trade.core.model.notification.Notification;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -53,6 +56,7 @@ public class LinkUtils {
     public static final String RELATION_DATA_ELEMENT_INSTANCE = "dataElementInstance";
     public static final String RELATION_DATA_VALUE = "dataValue";
     public static final String RELATION_DATA_VALUE_ALTERNATE = "dataValue-alternate";
+    public static final String RELATION_NOTIFIER_SERVICE = "notifierService";
 
     // The names of all collection resources
     public static final String COLLECTION_DATA_DEPENDENCY_GRAPH = "dataDependencyGraphs";
@@ -62,6 +66,9 @@ public class LinkUtils {
     public static final String COLLECTION_DATA_OBJECT_INSTANCE = "dataObjectInstances";
     public static final String COLLECTION_DATA_ELEMENT_INSTANCE = "dataElementInstances";
     public static final String COLLECTION_DATA_VALUE = "dataValues";
+    public static final String COLLECTION_NOTIFICATIONS = "notifications";
+    public static final String COLLECTION_NOTIFIER_SERVICES = "notifierServices";
+    public static final String COLLECTION_RESOURCE_FILTERS = "resourceFilters";
 
     // A list of special URI templates we use to build links
     public static final String TEMPLATE_COLLECTION_RESOURCE = "{collectionName}/{resourceId}";
@@ -80,6 +87,8 @@ public class LinkUtils {
             + "/{elementInstanceId}/dataValue";
     public static final String TEMPLATE_DATA_VALUE__ELEMENT_INSTANCES = COLLECTION_DATA_VALUE +
             "/{dataValueId}/elementInstances";
+    public static final String TEMPLATE_NOTIFICATION__NOTIFIER = COLLECTION_NOTIFICATIONS +
+            "/{notificationId}/notifierService";
 
     public static LinkArray createPaginationLinks(String typeOfCollection, UriInfo uriInfo, Integer start, Integer size,
                                                   Integer sizeOfCollection) {
@@ -383,6 +392,38 @@ public class LinkUtils {
         return links;
     }
 
+    public static LinkArray createNotificationLinks(UriInfo uriInfo, Notification notification, String selfUri) {
+        LinkArray links = new LinkArray();
+
+        // Add link to the notifier service which is used by this notification
+        if (notification != null && notification.getSelectedNotifierServiceId() != null) {
+            Link link = new Link();
+            link.setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
+                    .TEMPLATE_NOTIFICATION__NOTIFIER).build(notification.getIdentifier()).toASCIIString());
+            link.setRel(RELATION_NOTIFIER_SERVICE);
+            link.setTitle("Provides the notifier service that is used by this notification.");
+            links.add(link);
+        }
+
+        // Add link to collection
+        links.add(createLinkToCollection(uriInfo, notification));
+
+        // Add self link
+        links.add(createSelfLink(selfUri));
+
+        return links;
+    }
+
+    public static String resolveResourceURI(UriInfo uriInfo, ABaseResource modelToGetUriFor) {
+        return calculateURI(uriInfo, modelToGetUriFor);
+    }
+
+    public static String resolveResourceCollectionURI(UriInfo uriInfo, ResourceTypeEnum resourceType) {
+        // Use the corresponding template to build the URI
+        return uriInfo.getBaseUriBuilder().path(getCollection(resourceType)).build()
+                .toASCIIString();
+    }
+
     private static Link createSelfLink(String selfURI) {
         Link self = new Link();
         self.setHref(selfURI);
@@ -391,7 +432,7 @@ public class LinkUtils {
         return self;
     }
 
-    private static Link createLinkToCollection(UriInfo uriInfo, BaseResource modelElementOfCollection) {
+    private static Link createLinkToCollection(UriInfo uriInfo, ABaseResource modelElementOfCollection) {
         Link self = new Link();
         self.setHref(uriInfo.getBaseUriBuilder().path(getCollection(modelElementOfCollection)).build().toASCIIString());
         self.setTitle("Provides the whole collection to which this resource belongs.");
@@ -400,16 +441,14 @@ public class LinkUtils {
         return self;
     }
 
-    private static String calculateURI(UriInfo uriInfo, BaseResource modelToGetUriFor) {
+    private static String calculateURI(UriInfo uriInfo, ABaseResource modelToGetUriFor) {
         // Use the corresponding template to build the URI
-        String result = uriInfo.getBaseUriBuilder().path(TEMPLATE_COLLECTION_RESOURCE).build(getCollection
+        return uriInfo.getBaseUriBuilder().path(TEMPLATE_COLLECTION_RESOURCE).build(getCollection
                 (modelToGetUriFor), modelToGetUriFor
                 .getIdentifier()).toASCIIString();
-
-        return result;
     }
 
-    private static String getCollection(BaseResource modelToGetUriFor) {
+    private static String getCollection(ABaseResource modelToGetUriFor) {
         // Identify the 'main' collection to which the provided element belongs
         String result = null;
 
@@ -427,6 +466,39 @@ public class LinkUtils {
             result = COLLECTION_DATA_OBJECT_INSTANCE;
         } else if (modelToGetUriFor instanceof DataElementInstance) {
             result = COLLECTION_DATA_ELEMENT_INSTANCE;
+        } else if (modelToGetUriFor instanceof Notification) {
+            result = COLLECTION_NOTIFICATIONS;
+        }
+
+        return result;
+    }
+
+    private static String getCollection(ResourceTypeEnum resourceType) {
+        // Identify the 'main' collection to which the provided element belongs
+        String result = null;
+
+        switch (resourceType) {
+            case DATADEPENDENCYGRAPH:
+                result = COLLECTION_DATA_DEPENDENCY_GRAPH;
+                break;
+            case DATAMODEL:
+                result = COLLECTION_DATA_MODEL;
+                break;
+            case DATAOBJECT:
+                result = COLLECTION_DATA_OBJECT;
+                break;
+            case DATAELEMENT:
+                result = COLLECTION_DATA_ELEMENT;
+                break;
+            case DATAOBJECTINSTANCE:
+                result = COLLECTION_DATA_OBJECT_INSTANCE;
+                break;
+            case DATAELEMENTINSTANCE:
+                result = COLLECTION_DATA_ELEMENT_INSTANCE;
+                break;
+            case DATAVALUE:
+                result = COLLECTION_DATA_VALUE;
+                break;
         }
 
         return result;

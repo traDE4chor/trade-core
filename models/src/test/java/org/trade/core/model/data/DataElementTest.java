@@ -18,7 +18,7 @@ package org.trade.core.model.data;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.states.ModelStates;
 
 import static org.junit.Assert.assertEquals;
 

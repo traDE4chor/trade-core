@@ -48,9 +48,9 @@ public class MongoPersistence<T extends PersistableObject> implements IPersisten
 
     private Datastore store;
 
-    private final String IDENTIFIER_FIELD = "identifier";
+    public static final String IDENTIFIER_FIELD = "identifier";
 
-    private final String DATA_FIELD = "data";
+    public static final String DATA_FIELD = "data";
 
     private String mongoUrl;
 

@@ -19,6 +19,9 @@ package org.trade.core.model.data;
  * Created by hahnml on 15.04.2017.
  */
 public class IllegalModificationException extends Exception {
+
+    private static final long serialVersionUID = -3060401236012665329L;
+
     public IllegalModificationException(String message) {
         super(message);
     }

@@ -16,9 +16,11 @@
 
 package org.trade.core.auditing;
 
-import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.auditing.events.ATraDEEvent;
 
 /**
+ * This interface defines basic methods an auditing service implementation should provide.
+ * <p>
  * Created by hahnml on 25.10.2016.
  */
 public interface IAuditingService {
@@ -27,5 +29,5 @@ public interface IAuditingService {
 
     void unregisterEventListener(TraDEEventListener listener);
 
-    void fireEvent(TraDEEvent event);
+    void fireEvent(ATraDEEvent event);
 }

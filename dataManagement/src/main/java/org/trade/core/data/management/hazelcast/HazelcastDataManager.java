@@ -22,7 +22,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import org.trade.core.auditing.AuditingServiceFactory;
-import org.trade.core.auditing.events.TraDEEvent;
+import org.trade.core.auditing.events.ATraDEEvent;
 import org.trade.core.data.management.IDataManager;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.data.*;
@@ -43,7 +43,7 @@ public enum HazelcastDataManager implements IDataManager {
 
     private HazelcastInstance hInstance;
 
-    private HazelcastDataManager() {
+    HazelcastDataManager() {
         AuditingServiceFactory.createAuditingService().registerEventListener(this);
 
         // Load properties
@@ -308,7 +308,7 @@ public enum HazelcastDataManager implements IDataManager {
 
     // Implementation of IAuditingService methods
     @Override
-    public void onEvent(TraDEEvent event) {
+    public void onEvent(ATraDEEvent event) {
 
     }
 

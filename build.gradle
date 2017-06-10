@@ -31,7 +31,9 @@ configurations {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
+
     integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.5'
+    integrationTestCompile group: 'org.apache.activemq', name: 'activemq-broker', version: '5.14.5'
     integrationTestCompile project(path: ':utils', configuration: 'testOutput')
 
     compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'
@@ -91,13 +93,17 @@ tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
 
+// Add /config folder to classpath and correct paths in start scripts.
+// To avoid 'the input line is too long' errors on windows, we replace all fully specified jars with a wildcard to
+// the lib folder.
 startScripts {
     classpath += files('config')
     doLast {
         def windowsScriptFile = file getWindowsScript()
         def unixScriptFile = file getUnixScript()
-        windowsScriptFile.text = windowsScriptFile.text.replace('%APP_HOME%\\lib\\config', '%APP_HOME%\\config')
         unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/config', '$APP_HOME/config')
+        windowsScriptFile.text = windowsScriptFile.text.replaceFirst(/(set CLASSPATH=%APP_HOME%\\lib\\).*/, {
+            "${it[1]}*"+";%APP_HOME%\\config" })
     }
 }
 
@@ -107,6 +113,9 @@ distributions {
         contents {
             from('config') {
                 into 'config'
+            }
+            from('notificationMsgTemplates') {
+                into 'notificationMsgTemplates'
             }
             from('ssl') {
                 into 'ssl'

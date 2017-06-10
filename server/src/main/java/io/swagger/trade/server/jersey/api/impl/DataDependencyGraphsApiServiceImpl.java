@@ -90,7 +90,7 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
             if (exists) {
                 DataManagerFactory.createDataManager().deleteDataDependencyGraph(graphId);
 
-                response = Response.ok().build();
+                response = Response.status(Response.Status.NO_CONTENT).build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
                         .singletonList(graphId)).message("A data dependency graph with id = '" + graphId + "' is " +

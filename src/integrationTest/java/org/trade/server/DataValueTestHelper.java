@@ -23,7 +23,6 @@ import io.swagger.trade.client.jersey.model.DataValueArrayWithLinks;
 import io.swagger.trade.client.jersey.model.DataValueData;
 import io.swagger.trade.client.jersey.model.DataValueWithLinks;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 
 import static org.junit.Assert.*;
@@ -206,8 +205,6 @@ public class DataValueTestHelper {
             // Push data to third data value
             String data = "test value";
             dvApiInstance.pushDataValue(idOfDataValue3, new Long(data.length()), data.getBytes());
-        } catch (IOException e) {
-           throw e;
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#pushDataValue");
             throw e;

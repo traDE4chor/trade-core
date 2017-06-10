@@ -23,8 +23,8 @@ import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
 import org.trade.core.model.data.DataDependencyGraph;
 import org.trade.core.model.lifecycle.actions.DataDependencyGraphLogAction;
-import org.trade.core.utils.ModelEvents;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.events.ModelEvents;
+import org.trade.core.utils.states.ModelStates;
 
 /**
  * This class implements the lifecycle of a {@link DataDependencyGraph} using a finite state machine in order to reflect the
@@ -61,17 +61,17 @@ public class DataDependencyGraphLifeCycle {
         fsmBuilder.
                 buildState(ModelStates.INITIAL.name(), true)
                 .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name())
-                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), action)
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
+                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), action.oldState(ModelStates.INITIAL.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.INITIAL.name()))
                 .done()
                 .buildState(ModelStates.READY.name())
-                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), action)
-                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), action)
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), action.oldState(ModelStates.READY.name()))
+                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), action.oldState(ModelStates.READY.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.READY.name()))
                 .done()
                 .buildState(ModelStates.ARCHIVED.name())
-                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), action)
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action)
+                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), action.oldState(ModelStates.ARCHIVED.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.ARCHIVED.name()))
                 .done()
                 .buildState(ModelStates.DELETED.name())
                 .setEndState(true)

@@ -23,15 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
-import org.trade.core.utils.ModelEvents;
-import org.trade.core.utils.ModelStates;
+import org.trade.core.utils.events.ModelEvents;
+import org.trade.core.utils.states.ModelStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * Created by hahnml on 25.10.2016.
  */
 @Entity("dataObjects")
-public class DataObject extends BaseResource implements Serializable, ILifeCycleModelObject {
+public class DataObject extends ABaseResource implements ILifeCycleModelObject {
 
     private static final long serialVersionUID = 2549294173554279537L;
 
@@ -190,7 +190,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
      */
     public DataElement getDataElement(String name) {
         Optional<DataElement> opt = this.dataElements.stream().filter(s -> s.getName().equals(name)).findFirst();
-        return opt.isPresent() ? opt.get() : null;
+        return opt.orElse(null);
     }
 
     /**
@@ -201,7 +201,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
      */
     public DataElement getDataElementById(String identifier) {
         Optional<DataElement> opt = this.dataElements.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
-        return opt.isPresent() ? opt.get() : null;
+        return opt.orElse(null);
     }
 
     /**
@@ -233,7 +233,7 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
      */
     public DataObjectInstance getDataObjectInstanceById(String identifier) {
         Optional<DataObjectInstance> opt = this.instances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
-        return opt.isPresent() ? opt.get() : null;
+        return opt.orElse(null);
     }
 
     /**
@@ -541,6 +541,8 @@ public class DataObject extends BaseResource implements Serializable, ILifeCycle
 
     /**
      * Removes the data object instance from this data object.
+     *
+     * @param instance to remove from this data object
      */
     public void removeDataObjectInstance(DataObjectInstance instance) {
         // Check if the object instance belongs to this data object
