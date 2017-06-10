@@ -15,7 +15,7 @@ RUN apt-get clean
 # Copy the sources and build the TraDE source to create required binaries
 COPY . /src
 WORKDIR /src
-RUN ./gradlew check
+RUN ./gradlew build
 
 # Unzip TraDE archive file from /build into ${TRADE_HOME}
 RUN tar -xf /src/build/distributions/traDE-all-${TRADE_VERSION}.tar -C /opt
