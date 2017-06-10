@@ -7,7 +7,7 @@
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
-        <file>trade.log</file>
+        <file>logs/trade.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
             <fileNamePattern>trade.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -29,7 +29,7 @@
     </appender>
 
     <appender name="ROUTE_ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>camel-deadLetterQueue.${startTimestamp}.log</file>
+        <file>logs/camel-deadLetterQueue.${startTimestamp}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
             <fileNamePattern>camel-error.%d{yyyy-MM-dd}.log</fileNamePattern>

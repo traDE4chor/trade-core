@@ -48,21 +48,8 @@ public class MessageGenerationTest {
 
     @Before
     public void createConfiguration() {
-        String messageTemplateDir = "/notificationMsgTemplates";
-
-        Path dir = Paths.get(messageTemplateDir);
-
-        // Check if the path is relative to make it absolute if required
-        if (!dir.isAbsolute()) {
-            dir = Paths.get("..", messageTemplateDir).toAbsolutePath().normalize();
-        }
-
         configuration = new Configuration(Configuration.VERSION_2_3_26);
-        try {
-            configuration.setDirectoryForTemplateLoading(dir.toFile());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        configuration.setClassForTemplateLoading(MessageGenerationTest.class, "");
 
         DefaultObjectWrapperBuilder owb = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_26);
 
