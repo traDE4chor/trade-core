@@ -14,7 +14,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "host": "localhost:@port_number@/api",
+  "basePath": "/api",
   "consumes": [
     "application/json"
   ],

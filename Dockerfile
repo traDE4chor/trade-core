@@ -22,6 +22,9 @@ RUN tar -xf /src/build/distributions/traDE-all-${TRADE_VERSION}.tar -C /opt
 RUN ln -s /opt/traDE-all-${TRADE_VERSION} ${TRADE_HOME}
 RUN chmod -R a+x ${TRADE_HOME}/bin/*
 
+# Change the default (Windows-based) persistence directory path to a Linux path in the config.properties file
+RUN sed -i 's/data.persistence.file.directory=D:\\tradeDATA/data.persistence.file.directory=\/tradeData/' ${TRADE_HOME}/config/config.properties
+
 # Clean-up source code & gradle cache
 RUN rm -r /src
 RUN rm -r ~/.gradle
