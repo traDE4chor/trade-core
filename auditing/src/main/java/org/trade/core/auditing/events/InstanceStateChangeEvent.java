@@ -41,8 +41,8 @@ public class InstanceStateChangeEvent extends ATraDEEvent {
             event) {
         this.identifier = identifier;
         this.modelClass = modelClass;
-        this.oldState = InstanceStates.valueOf(oldState);
-        this.newState = InstanceStates.valueOf(newState);
+        this.oldState = oldState != null ? InstanceStates.valueOf(oldState) : null;
+        this.newState = newState != null ? InstanceStates.valueOf(newState) : null;
         this.event = InstanceEvents.valueOf(event);
     }
 

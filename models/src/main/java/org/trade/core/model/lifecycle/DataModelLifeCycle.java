@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
+import org.trade.core.auditing.AuditingServiceFactory;
+import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.model.data.DataModel;
 import org.trade.core.model.lifecycle.actions.DataModelLogAction;
 import org.trade.core.utils.events.ModelEvents;
@@ -84,6 +86,15 @@ public class DataModelLifeCycle {
         if (dataModel.getState() == null) {
             try {
                 this.fsm.onEvent(dataModel, ModelEvents.initial.name());
+
+                Logger resourceLogger = LoggerFactory.getLogger(dataModel.getClass().getCanonicalName());
+
+                // Log the creation of the resource and trigger a corresponding event
+                resourceLogger.info("State of data model ({}) changed from '{}' to '{}' on event '{}'.", dataModel.getIdentifier(),
+                        null, dataModel.getState(), ModelEvents.initial.name());
+
+                AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(dataModel.getIdentifier(),
+                        DataModel.class, null, dataModel.getState(), ModelEvents.initial.name()));
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }

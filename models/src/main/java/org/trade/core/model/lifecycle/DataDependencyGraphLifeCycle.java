@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
+import org.trade.core.auditing.AuditingServiceFactory;
+import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.model.data.DataDependencyGraph;
 import org.trade.core.model.lifecycle.actions.DataDependencyGraphLogAction;
 import org.trade.core.utils.events.ModelEvents;
@@ -84,6 +86,15 @@ public class DataDependencyGraphLifeCycle {
         if (ddg.getState() == null) {
             try {
                 this.fsm.onEvent(ddg, ModelEvents.initial.name());
+
+                Logger resourceLogger = LoggerFactory.getLogger(ddg.getClass().getCanonicalName());
+
+                // Log the creation of the resource and trigger a corresponding event
+                resourceLogger.info("State of data dependency graph ({}) changed from '{}' to '{}' on event '{}'.", ddg
+                        .getIdentifier(), null, ddg.getState(), ModelEvents.initial.name());
+
+                AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(ddg
+                        .getIdentifier(), DataDependencyGraph.class, null, ddg.getState(), ModelEvents.initial.name()));
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }

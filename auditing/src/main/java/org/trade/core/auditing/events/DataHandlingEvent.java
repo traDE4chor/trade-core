@@ -41,8 +41,8 @@ public class DataHandlingEvent extends ATraDEEvent {
     public DataHandlingEvent(String identifier, Class modelClass, String oldState, String newState) {
         this.identifier = identifier;
         this.modelClass = modelClass;
-        this.oldState = DataStates.valueOf(oldState);
-        this.newState = DataStates.valueOf(newState);
+        this.oldState = oldState != null ? DataStates.valueOf(oldState) : null;
+        this.newState = newState != null ? DataStates.valueOf(newState) : null;
     }
 
     @Override

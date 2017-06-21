@@ -101,14 +101,15 @@
     </xsd:complexType>
 
     <xsd:complexType name="DataObjectType">
-        <xsd:complexContent>
-            <xsd:extension base="ddg:DependenceNodeType">
-                <xsd:sequence>
-                    <xsd:element name="dataElements" type="ddg:DataElementListType" maxOccurs="1"
-                                 minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+    	<xsd:complexContent>
+    		<xsd:extension base="ddg:DependenceNodeType">
+    			<xsd:sequence>
+    				<xsd:element name="dataElements"
+    					type="ddg:DataElementListType" maxOccurs="1" minOccurs="0" />
+    			</xsd:sequence>
+    			<xsd:attribute name="useDataForCorrelation" type="xsd:boolean"></xsd:attribute>
+    		</xsd:extension>
+    	</xsd:complexContent>
     </xsd:complexType>
 
 

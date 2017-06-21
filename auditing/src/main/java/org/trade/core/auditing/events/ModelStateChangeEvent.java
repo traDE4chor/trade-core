@@ -40,8 +40,8 @@ public class ModelStateChangeEvent extends ATraDEEvent {
     public ModelStateChangeEvent(String identifier, Class modelClass, String oldState, String newState, String event) {
         this.identifier = identifier;
         this.modelClass = modelClass;
-        this.oldState = ModelStates.valueOf(oldState);
-        this.newState = ModelStates.valueOf(newState);
+        this.oldState = oldState != null ? ModelStates.valueOf(oldState) : null;
+        this.newState = newState != null ? ModelStates.valueOf(newState) : null;
         this.event = ModelEvents.valueOf(event);
     }
 

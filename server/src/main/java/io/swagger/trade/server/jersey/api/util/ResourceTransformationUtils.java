@@ -222,6 +222,7 @@ public class ResourceTransformationUtils {
     public static DataElement model2Resource(org.trade.core.model.data.DataElement dataElement) {
         DataElement result = new DataElement();
 
+        result.setName(dataElement.getName());
         result.setContentType(dataElement.getContentType());
         result.setType(dataElement.getType());
         result.setId(dataElement.getIdentifier());
