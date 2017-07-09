@@ -8,6 +8,10 @@ sourceCompatibility = 1.8
 mainClassName = 'org.trade.core.TraDENode'
 applicationName = 'traDE'
 
+// To set up required JVM options uncomment the following line and add required options. These options will then be
+// present in the generated start scripts.
+//applicationDefaultJvmArgs = ["-Xms4g -Xmx8g ..."]
+
 repositories {
     jcenter()
     mavenCentral()
@@ -63,7 +67,7 @@ subprojects {
         testCompile group: 'junit', name: 'junit', version: '4.11'
     }
 
-    jar.baseName = 'traDE-'+project.name
+    jar.baseName = 'traDE-' + project.name
 
     group 'de.unistuttgart.iaas.trade'
     version '1.0-SNAPSHOT'
@@ -103,7 +107,8 @@ startScripts {
         def unixScriptFile = file getUnixScript()
         unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/config', '$APP_HOME/config')
         windowsScriptFile.text = windowsScriptFile.text.replaceFirst(/(set CLASSPATH=%APP_HOME%\\lib\\).*/, {
-            "${it[1]}*"+";%APP_HOME%\\config" })
+            "${it[1]}*" + ";%APP_HOME%\\config"
+        })
     }
 }
 
@@ -130,8 +135,8 @@ task createKeystoreFile {
         keystoreFolder.deleteDir()
     }
     keystoreFolder.mkdir()
-    ant.genkey(alias:'traDE', keystore:'ssl/keystore.jks', storepass:'someKeyStorePassword', keyalg:'RSA',
-            dname:'CN=trade4chor.github.io, O=TraDE, C=DE', keysize:2048)
+    ant.genkey(alias: 'traDE', keystore: 'ssl/keystore.jks', storepass: 'someKeyStorePassword', keyalg: 'RSA',
+            dname: 'CN=trade4chor.github.io, O=TraDE, C=DE', keysize: 2048)
 }
 assembleDist.dependsOn createKeystoreFile
 

@@ -52,11 +52,11 @@ ext {
 dependencies {
     compile project (':utils'), project(':dataManagement'), project(':notification')
 
-    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.14.v20161028'
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.3.14.v20161028'
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.6.v20170531'
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.6.v20170531'
 
-//    compile group: 'org.eclipse.jetty', name: 'jetty-alpn-server', version: '9.3.14.v20161028'
-//    compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '9.3.14.v20161028'
+//    compile group: 'org.eclipse.jetty', name: 'jetty-alpn-server', version: '9.4.6.v20170531'
+//    compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '9.4.6.v20170531'
 //    runtime group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: '8.1.10.v20161026'
 
     compile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: "$jersey_version"

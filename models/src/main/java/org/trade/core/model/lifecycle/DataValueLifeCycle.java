@@ -58,22 +58,20 @@ public class DataValueLifeCycle {
     private void buildFSM() {
         FSM.FSMBuilder<DataValue> fsmBuilder = FSM.FSMBuilder.newBuilder(DataValue.class);
 
-        DataValueLogAction action = new DataValueLogAction();
-
         fsmBuilder.
                 buildState(InstanceStates.CREATED.name(), true)
                 .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name())
-                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), action.oldState(InstanceStates.CREATED.name()))
-                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action.oldState(InstanceStates.CREATED.name()))
+                .addTransition(InstanceEvents.initialize.name(), InstanceStates.INITIALIZED.name(), new DataValueLogAction(InstanceStates.CREATED.name()))
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), new DataValueLogAction(InstanceStates.CREATED.name()))
                 .done()
                 .buildState(InstanceStates.INITIALIZED.name())
-                .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name(), action.oldState(InstanceStates.INITIALIZED.name()))
-                .addTransition(InstanceEvents.archive.name(), InstanceStates.ARCHIVED.name(), action.oldState(InstanceStates.INITIALIZED.name()))
-                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action.oldState(InstanceStates.INITIALIZED.name()))
+                .addTransition(InstanceEvents.create.name(), InstanceStates.CREATED.name(), new DataValueLogAction(InstanceStates.INITIALIZED.name()))
+                .addTransition(InstanceEvents.archive.name(), InstanceStates.ARCHIVED.name(), new DataValueLogAction(InstanceStates.INITIALIZED.name()))
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), new DataValueLogAction(InstanceStates.INITIALIZED.name()))
                 .done()
                 .buildState(InstanceStates.ARCHIVED.name())
-                .addTransition(InstanceEvents.unarchive.name(), InstanceStates.INITIALIZED.name(), action.oldState(InstanceStates.ARCHIVED.name()))
-                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), action.oldState(InstanceStates.ARCHIVED.name()))
+                .addTransition(InstanceEvents.unarchive.name(), InstanceStates.INITIALIZED.name(), new DataValueLogAction(InstanceStates.ARCHIVED.name()))
+                .addTransition(InstanceEvents.delete.name(), InstanceStates.DELETED.name(), new DataValueLogAction(InstanceStates.ARCHIVED.name()))
                 .done()
                 .buildState(InstanceStates.DELETED.name())
                 .setEndState(true)

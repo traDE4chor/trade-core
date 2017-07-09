@@ -28,6 +28,10 @@ import org.trade.core.model.data.DataDependencyGraph;
  */
 public class DataDependencyGraphLogAction extends AModelLogAction<DataDependencyGraph> {
 
+    public DataDependencyGraphLogAction(String oldState) {
+        super(oldState);
+    }
+
     @Override
     public void execute(DataDependencyGraph stateful, String event, Object... args) throws RetryException {
         Logger logger = LoggerFactory.getLogger(stateful.getClass().getCanonicalName());

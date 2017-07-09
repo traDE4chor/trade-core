@@ -39,6 +39,7 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This class represents a data dependency graph within the middleware.
@@ -53,21 +54,21 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataDependencyGraph");
 
-    private String entity = null;
+    private String entity;
 
-    private String name = null;
+    private String name;
 
-    private String targetNamespace = null;
+    private String targetNamespace;
 
-    private transient DataDependencyGraphLifeCycle lifeCycle = null;
+    private transient DataDependencyGraphLifeCycle lifeCycle;
 
-    private transient IPersistenceProvider<DataDependencyGraph> persistProv = null;
+    private transient IPersistenceProvider<DataDependencyGraph> persistProv;
 
     @State
     private String state;
 
     @Reference
-    private DataModel dataModel = null;
+    private DataModel dataModel;
 
     /**
      * Instantiates a new data dependency graph.
@@ -386,5 +387,19 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof DataDependencyGraph) {
+            DataDependencyGraph s = (DataDependencyGraph) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, targetNamespace, name, entity);
     }
 }

@@ -49,24 +49,24 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataElement");
 
-    private String entity = null;
+    private String entity;
 
-    private String name = null;
+    private String name;
 
-    private transient DataElementLifeCycle lifeCycle = null;
+    private transient DataElementLifeCycle lifeCycle;
 
-    private String type = null;
+    private String type;
 
-    private String contentType = null;
+    private String contentType;
 
     @State
     private String state;
 
     @Reference
-    private DataObject parent = null;
+    private DataObject parent;
 
     @Reference
-    private List<DataElementInstance> instances = new ArrayList<DataElementInstance>();
+    private List<DataElementInstance> instances;
 
     /**
      * Instantiates a new data element and associates it to the given data object.
@@ -80,6 +80,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         this.name = name;
         this.entity = entity;
 
+        this.instances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataElementLifeCycle(this);
     }
 
@@ -97,6 +98,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         this.name = name;
         this.entity = entity;
 
+        this.instances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataElementLifeCycle(this);
     }
 
@@ -412,5 +414,19 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
             logger.error("Class not found during deserialization of data element '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data element.");
         }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof DataElement) {
+            DataElement s = (DataElement) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, name, entity, type, contentType);
     }
 }

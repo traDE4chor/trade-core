@@ -28,6 +28,10 @@ import org.trade.core.model.data.DataModel;
  */
 public class DataModelLogAction extends AModelLogAction<DataModel> {
 
+    public DataModelLogAction(String oldState) {
+        super(oldState);
+    }
+
     @Override
     public void execute(DataModel stateful, String event, Object... args) throws RetryException {
         Logger logger = LoggerFactory.getLogger(stateful.getClass().getCanonicalName());

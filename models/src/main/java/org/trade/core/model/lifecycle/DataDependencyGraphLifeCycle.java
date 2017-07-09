@@ -58,22 +58,20 @@ public class DataDependencyGraphLifeCycle {
     private void buildFSM() {
         FSM.FSMBuilder<DataDependencyGraph> fsmBuilder = FSM.FSMBuilder.newBuilder(DataDependencyGraph.class);
 
-        DataDependencyGraphLogAction action = new DataDependencyGraphLogAction();
-
         fsmBuilder.
                 buildState(ModelStates.INITIAL.name(), true)
                 .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name())
-                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), action.oldState(ModelStates.INITIAL.name()))
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.INITIAL.name()))
+                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), new DataDependencyGraphLogAction(ModelStates.INITIAL.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), new DataDependencyGraphLogAction(ModelStates.INITIAL.name()))
                 .done()
                 .buildState(ModelStates.READY.name())
-                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), action.oldState(ModelStates.READY.name()))
-                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), action.oldState(ModelStates.READY.name()))
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.READY.name()))
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), new DataDependencyGraphLogAction(ModelStates.READY.name()))
+                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), new DataDependencyGraphLogAction(ModelStates.READY.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), new DataDependencyGraphLogAction(ModelStates.READY.name()))
                 .done()
                 .buildState(ModelStates.ARCHIVED.name())
-                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), action.oldState(ModelStates.ARCHIVED.name()))
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.ARCHIVED.name()))
+                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), new DataDependencyGraphLogAction(ModelStates.ARCHIVED.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), new DataDependencyGraphLogAction(ModelStates.ARCHIVED.name()))
                 .done()
                 .buildState(ModelStates.DELETED.name())
                 .setEndState(true)

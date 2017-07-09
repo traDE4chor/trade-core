@@ -48,23 +48,23 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataObject");
 
-    private String entity = null;
+    private String entity;
 
-    private String name = null;
+    private String name;
 
-    private transient DataObjectLifeCycle lifeCycle = null;
+    private transient DataObjectLifeCycle lifeCycle;
 
     @State
     private String state;
 
     @Reference
-    private DataModel model = null;
+    private DataModel model;
 
     @Reference
-    private List<DataElement> dataElements = new ArrayList<DataElement>();
+    private List<DataElement> dataElements;
 
     @Reference
-    private List<DataObjectInstance> instances = new ArrayList<DataObjectInstance>();
+    private List<DataObjectInstance> instances;
 
     /**
      * Instantiates a new data object.
@@ -88,6 +88,8 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
         this.name = name;
         this.entity = entity;
 
+        this.dataElements = new ArrayList<DataElement>();
+        this.instances = new ArrayList<DataObjectInstance>();
         this.lifeCycle = new DataObjectLifeCycle(this);
     }
 
@@ -105,6 +107,8 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
         this.name = name;
         this.entity = entity;
 
+        this.dataElements = new ArrayList<DataElement>();
+        this.instances = new ArrayList<DataObjectInstance>();
         this.lifeCycle = new DataObjectLifeCycle(this);
     }
 
@@ -233,6 +237,17 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      */
     public DataObjectInstance getDataObjectInstanceById(String identifier) {
         Optional<DataObjectInstance> opt = this.instances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
+        return opt.orElse(null);
+    }
+
+    /**
+     * Gets a data object instance by its correlation properties.
+     *
+     * @param correlationProperties to search for.
+     * @return The data object instance with the given correlation properties or NULL if no matching instance was found.
+     */
+    public DataObjectInstance getDataObjectInstanceByCorrelationProps(HashMap<String, String> correlationProperties) {
+        Optional<DataObjectInstance> opt = this.instances.stream().filter(s -> s.getCorrelationProperties().equals(correlationProperties)).findFirst();
         return opt.orElse(null);
     }
 
@@ -582,4 +597,17 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
         }
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof DataObject) {
+            DataObject s = (DataObject) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, name, entity);
+    }
 }

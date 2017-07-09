@@ -58,22 +58,20 @@ public class DataObjectLifeCycle {
     private void buildFSM() {
         FSM.FSMBuilder<DataObject> fsmBuilder = FSM.FSMBuilder.newBuilder(DataObject.class);
 
-        DataObjectLogAction action = new DataObjectLogAction();
-
         fsmBuilder.
                 buildState(ModelStates.INITIAL.name(), true)
                 .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name())
-                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), action.oldState(ModelStates.INITIAL.name()))
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.INITIAL.name()))
+                .addTransition(ModelEvents.ready.name(), ModelStates.READY.name(), new DataObjectLogAction(ModelStates.INITIAL.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), new DataObjectLogAction(ModelStates.INITIAL.name()))
                 .done()
                 .buildState(ModelStates.READY.name())
-                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), action.oldState(ModelStates.READY.name()))
-                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), action.oldState(ModelStates.READY.name()))
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.READY.name()))
+                .addTransition(ModelEvents.initial.name(), ModelStates.INITIAL.name(), new DataObjectLogAction(ModelStates.READY.name()))
+                .addTransition(ModelEvents.archive.name(), ModelStates.ARCHIVED.name(), new DataObjectLogAction(ModelStates.READY.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), new DataObjectLogAction(ModelStates.READY.name()))
                 .done()
                 .buildState(ModelStates.ARCHIVED.name())
-                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), action.oldState(ModelStates.ARCHIVED.name()))
-                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), action.oldState(ModelStates.ARCHIVED.name()))
+                .addTransition(ModelEvents.unarchive.name(), ModelStates.READY.name(), new DataObjectLogAction(ModelStates.ARCHIVED.name()))
+                .addTransition(ModelEvents.delete.name(), ModelStates.DELETED.name(), new DataObjectLogAction(ModelStates.ARCHIVED.name()))
                 .done()
                 .buildState(ModelStates.DELETED.name())
                 .setEndState(true)

@@ -30,9 +30,7 @@ import org.trade.core.utils.events.InstanceEvents;
 import org.trade.core.utils.events.ModelEvents;
 import org.trade.core.utils.TraDEProperties;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -127,20 +125,28 @@ public enum SimpleDataManager implements IDataManager {
             // Resolve the data object
             DataObject dataObject = this.dataObjects.get(dataObjectId);
 
-            // Create a new data object instance
-            DataObjectInstance dataObjectInstance = dataObject.instantiate(createdBy, correlationProperties);
+            // We assume that correlation properties are unique and therefore enable the identification of an
+            // instance.
+            // Check if a data object with the given correlation properties already exists.
+            DataObjectInstance dataObjectInstance = dataObject.getDataObjectInstanceByCorrelationProps
+                    (correlationProperties);
 
-            // By convention we also directly instantiate all related data elements of the data object and associated
-            // them to the new data object instance
-            // TODO: 15.04.2017 Maybe we will change this behavior in a future version again...
-            for (DataElement element : dataObject.getDataElements()) {
-                DataElementInstance elmInstance = element.instantiate(dataObjectInstance, createdBy, correlationProperties);
+            if (dataObjectInstance == null) {
+                // Create a new data object instance, if non was found
+                dataObjectInstance = dataObject.instantiate(createdBy, correlationProperties);
 
-                this.dataElementInstances.put(elmInstance.getIdentifier(), elmInstance);
+                // By convention we also directly instantiate all related data elements of the data object and associated
+                // them to the new data object instance
+                // TODO: 15.04.2017 Maybe we will change this behavior in a future version again...
+                for (DataElement element : dataObject.getDataElements()) {
+                    DataElementInstance elmInstance = element.instantiate(dataObjectInstance, createdBy, correlationProperties);
+
+                    this.dataElementInstances.put(elmInstance.getIdentifier(), elmInstance);
+                }
+
+                // Register and return the data element
+                this.dataObjectInstances.put(dataObjectInstance.getIdentifier(), dataObjectInstance);
             }
-
-            // Register and return the data element
-            this.dataObjectInstances.put(dataObjectInstance.getIdentifier(), dataObjectInstance);
 
             result = dataObjectInstance;
         }
@@ -363,63 +369,49 @@ public enum SimpleDataManager implements IDataManager {
 
     public List<DataObjectInstance> queryDataObjectInstance(String dataModelNamespace, String dataModelName, String
             dataObjectName, HashMap<String, String> correlationProperties) {
-        Stream<DataObjectInstance> stream = dataObjectInstances.values().stream();
+        List<DataObjectInstance> result = new ArrayList<>();
 
-        // First, filter the list of instances based on the data object name
-        if (dataObjectName != null && !dataObjectName.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataObject() != null && d.getDataObject().getName().equals(dataObjectName)));
+        Iterator<DataObjectInstance> iter = this.dataObjectInstances.values().iterator();
+        for (; iter.hasNext(); ) {
+            DataObjectInstance inst = iter.next();
+
+            // First, check if the correlation properties are equal since they are the main property for correlation
+            if (inst.getCorrelationProperties().equals(correlationProperties)) {
+                // Check all other parameters, normally they should be equal by default
+                if (inst.getDataObject() != null && inst.getDataObject().getName().equals(dataObjectName) && inst
+                        .getDataObject().getDataModel() != null && inst.getDataObject().getDataModel().getName().equals
+                        (dataModelName) && inst.getDataObject().getDataModel().getTargetNamespace().equals
+                        (dataModelNamespace)) {
+                    result.add(inst);
+                }
+            }
         }
 
-        // Second, filter the list of instance based on the provided correlation properties
-        if (correlationProperties != null && !correlationProperties.isEmpty()) {
-            stream = stream.filter(d -> (d.getCorrelationProperties() != null && d.getCorrelationProperties()
-                    .equals(correlationProperties)));
-        }
-
-        // Last, check if namespace and name of the underlying data models match
-        if (dataModelNamespace != null && !dataModelNamespace.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataObject().getDataModel() != null && d.getDataObject().getDataModel()
-                    .getTargetNamespace().equals(dataModelNamespace)));
-        }
-        if (dataModelName != null && !dataModelName.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataObject().getDataModel() != null && d.getDataObject().getDataModel()
-                    .getName().equals(dataModelName)));
-        }
-
-        return stream.collect(Collectors.toList());
+        return result;
     }
 
     public List<DataElementInstance> queryDataElementInstance(String dataModelNamespace, String dataModelName, String dataObjectName, String dataElementName, HashMap<String, String> correlationProperties) {
-        Stream<DataElementInstance> stream = dataElementInstances.values().stream();
+        List<DataElementInstance> result = new ArrayList<>();
 
-        // First, filter the list of instances based on the data element name
-        if (dataElementName != null && !dataElementName.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataElement() != null && d.getDataElement().getName().equals(dataElementName)));
+        Iterator<DataElementInstance> iter = this.dataElementInstances.values().iterator();
+        for (; iter.hasNext(); ) {
+            DataElementInstance inst = iter.next();
+
+            // First, check if the correlation properties are equal since they are the main property for correlation
+            if (inst.getCorrelationProperties().equals(correlationProperties)) {
+                // Check all other parameters, normally they should be equal by default
+                if (inst.getDataElement() != null && inst.getDataElement().getName().equals(dataElementName) && inst
+                        .getDataElement().getParent() != null && inst.getDataElement().getParent().getName().equals
+                        (dataObjectName) && inst
+                        .getDataElement().getParent().getDataModel() != null && inst.getDataElement().getParent().getDataModel().getName().equals
+                        (dataModelName) && inst.getDataElement().getParent().getDataModel().getTargetNamespace().equals
+                        (dataModelNamespace)) {
+                    result.add(inst);
+                }
+            }
         }
 
-        // Second, filter the list of instances based on the data object name
-        if (dataObjectName != null && !dataObjectName.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataElement().getParent() != null && d.getDataElement().getParent().getName().equals
-                    (dataObjectName)));
-        }
-
-        // Third, filter the list of instance based on the provided correlation properties
-        if (correlationProperties != null && !correlationProperties.isEmpty()) {
-            stream = stream.filter(d -> (d.getCorrelationProperties() != null && d.getCorrelationProperties()
-                    .equals(correlationProperties)));
-        }
-
-        // Last, check if namespace and name of the underlying data models match
-        if (dataModelNamespace != null && !dataModelNamespace.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataElement().getParent().getDataModel() != null && d.getDataElement().getParent().getDataModel()
-                    .getTargetNamespace().equals(dataModelNamespace)));
-        }
-        if (dataModelName != null && !dataModelName.isEmpty()) {
-            stream = stream.filter(d -> (d.getDataElement().getParent().getDataModel() != null && d.getDataElement().getParent().getDataModel()
-                    .getName().equals(dataModelName)));
-        }
-
-        return stream.collect(Collectors.toList());
+        return result;
     }
 
     public boolean hasDataDependencyGraph(String graphId) {

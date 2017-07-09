@@ -47,29 +47,37 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
-    private Date timestamp = new Date();
+    private Date timestamp;
 
-    private String createdBy = "";
+    private String createdBy;
 
     @State
     private String state;
 
-    private transient DataObjectInstanceLifeCycle lifeCycle = null;
+    private transient DataObjectInstanceLifeCycle lifeCycle;
 
     @Reference
-    private DataObject model = null;
+    private DataObject model;
 
     @Reference
-    private List<DataElementInstance> dataElementInstances = new ArrayList<DataElementInstance>();
+    private List<DataElementInstance> dataElementInstances;
 
-    private HashMap<String, String> correlationProperties = new HashMap<>();
+    private HashMap<String, String> correlationProperties;
 
     public DataObjectInstance(DataObject dataObject, String createdBy, HashMap<String, String>
             correlationProperties) {
         this.createdBy = createdBy;
         this.model = dataObject;
-        this.correlationProperties = correlationProperties;
 
+        this.timestamp = new Date();
+
+        if (correlationProperties != null) {
+            this.correlationProperties = correlationProperties;
+        } else {
+            this.correlationProperties = new HashMap<>();
+        }
+
+        dataElementInstances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataObjectInstanceLifeCycle(this);
     }
 
@@ -203,5 +211,33 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
             logger.error("Class not found during deserialization of data object instance '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data object instance.");
         }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof DataObjectInstance) {
+            DataObjectInstance s = (DataObjectInstance) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 0;
+
+        if (this.model != null) {
+            if (this.model.getDataModel() != null) {
+                // Create a query optimized hash which can be used to later identify the matching instance faster
+                hashCode = Objects.hash(model.getDataModel().getTargetNamespace(), model.getDataModel().getName(),
+                        model.getName(), correlationProperties);
+            } else {
+                hashCode = Objects.hash(identifier, timestamp, createdBy, model.getName(), correlationProperties);
+            }
+        } else {
+            hashCode = Objects.hash(identifier, timestamp, createdBy);
+        }
+
+        return hashCode;
     }
 }

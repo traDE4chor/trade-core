@@ -66,6 +66,7 @@ public class TraDEProperties extends Properties {
 
     public static final String PROPERTY_HTTP_SERVER_PORT = "server.port.http";
     public static final String PROPERTY_HTTPS_SERVER_PORT = "server.port.https";
+    public static final String PROPERTY_SERVER_MIN_NUMBER_OF_THREADS = "server.threads.min";
     public static final String PROPERTY_SERVER_MAX_NUMBER_OF_THREADS = "server.threads.max";
 
     public static final String PROPERTY_SERVER_SSL_KEYSTORE = "server.ssl.keystore.path";
@@ -173,10 +174,25 @@ public class TraDEProperties extends Properties {
         return getProperty(PROPERTY_SERVER_SSL_KEYSTORE_PASSWORD, "someKeyStorePassword");
     }
 
-    public int getServerMaxNumberOfThreads() {
-        int maxThreads = 1000;
+    public int getServerMinNumberOfThreads() {
+        int minThreads = 50;
 
-        String prop = getProperty(PROPERTY_SERVER_MAX_NUMBER_OF_THREADS, "1000");
+        String prop = getProperty(PROPERTY_SERVER_MIN_NUMBER_OF_THREADS, "50");
+        try {
+            minThreads = Integer.valueOf(prop);
+        } catch (NumberFormatException e) {
+            logger.warn("The minimum thread number ({}) specified in the properties file is not a valid number. " +
+                    "Therefore, the default value '{}' is used. " +
+                    "Please specify a valid number in the properties file as soon as possible.", prop, minThreads);
+        }
+
+        return minThreads;
+    }
+
+    public int getServerMaxNumberOfThreads() {
+        int maxThreads = 500;
+
+        String prop = getProperty(PROPERTY_SERVER_MAX_NUMBER_OF_THREADS, "500");
         try {
             maxThreads = Integer.valueOf(prop);
         } catch (NumberFormatException e) {

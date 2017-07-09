@@ -25,12 +25,10 @@ import org.statefulj.fsm.model.Action;
  */
 public abstract class AModelLogAction<T> implements Action<T> {
 
-    protected String oldState = "";
+    protected String oldState = null;
 
-    public Action<T> oldState(String oldState) {
+    public AModelLogAction(String oldState) {
         this.oldState = oldState;
-
-        return this;
     }
 
 }

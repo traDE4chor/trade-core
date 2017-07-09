@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * This class represents an instance of a data element within the middleware.
@@ -49,32 +50,39 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
-    private transient DataElementInstanceLifeCycle lifeCycle = null;
+    private transient DataElementInstanceLifeCycle lifeCycle;
 
-    private Date timestamp = new Date();
+    private Date timestamp;
 
-    private String createdBy = "";
+    private String createdBy;
 
     @State
     private String state;
 
     @Reference
-    private DataElement model = null;
+    private DataElement model;
 
     @Reference
-    private DataObjectInstance dataObjectInstance = null;
+    private DataObjectInstance dataObjectInstance;
 
     @Reference
-    private DataValue dataValue = null;
+    private DataValue dataValue;
 
-    private HashMap<String, String> correlationProperties = new HashMap<>();
+    private HashMap<String, String> correlationProperties;
 
     public DataElementInstance(DataElement dataElement, DataObjectInstance dataObjectInstance, String createdBy, HashMap<String, String>
             correlationProperties) {
         this.model = dataElement;
         this.dataObjectInstance = dataObjectInstance;
         this.createdBy = createdBy;
-        this.correlationProperties = correlationProperties;
+
+        this.timestamp = new Date();
+
+        if (correlationProperties != null) {
+            this.correlationProperties = correlationProperties;
+        } else {
+            this.correlationProperties = new HashMap<>();
+        }
 
         this.lifeCycle = new DataElementInstanceLifeCycle(this);
     }
@@ -244,5 +252,33 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
             logger.error("Class not found during deserialization of data element instance '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data element instance.");
         }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof DataElementInstance) {
+            DataElementInstance s = (DataElementInstance) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 0;
+        if (this.model != null) {
+            if (this.model.getParent() != null && this.model.getParent().getDataModel() != null) {
+                // Create a query optimized hash which can be used to later identify the matching instance faster
+                hashCode = Objects.hash(model.getParent().getDataModel().getTargetNamespace(), model.getParent()
+                                .getDataModel().getName(), model.getParent().getName(),
+                        model.getName(), correlationProperties);
+            } else {
+                hashCode = Objects.hash(identifier, timestamp, createdBy, model.getName(), correlationProperties);
+            }
+        } else {
+            hashCode = Objects.hash(identifier, timestamp, createdBy);
+        }
+
+        return hashCode;
     }
 }

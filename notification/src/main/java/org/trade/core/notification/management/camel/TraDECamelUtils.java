@@ -30,7 +30,7 @@ public class TraDECamelUtils {
 
     public static final String ENDPOINT_STATE_CHANGE_EVENTS = "vm:stateChanges";
 
-    public static final String ENDPOINT_LOG = "log:org.trade.core.camel";
+    public static final String ENDPOINT_LOG = "log:org.trade.core.camel?level=DEBUG";
 
     public static final String HEADER_ROUTE_TO = "routeTo";
 

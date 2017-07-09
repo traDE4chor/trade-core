@@ -28,6 +28,10 @@ import org.trade.core.model.data.DataElement;
  */
 public class DataElementLogAction extends AModelLogAction<DataElement> {
 
+    public DataElementLogAction(String oldState) {
+        super(oldState);
+    }
+
     @Override
     public void execute(DataElement stateful, String event, Object... args) throws RetryException {
         Logger logger = LoggerFactory.getLogger(stateful.getClass().getCanonicalName());

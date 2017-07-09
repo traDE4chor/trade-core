@@ -25,6 +25,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.trade.core.data.management.DataManagerFactory;
 import org.trade.core.data.management.IDataManager;
 import org.trade.core.notification.management.INotificationManager;
@@ -45,7 +47,9 @@ public class TraDEServer {
     private INotificationManager notificationManager = null;
 
     public void startHTTPServer(TraDEProperties properties) throws Exception {
-        QueuedThreadPool threadPool = new QueuedThreadPool(properties.getServerMaxNumberOfThreads(), 10);
+        QueuedThreadPool threadPool = new QueuedThreadPool(properties.getServerMaxNumberOfThreads(), properties
+                .getServerMinNumberOfThreads());
+
         server = new Server(threadPool);
 
         setupConnectors(properties);

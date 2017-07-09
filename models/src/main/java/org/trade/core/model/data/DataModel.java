@@ -53,24 +53,24 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataModel");
 
-    private String entity = null;
+    private String entity;
 
-    private String name = null;
+    private String name;
 
-    private String targetNamespace = null;
+    private String targetNamespace;
 
-    private transient DataModelLifeCycle lifeCycle = null;
+    private transient DataModelLifeCycle lifeCycle;
 
-    private transient IPersistenceProvider<DataModel> persistProv = null;
+    private transient IPersistenceProvider<DataModel> persistProv;
 
     @State
     private String state;
 
     @Reference
-    private List<DataDependencyGraph> dataDependencyGraphs = new ArrayList<DataDependencyGraph>();
+    private List<DataDependencyGraph> dataDependencyGraphs;
 
     @Reference
-    private List<DataObject> dataObjects = new ArrayList<DataObject>();
+    private List<DataObject> dataObjects;
 
     /**
      * Instantiates a new data model.
@@ -84,6 +84,8 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         this.entity = entity;
         this.targetNamespace = targetNamespace;
 
+        this.dataDependencyGraphs = new ArrayList<DataDependencyGraph>();
+        this.dataObjects = new ArrayList<DataObject>();
         this.lifeCycle = new DataModelLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataModel.class);
     }
@@ -562,5 +564,19 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof DataModel) {
+            DataModel s = (DataModel) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, targetNamespace, name, entity);
     }
 }

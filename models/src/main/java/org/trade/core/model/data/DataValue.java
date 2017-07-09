@@ -51,31 +51,31 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataValue");
 
-    private String name = null;
+    private String name;
 
-    private Date timestamp = new Date();
+    private Date timestamp;
 
-    private String owner = "";
+    private String owner;
 
-    private transient DataValueLifeCycle lifeCycle = null;
+    private transient DataValueLifeCycle lifeCycle;
 
-    private transient IPersistenceProvider<DataValue> persistProv = null;
+    private transient IPersistenceProvider<DataValue> persistProv;
 
-    private boolean hasData = false;
+    private boolean hasData;
 
     @State
     private String state;
 
-    private String type = null;
+    private String type;
 
-    private String contentType = null;
+    private String contentType;
 
     private Date lastModified = timestamp;
 
-    private long size = 0L;
+    private long size;
 
     @Reference
-    private List<DataElementInstance> dataElementInstances = new ArrayList<DataElementInstance>();
+    private List<DataElementInstance> dataElementInstances;
 
     /**
      * Instantiates a new data value with the given name and owner.
@@ -87,6 +87,11 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         this.owner = owner;
         this.name = name;
 
+        this.hasData = false;
+        this.size = 0L;
+        this.dataElementInstances = new ArrayList<DataElementInstance>();
+
+        this.timestamp = new Date();
         this.lifeCycle = new DataValueLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataValue.class);
     }
@@ -402,5 +407,19 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof DataValue) {
+            DataValue s = (DataValue) object;
+            return this.identifier.equals(s.identifier);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, name, timestamp, owner, type, contentType);
     }
 }

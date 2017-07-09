@@ -20,10 +20,10 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.trade.core.auditing.AuditingServiceFactory;
 import org.trade.core.auditing.events.ATraDEEvent;
-import org.trade.core.auditing.events.InstanceStateChangeEvent;
-import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.model.ABaseResource;
 import org.trade.core.model.notification.Notification;
 import org.trade.core.notification.management.INotificationManager;
@@ -33,7 +33,10 @@ import org.trade.core.utils.TraDEProperties;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,6 +54,8 @@ public enum CamelNotificationManager implements INotificationManager {
 
         AuditingServiceFactory.createAuditingService().registerEventListener(this);
     }
+
+    private static final Logger logger = LoggerFactory.getLogger("org.trade.core.notification.management.camel.CamelNotificationManager");
 
     private CamelContext staticCamel;
 
@@ -208,28 +213,11 @@ public enum CamelNotificationManager implements INotificationManager {
     // Implementation of IAuditingService methods
     @Override
     public void onEvent(ATraDEEvent event) {
-        // TODO: 12.05.2017 Do we really need to distinguish between the different types of events?
-        switch (event.getType()) {
-            case dataHandling:
-                break;
-            case modelLifecycle:
-                ModelStateChangeEvent modelStateChangeEvent = (ModelStateChangeEvent) event;
-
-                modelStateTemplate.sendBodyAndHeader(TraDECamelUtils.ENDPOINT_STATE_CHANGE_EVENTS,
-                        modelStateChangeEvent, TraDECamelUtils.HEADER_ROUTE_TO, calculateTargetEndpoints(event));
-
-                break;
-            case instanceLifecycle:
-                InstanceStateChangeEvent instanceStateChangeEvent = (InstanceStateChangeEvent) event;
-
-                modelStateTemplate.sendBodyAndHeader(TraDECamelUtils.ENDPOINT_STATE_CHANGE_EVENTS,
-                        instanceStateChangeEvent, TraDECamelUtils.HEADER_ROUTE_TO, calculateTargetEndpoints(event));
-
-                break;
-            default:
-                modelStateTemplate.sendBodyAndHeader(TraDECamelUtils.ENDPOINT_STATE_CHANGE_EVENTS,
-                        event, TraDECamelUtils.HEADER_ROUTE_TO, calculateTargetEndpoints(event));
-                break;
+        // Check if any notifications are registered or if debugging is enabled (forward event messages to log).
+        // In any other case we do not need to forward state changes to the static Camel route for their processing.
+        if (!this.notifications.isEmpty() || logger.isDebugEnabled()) {
+            modelStateTemplate.sendBodyAndHeader(TraDECamelUtils.ENDPOINT_STATE_CHANGE_EVENTS,
+                    event, TraDECamelUtils.HEADER_ROUTE_TO, calculateTargetEndpoints(event));
         }
     }
 
@@ -261,8 +249,10 @@ public enum CamelNotificationManager implements INotificationManager {
     private String calculateTargetEndpoints(ATraDEEvent event) {
         StringBuilder endpointList = new StringBuilder();
 
-        // Add the log endpoint as static target
-        endpointList.append(TraDECamelUtils.ENDPOINT_LOG);
+        // Add the log endpoint as static target, if debugging is enabled
+        if (logger.isDebugEnabled()) {
+            endpointList.append(TraDECamelUtils.ENDPOINT_LOG);
+        }
 
         // Calculate the collection of target destinations for the events
         for (Notification notify : this.notifications.values()) {
