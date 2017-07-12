@@ -203,15 +203,15 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                                              @NotNull String dataElementName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstance = DataManagerFactory.createDataManager()
+        org.trade.core.model.data.instance.DataElementInstance dataElementInstance = DataManagerFactory.createDataManager()
                 .queryDataElementInstance(dataModelNamespace, dataModelName, dataObjectName, dataElementName,
                         ResourceTransformationUtils.resource2Model(correlationProperties));
 
         try {
-            if (dataElementInstance != null && dataElementInstance.size() == 1) {
+            if (dataElementInstance != null) {
                 DataElementInstanceWithLinks result = new DataElementInstanceWithLinks();
 
-                result.setInstance(ResourceTransformationUtils.model2Resource(dataElementInstance.get(0)));
+                result.setInstance(ResourceTransformationUtils.model2Resource(dataElementInstance));
 
                 // Set HREF and links to related resources
                 UriBuilder builder = uriInfo.getAbsolutePathBuilder();
@@ -220,21 +220,12 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                 result.getInstance().setHref(valueUri.toASCIIString());
 
                 // Set links to related resources
-                result.setLinks(LinkUtils.createDataElementInstanceLinks(uriInfo, dataElementInstance.get(0), result
+                result.setLinks(LinkUtils.createDataElementInstanceLinks(uriInfo, dataElementInstance, result
                         .getInstance().getHref()));
 
                 response = Response.ok().entity(result).build();
             } else {
-                String message = "";
-                if (dataElementInstance.size() > 1) {
-                    message = "The provided parameters result in more than one matching data element instance. " +
-                            "If you have not specified correlation properties in your request, please retry with " +
-                            "corresponding correlation properties leading to a unique result.";
-                } else {
-                    message = "A data element instance could not be found based on the provided parameters.";
-                }
-
-                response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().message(message))
+                response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().message("A data element instance could not be found based on the provided parameters."))
                         .build();
             }
         } catch (Exception e) {

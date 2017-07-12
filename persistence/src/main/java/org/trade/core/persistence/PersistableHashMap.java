@@ -16,6 +16,8 @@
 
 package org.trade.core.persistence;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 
 import java.util.Map;
@@ -37,6 +39,8 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
 
     private static final long serialVersionUID = -9007417974064859966L;
 
+    private Logger logger = LoggerFactory.getLogger("org.trade.core.persistence.PersistableHashMap");
+
     private transient IPersistenceProvider<V> persistProv = null;
 
     /**
@@ -54,7 +58,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         try {
             map = this.persistProv.loadAllObjects(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Loading of all objects of type '" + objectType.getName() + "' caused an exception.", e);
         }
 
         // Use supertype methods without persistence support to add map elements during loading
@@ -71,7 +75,8 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         try {
             this.persistProv.storeObject(value);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Storing object of type '" + value.getClass().getName() + "' with ID='" + key + "' caused an" +
+                            " exception.", e);
         }
 
         return previous;
@@ -89,7 +94,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Storing of multiple objects at once caused an exception.", e);
         }
     }
 
@@ -102,7 +107,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
             try {
                 this.persistProv.deleteObject(previous.getIdentifier());
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Deleting object with ID='" + key + "' caused an exception.", e);
             }
         }
 
@@ -121,7 +126,8 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
                 this.persistProv.storeObject(value);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Storing object of type '" + value.getClass().getName() + "' with ID='" + key + "' caused an" +
+                    " exception.", e);
         }
 
         return previous;
@@ -136,7 +142,8 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
             try {
                 this.persistProv.deleteObject(key.toString());
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Deleting object of type '" + value.getClass().getName() + "' with ID='" + key + "' " +
+                        "caused an exception.", e);
             }
         }
 
@@ -153,7 +160,8 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
                 this.persistProv.storeObject(newValue);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Replacing object of type '" + oldValue.getClass().getName() + "' with ID='" + key + "' " +
+                    " with a new object instance caused an exception.", e);
         }
 
         return isReplaced;
@@ -167,7 +175,8 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         try {
             this.persistProv.storeObject(value);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Replacing object of type '" + value.getClass().getName() + "' with ID='" + key + "' " +
+                    " with another object instance caused an exception.", e);
         }
 
         return previous;

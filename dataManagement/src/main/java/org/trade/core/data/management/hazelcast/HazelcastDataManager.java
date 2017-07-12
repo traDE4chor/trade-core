@@ -197,12 +197,12 @@ public enum HazelcastDataManager implements IDataManager {
     }
 
     @Override
-    public List<DataObjectInstance> queryDataObjectInstance(String dataModelNamespace, String dataModelName, String dataObjectName, HashMap<String, String> correlationProperties) {
+    public DataObjectInstance queryDataObjectInstance(String dataModelNamespace, String dataModelName, String dataObjectName, HashMap<String, String> correlationProperties) {
         return null;
     }
 
     @Override
-    public List<DataElementInstance> queryDataElementInstance(String dataModelNamespace, String dataModelName, String dataObjectName, String dataElementName, HashMap<String, String> correlationProperties) {
+    public DataElementInstance queryDataElementInstance(String dataModelNamespace, String dataModelName, String dataObjectName, String dataElementName, HashMap<String, String> correlationProperties) {
         return null;
     }
 

@@ -25,6 +25,9 @@ RUN chmod -R a+x ${TRADE_HOME}/bin/*
 # Change the default (Windows-based) persistence directory path to a Linux path in the config.properties file
 RUN sed -i 's/data.persistence.file.directory=D:\\\\tradeDATA/data.persistence.file.directory=\/tradeData/' ${TRADE_HOME}/config/config.properties
 
+# Change all log levels from DEBUG to INFO in the logback.xml configuration file
+RUN sed -i 's/DEBUG/INFO/' ${TRADE_HOME}/config/logback.xml
+
 # Clean-up source code & gradle cache
 RUN rm -r /src
 RUN rm -r ~/.gradle

@@ -262,9 +262,9 @@ public interface IDataManager extends TraDEEventListener {
      * @param dataModelName         the name of the underlying data model
      * @param dataObjectName        the name of the data object for which instances should be returned
      * @param correlationProperties the set of correlation properties which instances need to be compliant with
-     * @return a list of all data object instances fulfilling the specified criteria
+     * @return a data object instance fulfilling the specified criteria or null if none is found
      */
-    List<DataObjectInstance> queryDataObjectInstance(String dataModelNamespace, String dataModelName, String
+    DataObjectInstance queryDataObjectInstance(String dataModelNamespace, String dataModelName, String
             dataObjectName, HashMap<String, String> correlationProperties);
 
     /**
@@ -275,9 +275,9 @@ public interface IDataManager extends TraDEEventListener {
      * @param dataObjectName        the name of the underlying parent data object
      * @param dataElementName       the name of the data element for which instances should be returned
      * @param correlationProperties the set of correlation properties which instances need to be compliant with
-     * @return a list of all data element instances fulfilling the specified criteria
+     * @return a data element instance fulfilling the specified criteria or null if none is found
      */
-    List<DataElementInstance> queryDataElementInstance(String dataModelNamespace, String dataModelName, String
+    DataElementInstance queryDataElementInstance(String dataModelNamespace, String dataModelName, String
             dataObjectName, String dataElementName, HashMap<String, String> correlationProperties);
 
     /**

@@ -83,32 +83,33 @@ public class TraDEServer {
 
         connectors = new Connector[]{http};
 
-        String keystorePath = props.getServerKeystore();
-        if (keystorePath != null) {
-            File keystoreFile = new File(".", keystorePath).getAbsoluteFile();
-            if (keystoreFile.exists()) {
-                // SSL Context Factory for HTTPS
-                SslContextFactory sslContextFactory = new SslContextFactory();
-                sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
-                sslContextFactory.setKeyStorePassword(props.getKeyStorePassword());
-
-                // HTTPS Configuration
-                HttpConfiguration https_config = new HttpConfiguration(http_config);
-                SecureRequestCustomizer src = new SecureRequestCustomizer();
-                src.setStsMaxAge(2000);
-                src.setStsIncludeSubDomains(true);
-                https_config.addCustomizer(src);
-
-                // HTTPS connector
-                ServerConnector https = new ServerConnector(server,
-                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                        new HttpConnectionFactory(https_config));
-                https.setPort(props.getHttpsServerPort());
-                https.setIdleTimeout(500000);
-
-                connectors = new Connector[]{http, https};
-            }
-        }
+          // TODO: It seems that the registration of the https connector causes for some reason performance issues for high workloads. This has to be further inspected in future.
+//        String keystorePath = props.getServerKeystore();
+//        if (keystorePath != null) {
+//            File keystoreFile = new File(".", keystorePath).getAbsoluteFile();
+//            if (keystoreFile.exists()) {
+//                // SSL Context Factory for HTTPS
+//                SslContextFactory sslContextFactory = new SslContextFactory();
+//                sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
+//                sslContextFactory.setKeyStorePassword(props.getKeyStorePassword());
+//
+//                // HTTPS Configuration
+//                HttpConfiguration https_config = new HttpConfiguration(http_config);
+//                SecureRequestCustomizer src = new SecureRequestCustomizer();
+//                src.setStsMaxAge(2000);
+//                src.setStsIncludeSubDomains(true);
+//                https_config.addCustomizer(src);
+//
+//                // HTTPS connector
+//                ServerConnector https = new ServerConnector(server,
+//                        new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+//                        new HttpConnectionFactory(https_config));
+//                https.setPort(props.getHttpsServerPort());
+//                https.setIdleTimeout(500000);
+//
+//                connectors = new Connector[]{http, https};
+//            }
+//        }
 
         // Set the connectors
         server.setConnectors(connectors);

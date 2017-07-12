@@ -208,15 +208,15 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     public Response queryDataObjectInstance(@NotNull String dataModelNamespace, @NotNull String dataModelName, @NotNull String dataObjectName, CorrelationPropertyArray correlationProperties, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstance = DataManagerFactory.createDataManager()
+        org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance = DataManagerFactory.createDataManager()
                 .queryDataObjectInstance(dataModelNamespace, dataModelName, dataObjectName,
                         ResourceTransformationUtils.resource2Model(correlationProperties));
 
         try {
-            if (dataObjectInstance != null && dataObjectInstance.size() == 1) {
+            if (dataObjectInstance != null) {
                 DataObjectInstanceWithLinks result = new DataObjectInstanceWithLinks();
 
-                result.setInstance(ResourceTransformationUtils.model2Resource(dataObjectInstance.get(0)));
+                result.setInstance(ResourceTransformationUtils.model2Resource(dataObjectInstance));
 
                 // Set HREF and links to related resources
                 UriBuilder builder = uriInfo.getAbsolutePathBuilder();
@@ -225,21 +225,12 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
                 result.getInstance().setHref(valueUri.toASCIIString());
 
                 // Set links to related resources
-                result.setLinks(LinkUtils.createDataObjectInstanceLinks(uriInfo, dataObjectInstance.get(0), result
+                result.setLinks(LinkUtils.createDataObjectInstanceLinks(uriInfo, dataObjectInstance, result
                         .getInstance().getHref()));
 
                 response = Response.ok().entity(result).build();
             } else {
-                String message = "";
-                if (dataObjectInstance.size() > 1) {
-                    message = "The provided parameters result in more than one matching data object instance. " +
-                            "If you have not specified correlation properties in your request, please retry with " +
-                            "corresponding correlation properties leading to a unique result.";
-                } else {
-                    message = "A data object instance could not be found based on the provided parameters.";
-                }
-
-                response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().message(message))
+                response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().message("A data object instance could not be found based on the provided parameters."))
                         .build();
             }
         } catch (Exception e) {

@@ -367,22 +367,21 @@ public enum SimpleDataManager implements IDataManager {
         return Collections.unmodifiableList(result);
     }
 
-    public List<DataObjectInstance> queryDataObjectInstance(String dataModelNamespace, String dataModelName, String
+    public DataObjectInstance queryDataObjectInstance(String dataModelNamespace, String dataModelName, String
             dataObjectName, HashMap<String, String> correlationProperties) {
-        List<DataObjectInstance> result = new ArrayList<>();
+        DataObjectInstance result = null;
 
         Iterator<DataObjectInstance> iter = this.dataObjectInstances.values().iterator();
-        for (; iter.hasNext(); ) {
+        while (iter.hasNext() && result == null) {
             DataObjectInstance inst = iter.next();
 
             // First, check if the correlation properties are equal since they are the main property for correlation
-            if (inst.getCorrelationProperties().equals(correlationProperties)) {
+            if (inst.getCorrelationProperties().equals(correlationProperties) && inst.getDataObject().getName().equals(dataObjectName)) {
                 // Check all other parameters, normally they should be equal by default
-                if (inst.getDataObject() != null && inst.getDataObject().getName().equals(dataObjectName) && inst
-                        .getDataObject().getDataModel() != null && inst.getDataObject().getDataModel().getName().equals
+                if (inst.getDataObject().getDataModel() != null && inst.getDataObject().getDataModel().getName().equals
                         (dataModelName) && inst.getDataObject().getDataModel().getTargetNamespace().equals
                         (dataModelNamespace)) {
-                    result.add(inst);
+                    result = inst;
                 }
             }
         }
@@ -390,23 +389,22 @@ public enum SimpleDataManager implements IDataManager {
         return result;
     }
 
-    public List<DataElementInstance> queryDataElementInstance(String dataModelNamespace, String dataModelName, String dataObjectName, String dataElementName, HashMap<String, String> correlationProperties) {
-        List<DataElementInstance> result = new ArrayList<>();
+    public DataElementInstance queryDataElementInstance(String dataModelNamespace, String dataModelName, String dataObjectName, String dataElementName, HashMap<String, String> correlationProperties) {
+        DataElementInstance result = null;
 
         Iterator<DataElementInstance> iter = this.dataElementInstances.values().iterator();
-        for (; iter.hasNext(); ) {
+        while (iter.hasNext() && result == null) {
             DataElementInstance inst = iter.next();
 
             // First, check if the correlation properties are equal since they are the main property for correlation
-            if (inst.getCorrelationProperties().equals(correlationProperties)) {
+            if (inst.getCorrelationProperties().equals(correlationProperties) && inst.getDataElement().getName().equals(dataElementName)) {
                 // Check all other parameters, normally they should be equal by default
-                if (inst.getDataElement() != null && inst.getDataElement().getName().equals(dataElementName) && inst
-                        .getDataElement().getParent() != null && inst.getDataElement().getParent().getName().equals
+                if (inst.getDataElement().getParent() != null && inst.getDataElement().getParent().getName().equals
                         (dataObjectName) && inst
                         .getDataElement().getParent().getDataModel() != null && inst.getDataElement().getParent().getDataModel().getName().equals
                         (dataModelName) && inst.getDataElement().getParent().getDataModel().getTargetNamespace().equals
                         (dataModelNamespace)) {
-                    result.add(inst);
+                    result = inst;
                 }
             }
         }
