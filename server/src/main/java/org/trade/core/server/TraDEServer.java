@@ -16,12 +16,11 @@
 
 package org.trade.core.server;
 
+import io.swagger.trade.server.jersey.api.ApiOriginFilter;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -67,7 +66,7 @@ public class TraDEServer {
     }
 
     private void setupConnectors(TraDEProperties props) {
-        Connector[] connectors = null;
+        Connector[] connectors;
 
         // HTTP Configuration
         HttpConfiguration http_config = new HttpConfiguration();
@@ -129,6 +128,9 @@ public class TraDEServer {
                 "org.glassfish.jersey.media.multipart.MultiPartFeature;org.glassfish.jersey.jackson.JacksonFeature;" +
                         "org.trade.core.server.jackson.CustomObjectMapperProvider");
         apiServlet.setInitParameter("jersey.config.server.wadl.disableWadl", "true");
+
+        // Add the generated ApiOriginFilter to allow cross-origin requests
+        apiContext.addFilter(ApiOriginFilter.class, "/*", null);
 
         // Create a new ServletContextHandler for the Swagger UI and the API documentation
         ServletContextHandler docContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
