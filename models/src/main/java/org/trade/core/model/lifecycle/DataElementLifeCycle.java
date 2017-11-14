@@ -91,7 +91,7 @@ public class DataElementLifeCycle {
                         null, dataElement.getState(), ModelEvents.initial.name());
 
                 AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(dataElement.getIdentifier(),
-                        DataElement.class, null, dataElement.getState(), ModelEvents.initial.name()));
+                        DataElement.class, dataElement, null, dataElement.getState(), ModelEvents.initial.name()));
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }

@@ -32,11 +32,15 @@ public abstract class ATraDEEvent implements Serializable {
 
     public static final String EVENT_FILTER__IDENTIFIER = "Identifier";
 
-    private static final String EVENT_FILTER__MODEL_CLASS = "ModelClass";
+    public static final String EVENT_FILTER__MODEL_CLASS = "ModelClass";
+
+    public static final String EVENT_FILTER__EVENT_SOURCE = "EventSource";
 
     protected String identifier;
 
     protected Class modelClass;
+
+    protected Object eventSource;
 
     /**
      * This enum provides the list of possible event types.
@@ -69,8 +73,22 @@ public abstract class ATraDEEvent implements Serializable {
         return identifier;
     }
 
+    /**
+     * Provides the model class of the object which is the source of this event.
+     *
+     * @return The class of the model object.
+     */
     public Class getModelClass() {
         return modelClass;
+    }
+
+    /**
+     * Provides the source object of this event.
+     *
+     * @return The source object.
+     */
+    public Object getEventSource() {
+        return eventSource;
     }
 
     public String toString() {
@@ -89,8 +107,16 @@ public abstract class ATraDEEvent implements Serializable {
                     if (value == null) {
                         continue;
                     }
-                    sb.append("\n\t").append(field).append(" = ")
-                            .append(value.toString());
+
+                    // Special handling for the event source object for which we just add the hashCode
+                    if (field.startsWith
+                            ("EventSource")) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(value.hashCode());
+                    } else {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(value.toString());
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -151,6 +177,17 @@ public abstract class ATraDEEvent implements Serializable {
         modelClass.addValueToConstrainedValueDomain("class org.trade.core.model.data.instance.DataObjectInstance");
         modelClass.addValueToConstrainedValueDomain("class org.trade.core.model.data.instance.DataElementInstance");
         result.add(modelClass);
+
+        EventFilterInformation eventSource = new EventFilterInformation(eventClass.getSimpleName(),
+                EVENT_FILTER__EVENT_SOURCE, "With the event filter key [" + EVENT_FILTER__EVENT_SOURCE + "] the " +
+                "actual model object can be referenced. This is useful if someone is " +
+                "interested in actual properties of a model object for which an event was emitted, e.g., " +
+                "the name of a data object. Therefore, the event filter key has to be extended with a 'nested query'," +
+                " i.e., by adding a '#' and then the actual method identifier of the model object to get the field of" +
+                " the object which should be compared with the specified filter value." +
+                " By specifying a filter with '" + EVENT_FILTER__EVENT_SOURCE + "#Name=inputDataObject' for a " +
+                "data object only event messages with for data objects with the name 'inputDataObject' are forwarded.");
+        result.add(eventSource);
 
         return result;
     }

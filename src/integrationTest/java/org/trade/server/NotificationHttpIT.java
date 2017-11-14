@@ -21,14 +21,14 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.DataValueApi;
-import io.swagger.trade.client.jersey.api.NotificationApi;
+import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.trade.core.model.ModelConstants;
@@ -40,10 +40,11 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by hahnml on 10.05.2017.
@@ -58,7 +59,17 @@ public class NotificationHttpIT {
 
     private static DataValueApi dvApiInstance;
 
+    private static DataObjectApi doApiInstance;
+
+    private static DataObjectInstanceApi doInstApiInstance;
+
+    private static DataElementApi deApiInstance;
+
     private static Server httpServer;
+
+    private static CountDownLatch lock;
+
+    private static String notificationMessage;
 
     @BeforeClass
     public static void setupEnvironment() throws Exception {
@@ -85,6 +96,12 @@ public class NotificationHttpIT {
 
         dvApiInstance = new DataValueApi(client);
 
+        doApiInstance = new DataObjectApi(client);
+
+        doInstApiInstance = new DataObjectInstanceApi(client);
+
+        deApiInstance = new DataElementApi(client);
+
         // Create a new embedded HTTP server which consumes the HTTP notifications
         httpServer = new Server(8085);
 
@@ -102,10 +119,13 @@ public class NotificationHttpIT {
         httpServer.start();
     }
 
+    @Before
+    public void createCountDownLatch() {
+        lock = new CountDownLatch(1);
+    }
+
     @Test
     public void createAndTriggerHttpNotificationTest() throws Exception {
-        String destinationName = "dataValueInitializedQueue";
-
         NotificationData test = new NotificationData();
         test.setName("notifyDataValueInitialized");
         test.setTypeOfResourceToObserve(ResourceTypeEnum.DATAVALUE);
@@ -171,6 +191,9 @@ public class NotificationHttpIT {
             assertNotNull(result);
             dvApiInstance.deleteDataValue(result.getId());
 
+            lock.await(2000, TimeUnit.MILLISECONDS);
+            assertNotNull(notificationMessage);
+
             notificationApi.deleteNotification(response.getId());
         } catch (ApiException e) {
             e.printStackTrace();
@@ -196,7 +219,8 @@ public class NotificationHttpIT {
 
             String message = new String(buffer);
 
-            assertNotNull(message);
+            notificationMessage = message;
+            lock.countDown();
 
             System.out.println("HTTP Notification Message: " + message);
 
@@ -208,6 +232,98 @@ public class NotificationHttpIT {
         }
 
         ((Request) request).setHandled(true);
+    }
+
+    @Test
+    public void httpNotificationWithComplexResourceFilterQueryTest() throws Exception {
+        NotificationData test = new NotificationData();
+        test.setName("notifyDataObjectInstanceCreated");
+        test.setTypeOfResourceToObserve(ResourceTypeEnum.DATAOBJECTINSTANCE);
+        test.setSelectedNotifierServiceId("http");
+
+        NotifierServiceParameterArray params = new NotifierServiceParameterArray();
+
+        NotifierServiceParameter param = new NotifierServiceParameter();
+        param.setParameterName("hostname");
+        param.setValue("localhost");
+        params.add(param);
+
+        param = new NotifierServiceParameter();
+        param.setParameterName("port");
+        param.setValue("8085");
+        params.add(param);
+
+        param = new NotifierServiceParameter();
+        param.setParameterName("resourceUri");
+        param.setValue("/testResource");
+        params.add(param);
+
+        param = new NotifierServiceParameter();
+        param.setParameterName("messageFormat");
+        param.setValue("XML");
+        params.add(param);
+
+        param = new NotifierServiceParameter();
+        param.setParameterName("SOAPAction");
+        param.setValue("processRequest");
+        params.add(param);
+
+        test.setNotifierParameterValues(params);
+
+        ResourceEventFilterArray filters = new ResourceEventFilterArray();
+
+        ResourceEventFilter filter = new ResourceEventFilter();
+        filter.setFilterName("ModelClass");
+        filter.setFilterValue("class org.trade.core.model.data.instance.DataObjectInstance");
+        filters.add(filter);
+
+        filter = new ResourceEventFilter();
+        filter.setFilterName("NewState");
+        filter.setFilterValue("CREATED");
+        filters.add(filter);
+
+        HashMap<String, String> correlationProps = new HashMap<>();
+        correlationProps.put("chorID", "1234567");
+
+        filter = new ResourceEventFilter();
+        filter.setFilterName("EventSource#CorrelationProperties");
+        filter.setFilterValue(correlationProps.toString());
+        filters.add(filter);
+
+        test.setResourceFilters(filters);
+
+        try {
+            // Add the notification
+            Notification response = notificationApi.addNotification(test);
+            assertNotNull(response);
+
+            // Trigger the notification by creating a data object with a data element and then instantiating the data
+            // object
+            DataObject dObject = doApiInstance.addDataObject(new DataObjectData().name("testDataObject").entity
+                    ("hahnml"));
+            assertNotNull(dObject);
+
+            DataElement dElement = deApiInstance.addDataElement(dObject.getId(), new DataElementData().name
+                    ("testDataElement").entity("hahnml").type("binary").contentType("text/plain")).getDataElement();
+            assertNotNull(dElement);
+
+            // Use the same correlation property values as above for the registered notification
+            CorrelationPropertyArray corPropArray = new CorrelationPropertyArray();
+            corPropArray.add(new CorrelationProperty().key("chorID").value("1234567"));
+
+            // Create a new data object instance to trigger the notification
+            DataObjectInstance doInst = doInstApiInstance.addDataObjectInstance(dObject.getId(), new
+                    DataObjectInstanceData().createdBy("hahnml").correlationProperties(corPropArray)).getInstance();
+            assertNotNull(doInst);
+
+            lock.await(2000, TimeUnit.MILLISECONDS);
+            assertNotNull(notificationMessage);
+
+            doApiInstance.deleteDataObject(dObject.getId());
+            notificationApi.deleteNotification(response.getId());
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
     }
 
     @AfterClass
@@ -223,7 +339,9 @@ public class NotificationHttpIT {
 
         dataStore.getCollection("dataValues").drop();
         dataStore.getCollection("dataElements").drop();
+        dataStore.getCollection("dataElementInstances").drop();
         dataStore.getCollection("dataObjects").drop();
+        dataStore.getCollection("dataObjectInstances").drop();
         dataStore.getCollection("dataModels").drop();
         dataStore.getCollection("dataDependencyGraphs").drop();
         dataStore.getCollection("notifications").drop();

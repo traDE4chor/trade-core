@@ -92,7 +92,8 @@ public class DataDependencyGraphLifeCycle {
                         .getIdentifier(), null, ddg.getState(), ModelEvents.initial.name());
 
                 AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(ddg
-                        .getIdentifier(), DataDependencyGraph.class, null, ddg.getState(), ModelEvents.initial.name()));
+                        .getIdentifier(), DataDependencyGraph.class, ddg, null, ddg.getState(), ModelEvents.initial
+                        .name()));
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }

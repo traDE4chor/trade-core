@@ -29,17 +29,19 @@ public class ModelStateChangeEvent extends ATraDEEvent {
 
     private static final long serialVersionUID = -1975865994826066258L;
 
-    private static final String EVENT_FILTER__OLD_STATE = "OldState";
-    private static final String EVENT_FILTER__NEW_STATE = "NewState";
-    private static final String EVENT_FILTER__EVENT = "Event";
+    public static final String EVENT_FILTER__OLD_STATE = "OldState";
+    public static final String EVENT_FILTER__NEW_STATE = "NewState";
+    public static final String EVENT_FILTER__EVENT = "Event";
 
     private ModelStates oldState;
     private ModelStates newState;
     private ModelEvents event;
 
-    public ModelStateChangeEvent(String identifier, Class modelClass, String oldState, String newState, String event) {
+    public ModelStateChangeEvent(String identifier, Class modelClass, Object eventSource, String oldState, String
+            newState, String event) {
         this.identifier = identifier;
         this.modelClass = modelClass;
+        this.eventSource = eventSource;
         this.oldState = oldState != null ? ModelStates.valueOf(oldState) : null;
         this.newState = newState != null ? ModelStates.valueOf(newState) : null;
         this.event = ModelEvents.valueOf(event);

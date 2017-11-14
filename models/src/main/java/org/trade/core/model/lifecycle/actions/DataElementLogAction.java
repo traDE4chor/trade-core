@@ -40,6 +40,6 @@ public class DataElementLogAction extends AModelLogAction<DataElement> {
                 this.oldState, stateful.getState(), event);
 
         AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(stateful.getIdentifier(),
-                DataElement.class, this.oldState, stateful.getState(), event));
+                DataElement.class, stateful, this.oldState, stateful.getState(), event));
     }
 }

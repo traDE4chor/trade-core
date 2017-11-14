@@ -40,7 +40,7 @@ public class DataDependencyGraphLogAction extends AModelLogAction<DataDependency
                 .getIdentifier(), this.oldState, stateful.getState(), event);
 
         AuditingServiceFactory.createAuditingService().fireEvent(new ModelStateChangeEvent(stateful.getIdentifier(),
-                DataDependencyGraph.class, this.oldState, stateful.getState(), event));
+                DataDependencyGraph.class, stateful, this.oldState, stateful.getState(), event));
     }
 
 }

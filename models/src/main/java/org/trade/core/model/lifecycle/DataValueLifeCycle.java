@@ -92,7 +92,7 @@ public class DataValueLifeCycle {
                         null, dataValue.getState(), InstanceEvents.create.name());
 
                 AuditingServiceFactory.createAuditingService().fireEvent(new InstanceStateChangeEvent(dataValue.getIdentifier(),
-                        DataValue.class, null, dataValue.getState(), InstanceEvents.create.name()));
+                        DataValue.class, dataValue, null, dataValue.getState(), InstanceEvents.create.name()));
             } catch (TooBusyException e) {
                 e.printStackTrace();
             }

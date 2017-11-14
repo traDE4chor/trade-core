@@ -39,4 +39,6 @@ public class TraDECamelUtils {
     public static String getDefaultEndpointString(String endpoint) {
         return DEFAULT_ROUTING_COMPONENT + endpoint;
     }
+
+    public static final String RESOURCE_FILTER_NESTED_QUERY_SEPARATOR_CHAR = "#";
 }

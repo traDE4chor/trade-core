@@ -87,8 +87,6 @@ public enum CamelNotificationManager implements INotificationManager {
 
             // Start the context
             staticCamel.start();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,8 +124,6 @@ public enum CamelNotificationManager implements INotificationManager {
 
             // Start the context
             context.start();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -269,9 +265,7 @@ public enum CamelNotificationManager implements INotificationManager {
     private boolean checkFilter(Notification notify, ATraDEEvent event) {
         for (String key : notify.getResourceFilters().keySet()) {
             try {
-                Method getter = event.getClass().getMethod("get" + key);
-
-                Object result = getter.invoke(event);
+                Object result = resolveValue(event, key);
 
                 if (result == null || !result.toString().equals(notify.getResourceFilters().get(key))) {
                     // If there is no value to check or if the resolved and provided values are not equal, we
@@ -281,10 +275,34 @@ public enum CamelNotificationManager implements INotificationManager {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                return false;
             }
         }
 
         return true;
+    }
+
+    private Object resolveValue(Object source, String methodName) throws Exception {
+        Object result;
+
+        if (methodName.contains(TraDECamelUtils.RESOURCE_FILTER_NESTED_QUERY_SEPARATOR_CHAR)) {
+            // Limit the split with an array size of two, so that we get the first method name at index 0 and the
+            // rest of the query string at index 1. This is necessary because the rest of the query string can again
+            // contain a '#' character and therefore we will invoke this method recursively.
+            String[] nestedQueries = methodName.split(TraDECamelUtils.RESOURCE_FILTER_NESTED_QUERY_SEPARATOR_CHAR,
+                    2);
+
+            String firstMethodName = nestedQueries[0];
+            String nestedQuery = nestedQueries[1];
+            Method getter = source.getClass().getMethod("get" + firstMethodName);
+            Object firstObject = getter.invoke(source);
+
+            result = resolveValue(firstObject, nestedQuery);
+        } else {
+            Method getter = source.getClass().getMethod("get" + methodName);
+
+            result = getter.invoke(source);
+        }
+
+        return result;
     }
 }

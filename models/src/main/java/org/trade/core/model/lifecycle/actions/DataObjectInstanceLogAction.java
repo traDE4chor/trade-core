@@ -40,7 +40,7 @@ public class DataObjectInstanceLogAction extends AModelLogAction<DataObjectInsta
                         .getIdentifier(), this.oldState, stateful.getState(), event);
 
         AuditingServiceFactory.createAuditingService().fireEvent(new InstanceStateChangeEvent(stateful.getIdentifier(),
-                DataObjectInstance.class, this.oldState, stateful.getState(), event));
+                DataObjectInstance.class, stateful, this.oldState, stateful.getState(), event));
     }
 
 }

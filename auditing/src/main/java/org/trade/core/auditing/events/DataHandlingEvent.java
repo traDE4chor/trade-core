@@ -30,17 +30,19 @@ public class DataHandlingEvent extends ATraDEEvent {
 
     private static final long serialVersionUID = 6482354215019713061L;
 
-    private static final String EVENT_FILTER__OLD_STATE = "OldState";
-    private static final String EVENT_FILTER__NEW_STATE = "NewState";
+    public static final String EVENT_FILTER__OLD_STATE = "OldState";
+    public static final String EVENT_FILTER__NEW_STATE = "NewState";
 
     private DataStates oldState;
     private DataStates newState;
 
     // TODO: 11.05.2017 Add required properties for data handling events
 
-    public DataHandlingEvent(String identifier, Class modelClass, String oldState, String newState) {
+    public DataHandlingEvent(String identifier, Class modelClass, Object eventSource, String oldState, String
+            newState) {
         this.identifier = identifier;
         this.modelClass = modelClass;
+        this.eventSource = eventSource;
         this.oldState = oldState != null ? DataStates.valueOf(oldState) : null;
         this.newState = newState != null ? DataStates.valueOf(newState) : null;
     }

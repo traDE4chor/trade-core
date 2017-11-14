@@ -29,18 +29,19 @@ public class InstanceStateChangeEvent extends ATraDEEvent {
 
     private static final long serialVersionUID = -2370986189631041880L;
 
-    private static final String EVENT_FILTER__OLD_STATE = "OldState";
-    private static final String EVENT_FILTER__NEW_STATE = "NewState";
-    private static final String EVENT_FILTER__EVENT = "Event";
+    public static final String EVENT_FILTER__OLD_STATE = "OldState";
+    public static final String EVENT_FILTER__NEW_STATE = "NewState";
+    public static final String EVENT_FILTER__EVENT = "Event";
 
     private InstanceStates oldState;
     private InstanceStates newState;
     private InstanceEvents event;
 
-    public InstanceStateChangeEvent(String identifier, Class modelClass, String oldState, String newState, String
-            event) {
+    public InstanceStateChangeEvent(String identifier, Class modelClass, Object eventSource, String oldState, String
+            newState, String event) {
         this.identifier = identifier;
         this.modelClass = modelClass;
+        this.eventSource = eventSource;
         this.oldState = oldState != null ? InstanceStates.valueOf(oldState) : null;
         this.newState = newState != null ? InstanceStates.valueOf(newState) : null;
         this.event = InstanceEvents.valueOf(event);
@@ -97,15 +98,15 @@ public class InstanceStateChangeEvent extends ATraDEEvent {
         EventFilterInformation event = new EventFilterInformation(InstanceStateChangeEvent.class.getSimpleName(),
                 EVENT_FILTER__EVENT,
                 "With the event filter key [" +
-                EVENT_FILTER__EVENT + "] the " +
-                "event which triggers a state change of a model instance object can be specified. This is useful if " +
-                "someone " +
-                "is interested in events emitted as a reason of a specific event trigger, e.g., the 'initialize' trigger" +
-                " was called for a data value (which will lead to a state change to 'INITIALIZED'). By" +
-                " specifying a filter with '" + EVENT_FILTER__EVENT + "=initialize' only event messages with a" +
-                " matching event trigger are forwarded.\n" +
-                "The following list contains all valid event values that can be specified: create, initialize, " +
-                "archive, unarchive, delete.");
+                        EVENT_FILTER__EVENT + "] the " +
+                        "event which triggers a state change of a model instance object can be specified. This is useful if " +
+                        "someone " +
+                        "is interested in events emitted as a reason of a specific event trigger, e.g., the 'initialize' trigger" +
+                        " was called for a data value (which will lead to a state change to 'INITIALIZED'). By" +
+                        " specifying a filter with '" + EVENT_FILTER__EVENT + "=initialize' only event messages with a" +
+                        " matching event trigger are forwarded.\n" +
+                        "The following list contains all valid event values that can be specified: create, initialize, " +
+                        "archive, unarchive, delete.");
         event.setConstrainedValueDomain(getEnumValues(InstanceEvents.class));
         result.add(event);
 

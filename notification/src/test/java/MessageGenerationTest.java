@@ -23,15 +23,13 @@ import org.junit.Test;
 import org.trade.core.auditing.events.InstanceStateChangeEvent;
 import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.model.data.DataElement;
+import org.trade.core.model.data.DataObject;
 import org.trade.core.model.notification.Notification;
 import org.trade.core.utils.events.ModelEvents;
 import org.trade.core.utils.states.ModelStates;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -63,7 +61,8 @@ public class MessageGenerationTest {
     public void providedMessageShouldBeUsed() throws Exception {
         String message = "This is a test message.";
         Notification notification = new Notification("test", null, "http://localhost:8081/api/dataElements");
-        ModelStateChangeEvent event = new ModelStateChangeEvent(UUID.randomUUID().toString(), DataElement.class,
+        ModelStateChangeEvent event = new ModelStateChangeEvent(UUID.randomUUID().toString(), DataElement.class, new
+                DataElement(new DataObject("entity", "name")),
                 ModelStates.INITIAL.name(),
                 ModelStates.READY.name(), ModelEvents.ready.name());
 
@@ -75,7 +74,8 @@ public class MessageGenerationTest {
     @Test
     public void messageShouldBeGenerated() throws Exception {
         Notification notification = new Notification("firstTest", null, "http://localhost:8081/api/dataElements");
-        ModelStateChangeEvent event = new ModelStateChangeEvent(UUID.randomUUID().toString(), DataElement.class,
+        ModelStateChangeEvent event = new ModelStateChangeEvent(UUID.randomUUID().toString(), DataElement.class, new
+                DataElement(new DataObject("entity", "name")),
                 ModelStates.INITIAL.name(), ModelStates.READY.name(), ModelEvents.ready.name());
 
         String result = createMessage(null, notification, event, "plainMsg.ftl");
@@ -90,7 +90,8 @@ public class MessageGenerationTest {
         DataElement element = new DataElement(null, "entity", "dataElementA");
         Notification notification = new Notification("secondTest", element,
                 "http://localhost:8081/api/dataElements/" + element.getIdentifier());
-        ModelStateChangeEvent event = new ModelStateChangeEvent(element.getIdentifier(), DataElement.class,
+        ModelStateChangeEvent event = new ModelStateChangeEvent(element.getIdentifier(), DataElement.class, new
+                DataElement(new DataObject("entity", "name")),
                 ModelStates.INITIAL.name(), ModelStates.READY.name(), ModelEvents.ready.name());
 
         String result = createMessage(null, notification, event, "plainMsg.ftl");
@@ -103,7 +104,8 @@ public class MessageGenerationTest {
     @Test
     public void minimalMessageShouldBeGenerated() throws Exception {
         Notification notification = new Notification("thirdTest", null, null);
-        ModelStateChangeEvent event = new ModelStateChangeEvent(UUID.randomUUID().toString(), DataElement.class,
+        ModelStateChangeEvent event = new ModelStateChangeEvent(UUID.randomUUID().toString(), DataElement.class, new
+                DataElement(new DataObject("entity", "name")),
                 ModelStates.INITIAL.name(), ModelStates.READY.name(), ModelEvents.ready.name());
 
         String result = createMessage(null, notification, event, "plainMsg.ftl");
@@ -115,7 +117,7 @@ public class MessageGenerationTest {
 
     private String createMessage(String message, Notification notification, Object notificationSource, String
             templateName) throws Exception {
-        String result = "";
+        String result;
 
         String resourceURL = notification.getResourceURL();
 
