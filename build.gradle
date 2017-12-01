@@ -81,6 +81,10 @@ task wrapper(type: Wrapper) {
 task integrationTest(type: Test) {
     testClassesDir = sourceSets.integrationTest.output.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath
+
+    // Exclude the basic hazelcast integration tests since it is not used yet
+    exclude '**/TraDENodeIT.class'
+
     // By default gradle skips tasks whose inputs and outputs are up to date.
     // Uncomment the following line to enforce the execution of the integration test whenever the corresponding task
     // is triggered no matter if something has changed or not.

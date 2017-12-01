@@ -23,10 +23,7 @@ import org.trade.core.persistence.PersistableObject;
 import org.trade.core.utils.TraDEProperties;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +48,12 @@ public class FileSystemPersistence<T extends PersistableObject> implements IPers
         this.objectType = objectType;
 
         persistenceFileDirectory = properties.getDataPersistenceFileDirectory();
+
+        Path path = Paths.get(persistenceFileDirectory);
+        if (!path.isAbsolute()) {
+            String test = path.toAbsolutePath().toString();
+            persistenceFileDirectory = Paths.get(".", persistenceFileDirectory).toString();
+        }
     }
 
     @Override

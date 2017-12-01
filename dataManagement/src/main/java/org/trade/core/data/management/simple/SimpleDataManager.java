@@ -457,6 +457,9 @@ public enum SimpleDataManager implements IDataManager {
             }
 
             result = value;
+
+            // Persist the changes at the data source
+            result.storeToDS();
         }
 
         return result;
@@ -477,6 +480,9 @@ public enum SimpleDataManager implements IDataManager {
                 if (entity != null && !entity.isEmpty() && !entity.equals(value.getEntity())) {
                     value.setEntity(entity);
                 }
+
+                // Persist the changes at the data source
+                result.storeToDS();
             } else {
                 throw new IllegalModificationException("Trying to update data object '" + dataObjectId + "' which " +
                         "belongs to a data model (" + value.getDataModel().getIdentifier() + ") and is therefore " +
@@ -507,6 +513,9 @@ public enum SimpleDataManager implements IDataManager {
                 if (contentType != null && !contentType.isEmpty() && !contentType.equals(value.getContentType())) {
                     value.setContentType(contentType);
                 }
+
+                // Persist the changes at the data source
+                result.storeToDS();
             } else {
                 throw new IllegalModificationException("Trying to update data element '" + dataElementId + "' which " +
                         "belongs to a data model (" + value.getParent().getDataModel().getIdentifier() + ") and is therefore" +
@@ -607,8 +616,10 @@ public enum SimpleDataManager implements IDataManager {
 
             // Check if the data element belongs to a data model
             if (result.getParent().getDataModel() == null) {
+                DataObject parent = result.getParent();
+
                 // Try to delete the element from its parent data object
-                result.getParent().deleteDataElement(result);
+                parent.deleteDataElement(result);
 
                 // After the data element is successfully deleted, we can remove it from the map
                 this.dataElements.remove(dataElementId);
@@ -625,9 +636,14 @@ public enum SimpleDataManager implements IDataManager {
         if (hasDataObjectInstance(instanceId)) {
             DataObjectInstance result = this.dataObjectInstances.get(instanceId);
 
+            DataObject parent = result.getDataObject();
+
             // By convention we also directly delete all related data element instances of the data object instance
             // TODO: 24.04.2017 Maybe we will change this behavior in a future version again...
             for (DataElementInstance elmInstance : result.getDataElementInstances()) {
+                DataElement elm = elmInstance.getDataElement();
+                DataValue value = elmInstance.getDataValue();
+
                 // Remove the data element instance from the data object instance
                 result.removeDataElementInstance(elmInstance);
 

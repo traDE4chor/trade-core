@@ -201,7 +201,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 if (data != null && contentLength != null) {
                     value.setData(data, contentLength);
 
-                    response = Response.ok().build();
+                    response = Response.status(Response.Status.NO_CONTENT).build();
                 } else {
                     // TODO: Specify usefull message and example request
                     response = Response.status(Response.Status.BAD_REQUEST).entity(new InvalidInput()

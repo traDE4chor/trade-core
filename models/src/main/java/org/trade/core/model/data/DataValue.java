@@ -236,6 +236,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         if (dataElementInstance != null) {
             if (!dataElementInstances.contains(dataElementInstance)) {
                 dataElementInstances.add(dataElementInstance);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             }
         }
     }
@@ -244,6 +247,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         if (dataElementInstance != null) {
             if (dataElementInstances.contains(dataElementInstance)) {
                 dataElementInstances.remove(dataElementInstance);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             }
         }
     }
@@ -308,6 +314,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
                 elmInstance.initialize();
             }
         }
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
@@ -315,6 +324,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         // TODO: Add logic for archiving data values. Only archive a data value if it is not used by any existing (non-archived) data element instance!
 
         this.lifeCycle.triggerEvent(this, InstanceEvents.archive);
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
@@ -322,6 +334,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         // TODO: Add logic for unarchiving data values.
 
         this.lifeCycle.triggerEvent(this, InstanceEvents.unarchive);
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
@@ -372,6 +387,27 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
                 .DELETED.name());
     }
 
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data value '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data value '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
 
     private void readObject(ObjectInputStream ois) throws IOException {
         try {

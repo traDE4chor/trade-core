@@ -211,6 +211,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         if (dataDependencyGraph != null) {
             if (!dataDependencyGraphs.contains(dataDependencyGraph)) {
                 dataDependencyGraphs.add(dataDependencyGraph);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             }
         }
     }
@@ -219,6 +222,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         if (dataDependencyGraph != null) {
             if (dataDependencyGraphs.contains(dataDependencyGraph)) {
                 dataDependencyGraphs.remove(dataDependencyGraph);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             }
         }
     }
@@ -259,6 +265,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
             // Trigger the ready event for the data model after everything was compiled successfully
             try {
                 this.lifeCycle.triggerEvent(this, ModelEvents.ready);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (TooBusyException e) {
                 logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                         "after maximal " +
@@ -300,6 +309,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                 // Trigger the ready event for the data model after everything was initialized successfully
                 try {
                     this.lifeCycle.triggerEvent(this, ModelEvents.ready);
+
+                    // Persist the changes at the data source
+                    this.storeToDS();
                 } catch (TooBusyException e) {
                     logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                             "after maximal " +
@@ -339,6 +351,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                 // Trigger the archive event for the whole data model since all data objects are archived
                 // successfully.
                 this.lifeCycle.triggerEvent(this, ModelEvents.archive);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (Exception e) {
                 logger.warn("Archiving data model '{}' not successful because archiving of one of its data objects " +
                         "caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -380,6 +395,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                 // Trigger the unarchive event for the whole data model since all data objects are unarchived
                 // successfully.
                 this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (Exception e) {
                 logger.warn("Un-archiving data model '{}' not successful because un-archiving of one of its data " +
                         "objects caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -436,6 +454,9 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                     // Trigger the initial event to disable the creation of new instances of the corrupted model
                     try {
                         this.lifeCycle.triggerEvent(this, ModelEvents.initial);
+
+                        // Persist the changes at the data source
+                        this.storeToDS();
                     } catch (TooBusyException ex) {
                         logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
@@ -528,6 +549,28 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());
+    }
+
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data model '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data model '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
     }
 
     private void readObject(ObjectInputStream ois) throws IOException {

@@ -32,4 +32,14 @@ public interface PersistableObject extends Serializable {
      * @return An ID which uniquely identifies the object.
      */
     String getIdentifier();
+
+    /**
+     * Stores (the changes of) an persistable object to an underlying data source.
+     */
+    void storeToDS();
+
+    /**
+     * Deletes an persistable object from an underlying data source.
+     */
+    void deleteFromDS();
 }

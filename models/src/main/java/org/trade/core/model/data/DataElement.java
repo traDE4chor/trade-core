@@ -28,6 +28,8 @@ import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataElementLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.persistence.IPersistenceProvider;
+import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.events.ModelEvents;
 import org.trade.core.utils.states.ModelStates;
 
@@ -54,6 +56,8 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     private String name;
 
     private transient DataElementLifeCycle lifeCycle;
+
+    private transient IPersistenceProvider<DataElement> persistProv;
 
     private String type;
 
@@ -82,6 +86,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
 
         this.instances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataElementLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElement.class);
     }
 
     /**
@@ -100,6 +105,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
 
         this.instances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataElementLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElement.class);
     }
 
     /**
@@ -117,6 +123,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      */
     private DataElement() {
         this.lifeCycle = new DataElementLifeCycle(this, false);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElement.class);
     }
 
     /**
@@ -257,6 +264,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
 
             // Add the data element to the specified data object after it is initialized
             this.getParent().addDataElement(this);
+
+            // Persist the changed parent object
+            this.getParent().storeToDS();
         } catch (TooBusyException e) {
             logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                     "amount of retries", this.getIdentifier(), ModelEvents.ready);
@@ -272,6 +282,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
             // Trigger the archive event
             try {
                 this.lifeCycle.triggerEvent(this, ModelEvents.archive);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                         "amount of retries", this.getIdentifier(), ModelEvents.archive);
@@ -295,6 +308,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
             // Trigger the unarchive event
             try {
                 this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                         "amount of retries", this.getIdentifier(), ModelEvents.unarchive);
@@ -359,6 +375,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
             // Add the new instance to the list of instances
             this.instances.add(result);
 
+            // Persist the changed object
+            this.storeToDS();
+
             // Associate the data element instance with the data object instance
             dataObjectInstance.addDataElementInstance(result);
         } else {
@@ -382,6 +401,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         // Check if the data element instance belongs to this data element
         if (instance.getDataElement() == this) {
             this.instances.remove(instance);
+
+            // Persist the changes at the data source
+            this.storeToDS();
         }
     }
 
@@ -405,11 +427,34 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
                 .DELETED.name());
     }
 
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data element '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data element '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
 
-            lifeCycle = new DataElementLifeCycle(this, false);
+            this.lifeCycle = new DataElementLifeCycle(this, false);
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElement.class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data element '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data element.");
@@ -418,7 +463,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
 
     @Override
     public boolean equals(Object object) {
-        if(object instanceof DataElement) {
+        if (object instanceof DataElement) {
             DataElement s = (DataElement) object;
             return this.identifier.equals(s.identifier);
         }

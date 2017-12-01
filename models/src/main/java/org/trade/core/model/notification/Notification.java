@@ -22,7 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trade.core.auditing.events.ATraDEEvent;
 import org.trade.core.model.ABaseResource;
+import org.trade.core.persistence.IPersistenceProvider;
+import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,10 +65,13 @@ public class Notification extends ABaseResource {
     // notifier to trigger the provided notification logic.
     private Map<String, String> resourceFilters = new HashMap<>();
 
+    private transient IPersistenceProvider<Notification> persistProv;
+
     /**
      * This constructor is only used by Morphia to load objects from the database.
      */
     private Notification() {
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(Notification.class);
     }
 
     /**
@@ -95,6 +102,7 @@ public class Notification extends ABaseResource {
         }
 
         this.resourceURL = resourceURL;
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(Notification.class);
     }
 
     /**
@@ -239,5 +247,38 @@ public class Notification extends ABaseResource {
      */
     public void setResourceFilters(Map<String, String> resourceFilters) {
         this.resourceFilters = resourceFilters;
+    }
+
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing notification '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting notification '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    private void readObject(ObjectInputStream ois) throws IOException {
+        try {
+            ois.defaultReadObject();
+
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(Notification.class);
+        } catch (ClassNotFoundException e) {
+            logger.error("Class not found during deserialization of notification '{}'", getIdentifier());
+            throw new IOException("Class not found during deserialization of notification.");
+        }
     }
 }

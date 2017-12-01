@@ -27,6 +27,8 @@ import org.trade.core.model.ABaseResource;
 import org.trade.core.model.data.instance.DataObjectInstance;
 import org.trade.core.model.lifecycle.DataObjectLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.persistence.IPersistenceProvider;
+import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.events.ModelEvents;
 import org.trade.core.utils.states.ModelStates;
 
@@ -53,6 +55,8 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     private String name;
 
     private transient DataObjectLifeCycle lifeCycle;
+
+    private transient IPersistenceProvider<DataObject> persistProv;
 
     @State
     private String state;
@@ -91,6 +95,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
         this.dataElements = new ArrayList<DataElement>();
         this.instances = new ArrayList<DataObjectInstance>();
         this.lifeCycle = new DataObjectLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObject.class);
     }
 
     /**
@@ -110,6 +115,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
         this.dataElements = new ArrayList<DataElement>();
         this.instances = new ArrayList<DataObjectInstance>();
         this.lifeCycle = new DataObjectLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObject.class);
     }
 
     /**
@@ -117,6 +123,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      */
     private DataObject() {
         this.lifeCycle = new DataObjectLifeCycle(this, false);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObject.class);
     }
 
     /**
@@ -281,6 +288,9 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
                                     "of retries", e);
                         }
                     }
+
+                    // Persist the changes at the data source
+                    this.storeToDS();
                 } else {
                     logger.info("Trying to add a non-ready data element ({}) to data object '{}'", element.getName(),
                             this.getIdentifier());
@@ -323,6 +333,9 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
                         throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                     }
                 }
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } else {
                 logger.info("No data element can be deleted because the data object ({}) is in state '{}'.", this
                                 .getIdentifier(),
@@ -407,6 +420,9 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
                 // Trigger the archive event for the whole data object since all data elements are archived
                 // successfully.
                 this.lifeCycle.triggerEvent(this, ModelEvents.archive);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (Exception e) {
                 logger.warn("Archiving data object '{}' not successful because archiving of one of its data elements " +
                         "caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -448,6 +464,9 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
                 // Trigger the unarchive event for the whole data object since all data elements are unarchived
                 // successfully.
                 this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } catch (Exception e) {
                 logger.warn("Un-archiving data object '{}' not successful because un-archiving of one of its data " +
                         "elements caused an exception. Trying to undo all changes.", this.getIdentifier());
@@ -542,6 +561,9 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
 
             // Add the new instance to the list of instances
             this.instances.add(result);
+
+            // Persist the changed parent object
+            this.storeToDS();
         } else {
             logger.info("The data object ({}) can not be instantiated because it is in state '{}'.", this
                             .getIdentifier(),
@@ -586,11 +608,34 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
                 .DELETED.name());
     }
 
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data object '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data object '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
 
             lifeCycle = new DataObjectLifeCycle(this, false);
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObject.class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data object '{}'", this.getIdentifier());
             throw new IOException("Class not found during deserialization of data object.");

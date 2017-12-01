@@ -31,7 +31,6 @@ import org.trade.core.notification.management.camel.processors.CamelNotification
 import org.trade.core.persistence.PersistableHashMap;
 import org.trade.core.utils.TraDEProperties;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -188,6 +187,9 @@ public enum CamelNotificationManager implements INotificationManager {
 
             // Create a new dynamic route for the updated notification
             createDynamicRoute(result);
+
+            // Persist the changes to the data source
+            result.storeToDS();
         }
 
         return result;

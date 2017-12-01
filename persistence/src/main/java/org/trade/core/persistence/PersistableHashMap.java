@@ -41,8 +41,6 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
 
     private Logger logger = LoggerFactory.getLogger("org.trade.core.persistence.PersistableHashMap");
 
-    private transient IPersistenceProvider<V> persistProv = null;
-
     /**
      * Instantiates a new Persistable hash map for the given type of model objects.
      *
@@ -51,12 +49,13 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
     public PersistableHashMap(Class<V> objectType) {
         super();
 
-        // Create a new persistence provider
-        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(objectType);
+        // Create a new persistence provider for loading all objects
+        IPersistenceProvider persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider
+                (objectType);
 
         Map<String, V> map = null;
         try {
-            map = this.persistProv.loadAllObjects(null);
+            map = persistProv.loadAllObjects(null);
         } catch (Exception e) {
             logger.error("Loading of all objects of type '" + objectType.getName() + "' caused an exception.", e);
         }
@@ -73,10 +72,10 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
 
         // Write the new/changed object to data source
         try {
-            this.persistProv.storeObject(value);
+            value.storeToDS();
         } catch (Exception e) {
             logger.error("Storing object of type '" + value.getClass().getName() + "' with ID='" + key + "' caused an" +
-                            " exception.", e);
+                    " exception.", e);
         }
 
         return previous;
@@ -90,7 +89,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         try {
             for (Map.Entry<? extends String, ? extends V> e : m.entrySet()) {
                 if (e.getValue() != null) {
-                    this.persistProv.storeObject(e.getValue());
+                    e.getValue().storeToDS();
                 }
             }
         } catch (Exception e) {
@@ -105,7 +104,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         // Delete the object from data source
         if (previous != null) {
             try {
-                this.persistProv.deleteObject(previous.getIdentifier());
+                previous.deleteFromDS();
             } catch (Exception e) {
                 logger.error("Deleting object with ID='" + key + "' caused an exception.", e);
             }
@@ -123,7 +122,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
             // Check if there is no previous value for the key since putIfAbsent only adds a new entry if the key is
             // not already in use
             if (previous == null) {
-                this.persistProv.storeObject(value);
+                value.storeToDS();
             }
         } catch (Exception e) {
             logger.error("Storing object of type '" + value.getClass().getName() + "' with ID='" + key + "' caused an" +
@@ -140,7 +139,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         // Delete the object from data source, if it was removed from the map
         if (isRemoved) {
             try {
-                this.persistProv.deleteObject(key.toString());
+                ((V) value).deleteFromDS();
             } catch (Exception e) {
                 logger.error("Deleting object of type '" + value.getClass().getName() + "' with ID='" + key + "' " +
                         "caused an exception.", e);
@@ -157,7 +156,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
         // Write the new/changed object to data source, if it was replaced in the map
         try {
             if (isReplaced) {
-                this.persistProv.storeObject(newValue);
+                newValue.storeToDS();
             }
         } catch (Exception e) {
             logger.error("Replacing object of type '" + oldValue.getClass().getName() + "' with ID='" + key + "' " +
@@ -173,7 +172,7 @@ public class PersistableHashMap<V extends PersistableObject> extends ConcurrentH
 
         // Write the new/changed object to data source
         try {
-            this.persistProv.storeObject(value);
+            value.storeToDS();
         } catch (Exception e) {
             logger.error("Replacing object of type '" + value.getClass().getName() + "' with ID='" + key + "' " +
                     " with another object instance caused an exception.", e);

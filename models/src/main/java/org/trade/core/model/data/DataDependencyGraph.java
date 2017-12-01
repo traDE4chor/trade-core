@@ -159,6 +159,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
                 this.dataModel = dataModel;
                 // Associate the data dependency graph with the data model
                 this.dataModel.associateWithDataDependencyGraph(this);
+
+                // Persist the changes at the data source
+                this.storeToDS();
             } else {
                 logger.info("The data model ({}) can not be used by data dependency graph ({}) because it is in state" +
                         " " +
@@ -174,6 +177,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             if (this.dataModel != null) {
                 this.dataModel.removeAssociationWithDataDependencyGraph(this);
                 this.dataModel = null;
+
+                // Persist the changes at the data source
+                this.storeToDS();
             }
         }
     }
@@ -240,6 +246,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             // Get the list of compilation issues
             issues = comp.getCompilationIssues();
 
+            // Persist the changes at the data source
+            this.storeToDS();
+
             // Trigger the ready event for the data dependency graph after everything was compiled successfully
             try {
                 this.lifeCycle.triggerEvent(this, ModelEvents.ready);
@@ -268,6 +277,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             // TODO: 10.04.2017 Implement
 
             this.lifeCycle.triggerEvent(this, ModelEvents.archive);
+
+            // Persist the changes at the data source
+            this.storeToDS();
         } else {
             logger.info("The data dependency graph ({}) can not be archived because it is in state '{}'.", this
                             .getIdentifier(),
@@ -284,6 +296,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             // TODO: 10.04.2017 Implement
 
             this.lifeCycle.triggerEvent(this, ModelEvents.unarchive);
+
+            // Persist the changes at the data source
+            this.storeToDS();
         } else {
             logger.info("The data dependency graph ({}) can not be un-archived because it is in state '{}'.", this
                             .getIdentifier(),
@@ -351,6 +366,28 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());
+    }
+
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data dependency graph '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data dependency graph '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
     }
 
     private void readObject(ObjectInputStream ois) throws IOException {

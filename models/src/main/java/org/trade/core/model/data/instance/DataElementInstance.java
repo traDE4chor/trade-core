@@ -28,6 +28,8 @@ import org.trade.core.model.data.DataValue;
 import org.trade.core.model.data.ILifeCycleInstanceObject;
 import org.trade.core.model.lifecycle.DataElementInstanceLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.persistence.IPersistenceProvider;
+import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.events.InstanceEvents;
 import org.trade.core.utils.states.InstanceStates;
 
@@ -51,6 +53,8 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
     private transient DataElementInstanceLifeCycle lifeCycle;
+
+    private transient IPersistenceProvider<DataElementInstance> persistProv;
 
     private Date timestamp;
 
@@ -85,6 +89,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         }
 
         this.lifeCycle = new DataElementInstanceLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElementInstance.class);
     }
 
     /**
@@ -92,6 +97,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
      */
     private DataElementInstance() {
         this.lifeCycle = new DataElementInstanceLifeCycle(this, false);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElementInstance.class);
     }
 
     public Date getCreationTimestamp() {
@@ -183,6 +189,9 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
                 // Trigger the initialize method of the parent data object instance to check if the whole data object
                 // instance is initialized or not
                 this.getDataObjectInstance().initialize();
+
+                // Persist the changes at the data source
+                this.storeToDS();
             }
         } else {
             logger.info("The data element instance ({}) can not be initialized because it is in state '{}'.", this
@@ -197,11 +206,17 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     @Override
     public void archive() throws Exception {
         // TODO: 24.04.2017 Implement archiving of data element instances
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
     public void unarchive() throws Exception {
         // TODO: 24.04.2017 Implement un-archiving of data element instances
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
@@ -243,11 +258,35 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
                 .DELETED.name());
     }
 
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data element instance '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data element instance '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
 
             lifeCycle = new DataElementInstanceLifeCycle(this, false);
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElementInstance
+                    .class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data element instance '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data element instance.");

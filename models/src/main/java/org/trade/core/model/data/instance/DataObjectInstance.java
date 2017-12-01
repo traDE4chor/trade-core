@@ -27,6 +27,8 @@ import org.trade.core.model.data.DataObject;
 import org.trade.core.model.data.ILifeCycleInstanceObject;
 import org.trade.core.model.lifecycle.DataObjectInstanceLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
+import org.trade.core.persistence.IPersistenceProvider;
+import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
 import org.trade.core.utils.events.InstanceEvents;
 import org.trade.core.utils.states.InstanceStates;
 
@@ -56,6 +58,8 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
 
     private transient DataObjectInstanceLifeCycle lifeCycle;
 
+    private transient IPersistenceProvider<DataObjectInstance> persistProv;
+
     @Reference
     private DataObject model;
 
@@ -79,6 +83,8 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
 
         dataElementInstances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataObjectInstanceLifeCycle(this);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObjectInstance
+                .class);
     }
 
     /**
@@ -86,6 +92,8 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
      */
     private DataObjectInstance() {
         this.lifeCycle = new DataObjectInstanceLifeCycle(this, false);
+        this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObjectInstance
+                .class);
     }
 
     public Date getCreationTimestamp() {
@@ -116,6 +124,9 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
         // Check if the element instance belongs to this data object instance
         if (elementInstance.getDataObjectInstance() == this) {
             this.dataElementInstances.add(elementInstance);
+
+            // Persist the changes at the data source
+            this.storeToDS();
         }
     }
 
@@ -123,6 +134,9 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
         // Check if the element instance belongs to this data object instance
         if (elementInstance.getDataObjectInstance() == this) {
             this.dataElementInstances.remove(elementInstance);
+
+            // Persist the changes at the data source
+            this.storeToDS();
         }
     }
 
@@ -146,12 +160,15 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
                 // instance are initialized successfully
                 this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
             } else {
-                if (isInitialized()) {
+                if (this.isInitialized()) {
                     // Trigger the create event for the data object instance since at least one of its related data
                     // element instances is not initialized (anymore)
                     this.lifeCycle.triggerEvent(this, InstanceEvents.create);
                 }
             }
+
+            // Persist the changes at the data source
+            this.storeToDS();
         } else {
             logger.info("The data object instance ({}) can not be initialized because it is in state '{}'.", this
                             .getIdentifier(),
@@ -165,11 +182,17 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     @Override
     public void archive() throws Exception {
         // TODO: 24.04.2017 Implement archiving of data object instances
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
     public void unarchive() throws Exception {
         // TODO: 24.04.2017 Implement un-archiving of data object instances
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     @Override
@@ -202,11 +225,35 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
                 .DELETED.name());
     }
 
+    @Override
+    public void storeToDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.storeObject(this);
+            } catch (Exception e) {
+                logger.error("Storing data object instance '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
+    @Override
+    public void deleteFromDS() {
+        if (this.persistProv != null) {
+            try {
+                this.persistProv.deleteObject(this.getIdentifier());
+            } catch (Exception e) {
+                logger.error("Deleting data object instance '" + this.getIdentifier() + "' caused an exception.", e);
+            }
+        }
+    }
+
     private void readObject(ObjectInputStream ois) throws IOException {
         try {
             ois.defaultReadObject();
 
             lifeCycle = new DataObjectInstanceLifeCycle(this, false);
+            this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObjectInstance
+                    .class);
         } catch (ClassNotFoundException e) {
             logger.error("Class not found during deserialization of data object instance '{}'", getIdentifier());
             throw new IOException("Class not found during deserialization of data object instance.");
