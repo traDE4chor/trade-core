@@ -76,7 +76,7 @@ public class DataDependencyGraphApiIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://localhost:8080/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         ddgApiInstance = new DataDependencyGraphApi(client);
         dataModelApiInstance = new DataModelApi(client);

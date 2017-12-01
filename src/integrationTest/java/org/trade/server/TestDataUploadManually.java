@@ -49,7 +49,7 @@ public class TestDataUploadManually {
 
         try {
             DataDependencyGraphApi ddgApiInstance = new DataDependencyGraphApi();
-            ddgApiInstance.getApiClient().setBasePath("http://localhost:8081/api");
+            ddgApiInstance.getApiClient().setBasePath("http://127.0.0.1:8081/api");
 
             DataDependencyGraphWithLinks ddgResponse = ddgApiInstance.addDataDependencyGraph(ddg);
 
@@ -74,7 +74,7 @@ public class TestDataUploadManually {
 
     private static void testDataValueApi() {
         DataValueApi dvApiInstance = new DataValueApi();
-        dvApiInstance.getApiClient().setBasePath("http://localhost:8081/api");
+        dvApiInstance.getApiClient().setBasePath("http://127.0.0.1:8081/api");
 
         try {
             // Add a new data value

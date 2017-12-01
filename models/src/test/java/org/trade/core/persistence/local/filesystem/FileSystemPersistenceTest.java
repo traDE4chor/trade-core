@@ -20,10 +20,10 @@ import org.junit.Test;
 import org.trade.core.model.data.DataValue;
 import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.PersistableObject;
-import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
+import org.trade.core.utils.TraDEProperties;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by hahnml on 30.11.2017.
@@ -32,8 +32,8 @@ public class FileSystemPersistenceTest {
 
     @Test
     public void dataValueShouldBeStoredAndLoaded() throws Exception {
-        IPersistenceProvider persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider
-                (DataValue.class);
+        IPersistenceProvider persistProv = new FileSystemPersistence();
+        persistProv.initProvider(DataValue.class, new TraDEProperties());
 
         DataValue value = new DataValue("hahnml", "testValue");
 

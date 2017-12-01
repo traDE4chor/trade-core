@@ -90,7 +90,7 @@ public class NotificationHttpIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://localhost:8080/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         notificationApi = new NotificationApi(client);
 
@@ -135,7 +135,7 @@ public class NotificationHttpIT {
 
         NotifierServiceParameter param = new NotifierServiceParameter();
         param.setParameterName("hostname");
-        param.setValue("localhost");
+        param.setValue("127.0.0.1");
         params.add(param);
 
         param = new NotifierServiceParameter();
@@ -245,7 +245,7 @@ public class NotificationHttpIT {
 
         NotifierServiceParameter param = new NotifierServiceParameter();
         param.setParameterName("hostname");
-        param.setValue("localhost");
+        param.setValue("127.0.0.1");
         params.add(param);
 
         param = new NotifierServiceParameter();

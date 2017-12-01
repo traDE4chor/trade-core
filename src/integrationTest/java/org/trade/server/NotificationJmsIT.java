@@ -50,7 +50,7 @@ public class NotificationJmsIT {
 
     private static DataValueApi dvApiInstance;
 
-    private static String activeMQBrokerURL = "tcp://localhost:61616";
+    private static String activeMQBrokerURL = "tcp://127.0.0.1:61616";
 
     private static BrokerService broker;
 
@@ -73,7 +73,7 @@ public class NotificationJmsIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://localhost:8080/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         notificationApi = new NotificationApi(client);
 
@@ -84,7 +84,7 @@ public class NotificationJmsIT {
 
         // configure the broker
         broker.setPersistent(false);
-        broker.addConnector(activeMQBrokerURL);
+        broker.addConnector("tcp://0.0.0.0:61616");
 
         broker.start();
     }
