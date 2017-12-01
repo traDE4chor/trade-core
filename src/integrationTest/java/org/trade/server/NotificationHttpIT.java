@@ -40,6 +40,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -103,7 +104,7 @@ public class NotificationHttpIT {
         deApiInstance = new DataElementApi(client);
 
         // Create a new embedded HTTP server which consumes the HTTP notifications
-        httpServer = new Server(8085);
+        httpServer = new Server(new InetSocketAddress("0.0.0.0", 8085));
 
         // Create a handler to check the notification message send to the specified HTTP endpoint
         Handler handler = new AbstractHandler() {

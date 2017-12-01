@@ -83,7 +83,7 @@ public class TraDEProperties extends Properties {
     }
 
     public String getCacheDbUrl() {
-        return getProperty(PROPERTY_CACHE_DB_URL, "mongodb://localhost:27017");
+        return getProperty(PROPERTY_CACHE_DB_URL, "mongodb://127.0.0.1:27017");
     }
 
     public String getCacheDbName() {
@@ -115,7 +115,7 @@ public class TraDEProperties extends Properties {
     }
 
     public String getDataPersistenceDbUrl() {
-        return getProperty(PROPERTY_DATA_PERSIST_DB_URL, "mongodb://localhost:27017");
+        return getProperty(PROPERTY_DATA_PERSIST_DB_URL, "mongodb://127.0.0.1:27017");
     }
 
     public String getDataPersistenceDbName() {
