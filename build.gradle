@@ -2,6 +2,7 @@ group 'de.unistuttgart.iaas.trade'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'application'
+apply plugin: 'war'
 
 sourceCompatibility = 1.8
 
@@ -146,6 +147,21 @@ assembleDist.dependsOn createKeystoreFile
 
 jar {
     baseName = 'traDE-core'
+}
+
+def copyDocSpec = copySpec {
+    from { project(':server').files('src/main/resources/swaggerui') }
+    into 'docs'
+}
+
+war {
+    baseName = 'traDE-core'
+    // Add required folders to the WAR
+    webInf { from 'config' into 'classes'}
+    webInf { from 'notificationMsgTemplates' into 'notificationMsgTemplates'}
+    webInf { from 'ssl' into 'ssl'}
+
+    with copyDocSpec
 }
 
 task runAppInIDE(type: JavaExec) {
