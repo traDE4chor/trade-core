@@ -39,6 +39,7 @@ dependencies {
 
     integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.5'
     integrationTestCompile group: 'org.apache.activemq', name: 'activemq-broker', version: '5.14.5'
+    integrationTestCompile group: 'org.apache.camel', name: 'camel-test', version: '2.18.3'
     integrationTestCompile project(path: ':utils', configuration: 'testOutput')
 
     compile group: 'com.hazelcast', name: 'hazelcast', version: '3.7.2'

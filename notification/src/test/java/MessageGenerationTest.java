@@ -87,7 +87,7 @@ public class MessageGenerationTest {
 
     @Test
     public void messageForResourceShouldBeGenerated() throws Exception {
-        DataElement element = new DataElement(null, "entity", "dataElementA");
+        DataElement element = new DataElement(null, "entity", "dataElementA", false);
         Notification notification = new Notification("secondTest", element,
                 "http://localhost:8081/api/dataElements/" + element.getIdentifier());
         ModelStateChangeEvent event = new ModelStateChangeEvent(element.getIdentifier(), DataElement.class, new

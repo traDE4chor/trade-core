@@ -1,5 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
     id 'org.detoeuf.swagger-codegen' version '1.7.1'
     id 'java'
@@ -7,7 +5,7 @@ plugins {
 
 task generateClient {
     swagger {
-        inputSpec = project.file('src/main/resources/swagger.json').absolutePath
+        inputSpec = project.file('src/main/resources/swagger.yaml').absolutePath
 
         outputDir = project.file("${project.buildDir.path}/generated-sources/swagger").absolutePath
         lang = 'java'
@@ -24,17 +22,11 @@ task generateClient {
     }
 }
 
-// Load the specified port number from the config.properties file
-Properties properties = new Properties()
-properties.load(file('../config/config.properties').newDataInputStream())
-def httpPort = properties.getProperty('server.port.http')
-
 // Copy the swagger.json file to the resources to make it accessible
 // Replace the $PORT_NUMBER$ placeholder with the actual HTTP port from the properties file
 task copySwaggerFile(type: Copy) {
-    from project(':server').file('swagger.json')
+    from project(':server').file('swagger.yaml')
     into 'src/main/resources'
-    filter(ReplaceTokens, tokens: [port_number:httpPort])
 }
 
 // Add generated classes to the main source set

@@ -1,133 +1,127 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!--
-  ~ Copyright 2016 Michael Hahn
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
+<!-- ~ Copyright 2016 Michael Hahn ~ ~ Licensed under the Apache License, 
+	Version 2.0 (the "License"); ~ you may not use this file except in compliance 
+	with the License. ~ You may obtain a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 
+	~ ~ Unless required by applicable law or agreed to in writing, software ~ 
+	distributed under the License is distributed on an "AS IS" BASIS, ~ WITHOUT 
+	WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ~ See the 
+	License for the specific language governing permissions and ~ limitations 
+	under the License. -->
 
-<xsd:schema xmlns:ddg="http://org.trade.models/ddg" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            targetNamespace="http://org.trade.models/ddg">
+<xsd:schema xmlns:ddg="http://org.trade.models/ddg"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://org.trade.models/ddg">
 
-    <xsd:element name="DataDependenceGraph">
-        <xsd:complexType>
-        	<xsd:sequence>
-        		<xsd:element minOccurs="0" maxOccurs="1"
-        			name="processors" type="ddg:ProcessorListType" />
-        		<xsd:element minOccurs="0" maxOccurs="1"
-        			name="dataObjects" type="ddg:DataObjectListType" />
-        		<xsd:element minOccurs="0" maxOccurs="1"
-        			name="dependenceEdges" type="ddg:DataDependenceEdgeListType" />
-        	</xsd:sequence>
-        	<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
-        	<xsd:attribute name="targetNamespace" type="xsd:string"></xsd:attribute>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="DataDependenceGraph">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element minOccurs="0" maxOccurs="1" name="processors"
+					type="ddg:ProcessorListType" />
+				<xsd:element minOccurs="0" maxOccurs="1" name="dataObjects"
+					type="ddg:DataObjectListType" />
+				<xsd:element minOccurs="0" maxOccurs="1" name="dependenceEdges"
+					type="ddg:DataDependenceEdgeListType" />
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+			<xsd:attribute name="targetNamespace" type="xsd:string"></xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
-    <xsd:complexType abstract="true" name="DependenceNodeType">
-    	<xsd:sequence>
-    		<xsd:element name="incoming" type="ddg:EdgeListType"
-    			maxOccurs="1" minOccurs="0" />
-    		<xsd:element name="outgoing" type="ddg:EdgeListType"
-    			maxOccurs="1" minOccurs="0" />
-    	</xsd:sequence>
-    	<xsd:attribute name="identifier" type="xsd:ID" use="required" />
-    	<xsd:attribute name="name" type="xsd:string" />
-    </xsd:complexType>
+	<xsd:complexType abstract="true" name="DependenceNodeType">
+		<xsd:sequence>
+			<xsd:element name="incoming" type="ddg:EdgeListType"
+				maxOccurs="1" minOccurs="0" />
+			<xsd:element name="outgoing" type="ddg:EdgeListType"
+				maxOccurs="1" minOccurs="0" />
+		</xsd:sequence>
+		<xsd:attribute name="identifier" type="xsd:ID" use="required" />
+		<xsd:attribute name="name" type="xsd:string" />
+	</xsd:complexType>
 
-    <xsd:complexType name="EdgeListType">
-        <xsd:sequence>
-            <xsd:element name="edge" type="xsd:IDREF" maxOccurs="unbounded" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
+	<xsd:complexType name="EdgeListType">
+		<xsd:sequence>
+			<xsd:element name="edge" type="xsd:IDREF" maxOccurs="unbounded"
+				minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
 
-    <xsd:complexType name="ProcessorListType">
-        <xsd:sequence>
-            <xsd:element maxOccurs="unbounded" minOccurs="0" name="processor" type="ddg:ProcessorType"/>
-        </xsd:sequence>
-    </xsd:complexType>
+	<xsd:complexType name="ProcessorListType">
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="processor"
+				type="ddg:ProcessorType" />
+		</xsd:sequence>
+	</xsd:complexType>
 
-    <xsd:complexType name="ProcessorType">
-        <xsd:complexContent>
-            <xsd:extension base="ddg:DependenceNodeType">
-                <xsd:sequence>
-                    <xsd:element name="parent" type="xsd:IDREF" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="type" type="xsd:string"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+	<xsd:complexType name="ProcessorType">
+		<xsd:complexContent>
+			<xsd:extension base="ddg:DependenceNodeType">
+				<xsd:sequence>
+					<xsd:element name="parent" type="xsd:IDREF" minOccurs="0"
+						maxOccurs="1" />
+					<xsd:element name="type" type="xsd:string" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
-    <xsd:complexType name="DataDependenceEdgeListType">
-        <xsd:sequence>
-            <xsd:element maxOccurs="unbounded" minOccurs="0" name="dependenceEdge" type="ddg:DataDependenceEdgeType"/>
-        </xsd:sequence>
-    </xsd:complexType>
+	<xsd:complexType name="DataDependenceEdgeListType">
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" minOccurs="0"
+				name="dependenceEdge" type="ddg:DataDependenceEdgeType" />
+		</xsd:sequence>
+	</xsd:complexType>
 
-    <xsd:complexType name="DataDependenceEdgeType">
-    	<xsd:sequence>
-    		<xsd:element name="source" type="xsd:IDREF" />
-    		<xsd:element name="sourceSelector" type="xsd:string"
-    			minOccurs="0" maxOccurs="1" />
-    		<xsd:element name="target" type="xsd:IDREF" />
-    		<xsd:element name="targetSelector" type="xsd:string"
-    			minOccurs="0" maxOccurs="1" />
-    	</xsd:sequence>
-    	<xsd:attribute name="identifier" type="xsd:ID" use="required" />
-    	<xsd:attribute name="name" type="xsd:string" />
-    	<xsd:attribute name="type">
-    		<xsd:simpleType>
-    			<xsd:restriction base="xsd:string">
-    				<xsd:enumeration value="VALUE"/>
-    				<xsd:enumeration value="REFERENCE"/>
-    			</xsd:restriction>
-    		</xsd:simpleType>
-    	</xsd:attribute>
-    </xsd:complexType>
+	<xsd:complexType name="DataDependenceEdgeType">
+		<xsd:sequence>
+			<xsd:element name="source" type="xsd:IDREF" maxOccurs="1" minOccurs="1"/>
+			<xsd:element name="target" type="xsd:IDREF" maxOccurs="1" minOccurs="1"/>
+			<xsd:element name="transformation" type="ddg:DataTransformationType" maxOccurs="1" minOccurs="0"></xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="identifier" type="xsd:ID" use="required" />
+		<xsd:attribute name="name" type="xsd:string" />
+	</xsd:complexType>
 
-    <xsd:complexType name="DataObjectListType">
-        <xsd:sequence>
-            <xsd:element maxOccurs="unbounded" minOccurs="0" name="dataObject" type="ddg:DataObjectType"/>
-        </xsd:sequence>
-    </xsd:complexType>
+	<xsd:complexType name="DataObjectListType">
+		<xsd:sequence>
+			<xsd:element maxOccurs="unbounded" minOccurs="0" name="dataObject"
+				type="ddg:DataObjectType" />
+		</xsd:sequence>
+	</xsd:complexType>
 
-    <xsd:complexType name="DataObjectType">
-    	<xsd:complexContent>
-    		<xsd:extension base="ddg:DependenceNodeType">
-    			<xsd:sequence>
-    				<xsd:element name="dataElements"
-    					type="ddg:DataElementListType" maxOccurs="1" minOccurs="0" />
-    			</xsd:sequence>
-    			<xsd:attribute name="useDataForCorrelation" type="xsd:boolean"></xsd:attribute>
-    		</xsd:extension>
-    	</xsd:complexContent>
-    </xsd:complexType>
+	<xsd:complexType name="DataObjectType">
+		<xsd:complexContent>
+			<xsd:extension base="ddg:DependenceNodeType">
+				<xsd:sequence>
+					<xsd:element name="dataElements" type="ddg:DataElementListType"
+						maxOccurs="1" minOccurs="0" />
+				</xsd:sequence>
+				<xsd:attribute name="useDataForCorrelation" type="xsd:boolean">
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
+	<xsd:complexType name="DataElementListType">
+		<xsd:sequence>
+			<xsd:element name="dataElement" minOccurs="0" maxOccurs="unbounded"
+				type="ddg:DataElementType" />
+		</xsd:sequence>
+	</xsd:complexType>
 
-    <xsd:complexType name="DataElementListType">
-        <xsd:sequence>
-            <xsd:element name="dataElement" minOccurs="0" maxOccurs="unbounded"
-                         type="ddg:DataElementType"/>
-        </xsd:sequence>
-    </xsd:complexType>
+	<xsd:complexType name="DataElementType">
+		<xsd:complexContent>
+			<xsd:extension base="ddg:DependenceNodeType">
+				<xsd:sequence>
+					<xsd:element name="type" type="xsd:string" />
+					<xsd:element name="contentType" type="xsd:string"
+						maxOccurs="1" minOccurs="0" />
+				</xsd:sequence>
+				<xsd:attribute name="isCollection" type="xsd:boolean"></xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
-    <xsd:complexType name="DataElementType">
-        <xsd:complexContent>
-            <xsd:extension base="ddg:DependenceNodeType">
-                <xsd:sequence>
-                	<xsd:element name="type" type="xsd:string"/>
-                	<xsd:element name="contentType" type="xsd:string" maxOccurs="1" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+	<xsd:complexType name="DataTransformationType">
+        <xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+		<xsd:attribute name="transformerID" type="xsd:string"></xsd:attribute>
+	</xsd:complexType>
 </xsd:schema>

@@ -205,8 +205,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                 } else {
                     // TODO: Specify usefull message and example request
                     response = Response.status(Response.Status.BAD_REQUEST).entity(new InvalidInput()
-                            .message("TODO").example("TODO-EXAMPLE"))
-                            .build();
+                            .message("TODO").example("TODO-EXAMPLE")).build();
                 }
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections

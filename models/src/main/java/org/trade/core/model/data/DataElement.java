@@ -63,6 +63,8 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
 
     private String contentType;
 
+    private boolean isCollectionElement;
+
     @State
     private String state;
 
@@ -75,14 +77,16 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     /**
      * Instantiates a new data element and associates it to the given data object.
      *
-     * @param object the data object to which the data element belongs
-     * @param entity the name of the entity the data element belongs to
-     * @param name   the name of the data element
+     * @param object              the data object to which the data element belongs
+     * @param entity              the name of the entity the data element belongs to
+     * @param name                the name of the data element
+     * @param isCollectionElement if the data element refers to a collection of data of similar type
      */
-    public DataElement(DataObject object, String entity, String name) {
+    public DataElement(DataObject object, String entity, String name, boolean isCollectionElement) {
         this.parent = object;
         this.name = name;
         this.entity = entity;
+        this.isCollectionElement = isCollectionElement;
 
         this.instances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataElementLifeCycle(this);
@@ -92,16 +96,18 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     /**
      * Instantiates a new data element with the given identifier and associates it to the given data object.
      *
-     * @param object     the data object to which the data element belongs
-     * @param identifier the identifier to use for the data element
-     * @param entity     the name of the entity the data element belongs to
-     * @param name       the name of the data element
+     * @param object              the data object to which the data element belongs
+     * @param identifier          the identifier to use for the data element
+     * @param entity              the name of the entity the data element belongs to
+     * @param name                the name of the data element
+     * @param isCollectionElement if the data element refers to a collection of data of similar type
      */
-    public DataElement(DataObject object, String identifier, String entity, String name) {
+    public DataElement(DataObject object, String identifier, String entity, String name, boolean isCollectionElement) {
         this.parent = object;
         this.identifier = identifier;
         this.name = name;
         this.entity = entity;
+        this.isCollectionElement = isCollectionElement;
 
         this.instances = new ArrayList<DataElementInstance>();
         this.lifeCycle = new DataElementLifeCycle(this);
@@ -115,7 +121,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      * @param object the data object to which the data element belongs
      */
     public DataElement(DataObject object) {
-        this(object, object.getEntity(), UUID.randomUUID().toString());
+        this(object, object.getEntity(), UUID.randomUUID().toString(), false);
     }
 
     /**
@@ -242,6 +248,10 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         List<DataElementInstance> result = this.instances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
                 (Collectors.toList());
         return Collections.unmodifiableList(result);
+    }
+
+    public boolean isCollectionElement() {
+        return isCollectionElement;
     }
 
     /**

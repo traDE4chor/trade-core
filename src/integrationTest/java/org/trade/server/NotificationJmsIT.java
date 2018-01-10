@@ -26,6 +26,7 @@ import io.swagger.trade.client.jersey.api.NotificationApi;
 import io.swagger.trade.client.jersey.model.*;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.camel.test.AvailablePortFinder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,6 +60,12 @@ public class NotificationJmsIT {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
 
+        // Find an unused available port
+        int port = AvailablePortFinder.getNextAvailable();
+
+        // Set the port
+        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
+
         // Create a new server
         server = new TraDEServer();
 
@@ -73,7 +80,7 @@ public class NotificationJmsIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:8080/api");
+        client.setBasePath("http://127.0.0.1:" + port + "/api");
 
         notificationApi = new NotificationApi(client);
 

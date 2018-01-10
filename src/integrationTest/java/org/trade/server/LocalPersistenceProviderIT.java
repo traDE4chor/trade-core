@@ -23,6 +23,7 @@ import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
 import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
+import org.apache.camel.test.AvailablePortFinder;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.trade.core.model.ModelConstants;
@@ -51,9 +52,12 @@ public class LocalPersistenceProviderIT {
 
     private static DataElementInstanceApi deInstApiInstance;
 
-    public static void setupEnvironment() {
+    public static void setupEnvironment(int port) {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
+
+        // Set the port
+        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
 
         // Create a new server
         server = new TraDEServer();
@@ -69,7 +73,7 @@ public class LocalPersistenceProviderIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:8080/api");
+        client.setBasePath("http://127.0.0.1:" + port + "/api");
 
         dataObjectApiInstance = new DataObjectApi(client);
         dataElementApiInstance = new DataElementApi(client);
@@ -81,8 +85,11 @@ public class LocalPersistenceProviderIT {
     @Test
     public void createAndLoadDataObjectAfterShutdownTest() {
         try {
+            // Find an unused available port
+            int port = AvailablePortFinder.getNextAvailable();
+
             // Start the environment
-            setupEnvironment();
+            setupEnvironment(port);
 
             DataObjectData request = new DataObjectData();
 
@@ -95,7 +102,7 @@ public class LocalPersistenceProviderIT {
             shutdownEnvironment();
 
             // Start the environment again
-            setupEnvironment();
+            setupEnvironment(port);
 
             // Try to query the data object and check if it's loaded correctly
             DataObjectWithLinks reloaded = dataObjectApiInstance.getDataObjectById(result.getId());
@@ -109,8 +116,11 @@ public class LocalPersistenceProviderIT {
     @Test
     public void createAndLoadDataObjectHierarchyAfterShutdownTest() {
         try {
+            // Find an unused available port
+            int port = AvailablePortFinder.getNextAvailable();
+
             // Start the environment
-            setupEnvironment();
+            setupEnvironment(port);
 
             // Create a new data object
             DataObject dObject = dataObjectApiInstance.addDataObject(new DataObjectData().entity("hahnml").name
@@ -140,7 +150,7 @@ public class LocalPersistenceProviderIT {
             assertNotNull(deInst);
 
             // Associate the generated data value to the data element instance
-            dvApiInstance.setDataValue(deInst.getId(), new DataValue().id(dataValue.getId())).getDataValue();
+            dvApiInstance.associateDataValueToDataElementInstance(deInst.getId(), new DataValue().id(dataValue.getId())).getDataValue();
 
             // Upload some data for the data value
             dvApiInstance.pushDataValue(dataValue.getId(), 4L, "test".getBytes());
@@ -156,7 +166,7 @@ public class LocalPersistenceProviderIT {
             shutdownEnvironment();
 
             // Start the environment again
-            setupEnvironment();
+            setupEnvironment(port);
 
             // Try to query all created objects and check if they are loaded correctly
             DataObjectWithLinks doReloaded = dataObjectApiInstance.getDataObjectById(dObject.getId());

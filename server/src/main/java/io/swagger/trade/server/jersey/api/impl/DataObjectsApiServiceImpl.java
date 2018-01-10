@@ -229,10 +229,13 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
             boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
             if (exists) {
+                boolean isCollectionDataElement = dataElementData.getIsCollectionElement() == null ? false :
+                        dataElementData.getIsCollectionElement();
+
                 org.trade.core.model.data.DataElement dataElement = DataManagerFactory.createDataManager()
                         .addDataElementToDataObject(
                                 dataObjectId, dataElementData.getEntity(), dataElementData.getName(), dataElementData
-                                        .getContentType(), dataElementData.getType());
+                                        .getContentType(), dataElementData.getType(), isCollectionDataElement);
 
                 DataElementWithLinks result = new DataElementWithLinks();
 

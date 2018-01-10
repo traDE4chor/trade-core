@@ -1,9 +1,12 @@
 *.class
 
+# Ignore copies of swagger.yaml
+/client/src/main/resources/swagger.yaml
+/server/src/main/resources/swaggerui/swagger.yaml
+
 # Ignore generated and log files
 *.log
 ssl/
-/client/src/main/resources/swagger.json
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

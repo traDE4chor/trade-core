@@ -43,7 +43,7 @@ public class DEInstanceTest {
     @Test(expected = LifeCycleException.class)
     public void instantiationOfDataElementShouldCauseException() throws Exception {
         DataObject obj = new DataObject(entity, doName);
-        DataElement elm = new DataElement(obj, entity, deName);
+        DataElement elm = new DataElement(obj, entity, deName, false);
 
         HashMap<String, String> correlationProps = new HashMap<>();
 
@@ -54,7 +54,7 @@ public class DEInstanceTest {
     public void testDataElementInstantiation() throws Exception {
         DataObject obj = new DataObject(entity, doName);
 
-        DataElement elm = new DataElement(obj, entity, deName);
+        DataElement elm = new DataElement(obj, entity, deName, false);
         elm.initialize();
 
         HashMap<String, String> correlationProps = new HashMap<>();
@@ -77,7 +77,7 @@ public class DEInstanceTest {
 
         // Create and add a new data value
         DataValue value = new DataValue(entity, "dataValue");
-        elmInstance.setDataValue(value);
+        elmInstance.addDataValue(value);
 
         // Should not change anything since the data value is not initialized
         assertTrue(value.isCreated());
@@ -101,7 +101,7 @@ public class DEInstanceTest {
     public void testDataElementInstantiationWithExistingDataValue() throws Exception {
         DataObject obj = new DataObject(entity, doName);
 
-        DataElement elm = new DataElement(obj, entity, deName);
+        DataElement elm = new DataElement(obj, entity, deName, false);
         elm.initialize();
 
         HashMap<String, String> correlationProps = new HashMap<>();
@@ -128,7 +128,7 @@ public class DEInstanceTest {
         assertTrue(value.isInitialized());
 
         // Setting the initialized data value should directly trigger corresponding state changes in all model objects
-        elmInstance.setDataValue(value);
+        elmInstance.addDataValue(value);
         assertTrue(elmInstance.isInitialized());
         assertTrue(objInstance.isInitialized());
 

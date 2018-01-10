@@ -54,7 +54,7 @@ public class LinkUtils {
     public static final String RELATION_DATA_OBJECT_INSTANCE = "dataObjectInstance";
     public static final String RELATION_DATA_ELEMENT_INSTANCES = "dataElementInstances";
     public static final String RELATION_DATA_ELEMENT_INSTANCE = "dataElementInstance";
-    public static final String RELATION_DATA_VALUE = "dataValue";
+    public static final String RELATION_DATA_VALUES = "dataValues";
     public static final String RELATION_DATA_VALUE_ALTERNATE = "dataValue-alternate";
     public static final String RELATION_NOTIFIER_SERVICE = "notifierService";
 
@@ -83,8 +83,11 @@ public class LinkUtils {
             + "/{objectInstanceId}/elementInstances";
     public static final String TEMPLATE_DATA_ELEMENT__INSTANCES = COLLECTION_DATA_ELEMENT
             + "/{dataElementId}/instances";
-    public static final String TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUE = COLLECTION_DATA_ELEMENT_INSTANCE
-            + "/{elementInstanceId}/dataValue";
+    public static final String TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUES = COLLECTION_DATA_ELEMENT_INSTANCE
+            + "/{elementInstanceId}/dataValues";
+    public static final String TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUES__DATA_VALUE =
+            COLLECTION_DATA_ELEMENT_INSTANCE
+                    + "/{elementInstanceId}/dataValues/{dataValueId}";
     public static final String TEMPLATE_DATA_VALUE__ELEMENT_INSTANCES = COLLECTION_DATA_VALUE +
             "/{dataValueId}/elementInstances";
     public static final String TEMPLATE_NOTIFICATION__NOTIFIER = COLLECTION_NOTIFICATIONS +
@@ -301,7 +304,8 @@ public class LinkUtils {
         return links;
     }
 
-    public static LinkArray createDataElementInstanceLinks(UriInfo uriInfo, DataElementInstance dataElementInstance, String selfUri) {
+    public static LinkArray createDataElementInstanceLinks(UriInfo uriInfo, DataElementInstance dataElementInstance,
+                                                           String selfUri) {
         LinkArray links = new LinkArray();
 
         // Add link to data element (model)
@@ -324,17 +328,17 @@ public class LinkUtils {
         }
 
         // Add link to used data value, if there is one
-        if (dataElementInstance != null && dataElementInstance.getDataValue() != null) {
+        if (dataElementInstance != null && dataElementInstance.getDataValues().size() == 1) {
             Link link = new Link();
-            link.setHref(calculateURI(uriInfo, dataElementInstance.getDataValue()));
-            link.setRel(RELATION_DATA_VALUE);
+            link.setHref(calculateURI(uriInfo, dataElementInstance.getDataValues().get(0)));
+            link.setRel(RELATION_DATA_VALUES);
             link.setTitle("Provides the data value used by this data element instance.");
             links.add(link);
 
             // Add an alternate link to the data value which supports to change the association
             link = new Link();
             link.setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
-                    .TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUE).build(dataElementInstance.getIdentifier()).toASCIIString());
+                    .TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUES).build(dataElementInstance.getIdentifier()).toASCIIString());
             link.setRel(RELATION_DATA_VALUE_ALTERNATE);
             link.setTitle("Provides an alternative link to access and set the associated data value of this data " +
                     "element instance.");
@@ -343,10 +347,24 @@ public class LinkUtils {
             // Add the alternate link to the data value which supports to change the association
             Link link = new Link();
             link.setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
-                    .TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUE).build(dataElementInstance.getIdentifier()).toASCIIString());
-            link.setRel(RELATION_DATA_VALUE);
-            link.setTitle("Use this link to set/associate a data value to this data element instance.");
+                    .TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUES).build(dataElementInstance.getIdentifier()).toASCIIString());
+            link.setRel(RELATION_DATA_VALUES);
+            link.setTitle("Use this link to add/associate a data value to this data element instance.");
             links.add(link);
+
+            if (dataElementInstance.getDataValues().size() > 1) {
+                // Add links to the data value which supports to remove the associations
+                for (DataValue dataValue : dataElementInstance.getDataValues()) {
+                    link = new Link();
+                    link.setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
+                            .TEMPLATE_DATA_ELEMENT_INSTANCE__DATA_VALUES__DATA_VALUE).build(
+                            dataElementInstance.getIdentifier(), dataValue.getIdentifier()).toASCIIString());
+                    link.setRel(RELATION_DATA_VALUES);
+                    link.setTitle("Use this link to remove/un-associate the data value from this data element " +
+                            "instance.");
+                    links.add(link);
+                }
+            }
         }
 
         // Add link to collection

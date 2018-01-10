@@ -67,16 +67,17 @@ public interface IDataManager extends TraDEEventListener {
     /**
      * Add a new data element to a data object. This is only allowed if the data object does not belong to a data model.
      *
-     * @param dataObjectId the ID of the data object
-     * @param entity       the entity to which the data element belongs
-     * @param name         the name of the data element
-     * @param contentType  the content type of the data element
-     * @param type         the type of the data element
+     * @param dataObjectId        the ID of the data object
+     * @param entity              the entity to which the data element belongs
+     * @param name                the name of the data element
+     * @param contentType         the content type of the data element
+     * @param type                the type of the data element
+     * @param isCollectionElement if the data element refers to a collection of data of similar type
      * @return the data element
      * @throws Exception the exception
      */
     DataElement addDataElementToDataObject(String dataObjectId, String entity, String name, String
-            contentType, String type) throws Exception;
+            contentType, String type, boolean isCollectionElement) throws Exception;
 
     /**
      * Instantiate the given data object.

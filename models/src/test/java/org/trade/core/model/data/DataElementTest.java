@@ -43,7 +43,7 @@ public class DataElementTest {
     @Test
     public void dataElementShouldBeReady() throws Exception {
         String name = "dataElement";
-        DataElement elm = new DataElement(obj, entity, name);
+        DataElement elm = new DataElement(obj, entity, name, false);
         elm.initialize();
 
         assertEquals(ModelStates.READY.name(), elm.getState());

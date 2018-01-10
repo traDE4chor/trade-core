@@ -256,13 +256,16 @@ public class DDGCompiler extends ACompiler {
             name = dataElement.getName();
         }
 
+        boolean isCollection = dataElement.isIsCollection() == null
+                ? false : dataElement.isIsCollection();
+
         // Create a new DataElement
         if (identifier != null) {
             // Use the provided identifier
-            compiledElement = new DataElement(compiledDataObject, identifier, entity, name);
+            compiledElement = new DataElement(compiledDataObject, identifier, entity, name, isCollection);
         } else {
             // Use the generated identifier from BaseResource
-            compiledElement = new DataElement(compiledDataObject, entity, name);
+            compiledElement = new DataElement(compiledDataObject, entity, name, isCollection);
         }
 
         boolean isBinaryType = false;

@@ -25,6 +25,7 @@ import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataValue;
 import io.swagger.trade.client.jersey.model.DataValueData;
 import io.swagger.trade.client.jersey.model.DataValueWithLinks;
+import org.apache.camel.test.AvailablePortFinder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,6 +52,12 @@ public class DataValueApiIT {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
 
+        // Find an unused available port
+        int port = AvailablePortFinder.getNextAvailable();
+
+        // Set the port
+        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
+
         // Create a new server
         server = new TraDEServer();
 
@@ -65,7 +72,7 @@ public class DataValueApiIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:8080/api");
+        client.setBasePath("http://127.0.0.1:" + port + "/api");
 
         dvApiInstance = new DataValueApi(client);
     }

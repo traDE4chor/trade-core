@@ -35,9 +35,7 @@ import org.trade.core.utils.states.InstanceStates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * This class represents an instance of a data element within the middleware.
@@ -70,7 +68,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     private DataObjectInstance dataObjectInstance;
 
     @Reference
-    private DataValue dataValue;
+    private List<DataValue> dataValues;
 
     private HashMap<String, String> correlationProperties;
 
@@ -88,6 +86,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
             this.correlationProperties = new HashMap<>();
         }
 
+        this.dataValues = new ArrayList<>();
         this.lifeCycle = new DataElementInstanceLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElementInstance.class);
     }
@@ -96,6 +95,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
      * This constructor is only used by Morphia to load data value from the database.
      */
     private DataElementInstance() {
+        this.dataValues = new ArrayList<>();
         this.lifeCycle = new DataElementInstanceLifeCycle(this, false);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElementInstance.class);
     }
@@ -112,8 +112,12 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         return state;
     }
 
-    public DataValue getDataValue() {
-        return dataValue;
+    public List<DataValue> getDataValues() {
+        return dataValues;
+    }
+
+    public DataValue getDataValue(int index) {
+        return dataValues.get(index);
     }
 
     public DataElement getDataElement() {
@@ -128,20 +132,36 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         return correlationProperties;
     }
 
-    public void setDataValue(DataValue dataValue) throws Exception {
+    public int getNumberOfDataValues() {
+        return this.dataValues.size();
+    }
+
+    public void addDataValue(DataValue dataValue) throws Exception {
         if (dataValue != null) {
             if (dataValue.isCreated() || dataValue.isInitialized()) {
-                // Check if another data value was set before
-                if (this.dataValue != null && this.dataValue != dataValue) {
-                    // Remove the association between this data element instance and the data value
-                    this.dataValue.removeAssociationWithDataElementInstance(this);
+
+                // TODO: 10.01.2018 Add a type and contentType compatibility check!
+                // Only data values having the same type and contentType as the data element the instance is
+                // created for should be allowed to be associated.
+
+                // Check if the data element is a simple or collection element and if it's a simple element if
+                // already a data value was set before
+                if (this.model.isCollectionElement() && !this.dataValues.contains(dataValue)) {
+                    // Add the new data value
+                    this.dataValues.add(dataValue);
+                } else {
+                    if (!this.dataValues.isEmpty() && this.dataValues.get(0) != dataValue) {
+                        // Remove the association between this data element instance and the data value
+                        this.dataValues.get(0).removeAssociationWithDataElementInstance(this);
+                        this.dataValues.clear();
+                    }
+
+                    // Set the new data value
+                    this.dataValues.add(dataValue);
                 }
 
-                // Set the new data value
-                this.dataValue = dataValue;
-
                 // Associate the data element instance with the new data value
-                this.dataValue.associateWithDataElementInstance(this);
+                dataValue.associateWithDataElementInstance(this);
 
                 this.initialize();
             } else {
@@ -152,14 +172,38 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
                         ") can not be used by data element instance (" + this.getIdentifier() + ") because it is in state" +
                         " '" + dataValue.getState() + "'.");
             }
-        } else {
-            // If a data value was set before, setting a null value means removing the reference between this data
-            // element instance and the data value
-            if (this.dataValue != null) {
-                this.dataValue.removeAssociationWithDataElementInstance(this);
-                this.dataValue = null;
+        }
+    }
+
+    public void removeDataValue(DataValue dataValue) throws Exception {
+        if (dataValue != null) {
+            if (dataValue.getDataElementInstances().contains(this)) {
+                // Check if this data value was associated to this data element instance
+
+                // Remove the association between this data element instance and the data value
+                dataValue.removeAssociationWithDataElementInstance(this);
+
+                // Remove the data value from the list
+                this.dataValues.remove(dataValue);
+
+                this.initialize();
+            } else {
+                logger.info("The data value ({}) is not associated to the data element instance ({}) and therefore " +
+                        "cannot be removed.", dataValue.getIdentifier(), this.getIdentifier());
+
+                throw new LifeCycleException("The data value (" + dataValue.getIdentifier() +
+                        ") is not associated to the data element instance (" + this.getIdentifier() + ") and therefore " +
+                        "cannot be removed.");
             }
         }
+    }
+
+    public void removeAllDataValues() throws Exception {
+        for (DataValue dataValue : this.dataValues) {
+            dataValue.removeAssociationWithDataElementInstance(this);
+        }
+
+        this.dataValues.clear();
     }
 
     @Override
@@ -168,7 +212,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
 
             boolean hasChanged = false;
             // Check if an initialized data value is present
-            if (this.dataValue != null && this.dataValue.isInitialized()) {
+            if (!this.dataValues.isEmpty() && areDataValuesInitialized()) {
                 // Trigger state change if the data element instance is not initialized already
                 if (isCreated()) {
                     // Trigger the initialized event for the data element instance since it has now an associated data value
@@ -203,6 +247,10 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         }
     }
 
+    private boolean areDataValuesInitialized() {
+         return this.dataValues.stream().allMatch(dataValue -> dataValue.isInitialized());
+    }
+
     @Override
     public void archive() throws Exception {
         // TODO: 24.04.2017 Implement archiving of data element instances
@@ -227,10 +275,9 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         // Remove the data element instance from the data object instance
         dataObjectInstance.removeDataElementInstance(this);
 
-        // If a data value was set before, remove the reference to this data element instance
-        if (this.dataValue != null) {
-            this.dataValue.removeAssociationWithDataElementInstance(this);
-            this.dataValue = null;
+        // If one or more data value were set before, remove the reference to this data element instance
+        if (!this.dataValues.isEmpty()) {
+            removeAllDataValues();
         }
     }
 

@@ -229,6 +229,7 @@ public class ResourceTransformationUtils {
         result.setDataObjectName(dataElement.getParent().getName());
         result.setEntity(dataElement.getEntity());
         result.setStatus(string2Status(dataElement.getState()));
+        result.setIsCollectionElement(dataElement.isCollectionElement());
 
         return result;
     }
@@ -254,6 +255,7 @@ public class ResourceTransformationUtils {
         result.setStatus(string2InstanceStatus(instance.getState()));
         result.setDataElementName(instance.getDataElement().getName());
         result.setCorrelationProperties(model2Resource(instance.getCorrelationProperties()));
+        result.setNumberOfDataValues(instance.getNumberOfDataValues());
 
         return result;
     }

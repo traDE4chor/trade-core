@@ -60,25 +60,20 @@ name="SomeChoreography">
 
     <dependenceEdges>
         <dependenceEdge identifier="readInput" name="readInput">
-            <source>do_input</source>
-            <sourceSelector>de_partA</sourceSelector>
+            <source>de_partA</source>
             <target>act_A</target>
-            <targetSelector>/process/variables/variable[1]</targetSelector>
         </dependenceEdge>
         <dependenceEdge identifier="setResult" name="setResult">
             <source>act_A</source>
-            <sourceSelector>/process/variables/variable[2]</sourceSelector>
             <target>de_result</target>
         </dependenceEdge>
         <dependenceEdge identifier="setFlag" name="setFlag">
             <source>act_A</source>
-            <sourceSelector>/process/variables/variable[3]</sourceSelector>
             <target>de_flag</target>
         </dependenceEdge>
         <dependenceEdge identifier="readResult" name="readResult">
             <source>de_result</source>
             <target>partic_B</target>
-            <targetSelector>/process/variables/variable[4]</targetSelector>
         </dependenceEdge>
     </dependenceEdges>
 </ddg:DataDependenceGraph>

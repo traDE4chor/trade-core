@@ -23,6 +23,7 @@ import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
 import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
+import org.apache.camel.test.AvailablePortFinder;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -68,6 +69,8 @@ public class NotificationHttpIT {
 
     private static Server httpServer;
 
+    private static int notificationServerPort;
+
     private static CountDownLatch lock;
 
     private static String notificationMessage;
@@ -76,6 +79,12 @@ public class NotificationHttpIT {
     public static void setupEnvironment() throws Exception {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
+
+        // Find an unused available port
+        int port = AvailablePortFinder.getNextAvailable();
+
+        // Set the port
+        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
 
         // Create a new server
         server = new TraDEServer();
@@ -91,7 +100,7 @@ public class NotificationHttpIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:8080/api");
+        client.setBasePath("http://127.0.0.1:" + port + "/api");
 
         notificationApi = new NotificationApi(client);
 
@@ -104,7 +113,8 @@ public class NotificationHttpIT {
         deApiInstance = new DataElementApi(client);
 
         // Create a new embedded HTTP server which consumes the HTTP notifications
-        httpServer = new Server(new InetSocketAddress("0.0.0.0", 8085));
+        notificationServerPort = AvailablePortFinder.getNextAvailable();
+        httpServer = new Server(new InetSocketAddress("0.0.0.0", notificationServerPort));
 
         // Create a handler to check the notification message send to the specified HTTP endpoint
         Handler handler = new AbstractHandler() {
@@ -141,7 +151,7 @@ public class NotificationHttpIT {
 
         param = new NotifierServiceParameter();
         param.setParameterName("port");
-        param.setValue("8085");
+        param.setValue(String.valueOf(notificationServerPort));
         params.add(param);
 
         param = new NotifierServiceParameter();
@@ -251,7 +261,7 @@ public class NotificationHttpIT {
 
         param = new NotifierServiceParameter();
         param.setParameterName("port");
-        param.setValue("8085");
+        param.setValue(String.valueOf(notificationServerPort));
         params.add(param);
 
         param = new NotifierServiceParameter();

@@ -85,7 +85,7 @@ public enum SimpleDataManager implements IDataManager {
     }
 
     public DataElement addDataElementToDataObject(String dataObjectId, String entity, String name, String
-            contentType, String type) throws Exception {
+            contentType, String type, boolean isCollectionElement) throws Exception {
         DataElement result = null;
 
         if (hasDataObject(dataObjectId)) {
@@ -95,7 +95,7 @@ public enum SimpleDataManager implements IDataManager {
             // Check if the data object belongs to a data model
             if (dataObject.getDataModel() == null) {
                 // Create a new data element
-                DataElement dataElement = new DataElement(dataObject, entity, name);
+                DataElement dataElement = new DataElement(dataObject, entity, name, isCollectionElement);
                 dataElement.setType(type);
                 dataElement.setContentType(contentType);
 
@@ -642,7 +642,7 @@ public enum SimpleDataManager implements IDataManager {
             // TODO: 24.04.2017 Maybe we will change this behavior in a future version again...
             for (DataElementInstance elmInstance : result.getDataElementInstances()) {
                 DataElement elm = elmInstance.getDataElement();
-                DataValue value = elmInstance.getDataValue();
+                List<DataValue> values = elmInstance.getDataValues();
 
                 // Remove the data element instance from the data object instance
                 result.removeDataElementInstance(elmInstance);

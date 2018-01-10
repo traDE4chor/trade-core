@@ -5,7 +5,7 @@ plugins {
 
 task generateSources {
     swagger {
-        inputSpec = project.file('swagger.json').absolutePath
+        inputSpec = project.file('swagger.yaml').absolutePath
 
         outputDir = project.file("${project.buildDir.path}/generated-sources/swagger").absolutePath
         lang = 'jaxrs'
@@ -23,9 +23,9 @@ task generateSources {
     }
 }
 
-// Copy the swagger.json file to the static swaggerui resources to make it accessible
+// Copy the swagger.yaml file to the static swaggerui resources to make it accessible
 task copySwaggerFile(type: Copy) {
-    from project.file('swagger.json')
+    from project.file('swagger.yaml')
     into 'src/main/resources/swaggerui'
 }
 

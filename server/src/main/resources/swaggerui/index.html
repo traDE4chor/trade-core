@@ -77,9 +77,9 @@ window.onload = function() {
         url = decodeURIComponent(url[1]);
       } else {
         // url = "http://petstore.swagger.io/v2/swagger.json";
-        // @hahnml: Change the default url to the local swagger.json file
+        // @hahnml: Change the default url to the local swagger.yaml file
         url = window.location.toString();
-        url = url.substring(0, url.lastIndexOf("/docs")) + "/docs/swagger.json";
+        url = url.substring(0, url.lastIndexOf("/docs")) + "/docs/swagger.yaml";
       }
 
   // Build a system

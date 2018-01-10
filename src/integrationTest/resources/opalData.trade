@@ -83,7 +83,7 @@
                 <edge>ddgEdge_118fabdb-d435-4ccc-aa1a-7eaa4f7c7879</edge>
             </outgoing>
             <dataElements>
-                <dataElement name="snapshots[]" identifier="dataElement_8d0d464e-0bd3-40aa-a479-f54bbcedb68d">
+                <dataElement name="snapshots[]" isCollection= "true" identifier="dataElement_8d0d464e-0bd3-40aa-a479-f54bbcedb68d">
                     <type>Binary[]</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
@@ -128,49 +128,41 @@
         </dataObject>
     </dataObjects>
     <dependenceEdges>
-        <dependenceEdge type="VALUE" name="OpalPrep_simInput" identifier="ddgEdge_67ec4e04-7346-443f-b548-615e37088919">
+        <dependenceEdge name="OpalPrep_simInput" identifier="ddgEdge_67ec4e04-7346-443f-b548-615e37088919">
             <source>participant_OpalPrep</source>
-            <target>dataObject_bad9e13a-ee40-486c-a967-23a632d83aba</target>
-            <targetSelector>/opal_in</targetSelector>
+            <target>dataElement_d04fcb75-e72a-4c48-bbba-78bfc81ec1f7</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="simInput_OpalMC" identifier="ddgEdge_5e9797ff-4a6a-4a4d-882c-5e2503df062c">
-            <source>dataObject_bad9e13a-ee40-486c-a967-23a632d83aba</source>
-            <sourceSelector>/opal_in</sourceSelector>
+        <dependenceEdge name="simInput_OpalMC" identifier="ddgEdge_5e9797ff-4a6a-4a4d-882c-5e2503df062c">
+            <source>dataElement_d04fcb75-e72a-4c48-bbba-78bfc81ec1f7</source>
             <target>participant_OpalMC</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="OpalMC_simResults" identifier="ddgEdge_4d76511a-e00f-4430-94ec-ca7c96e6ced8">
+        <dependenceEdge name="OpalMC_simResults" identifier="ddgEdge_4d76511a-e00f-4430-94ec-ca7c96e6ced8">
             <source>participant_OpalMC</source>
             <target>dataObject_0fc3d647-21e0-4ef9-bc42-896dcfef0070</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="simInput_OpalMC" identifier="ddgEdge_c0284a40-0553-4fdf-9d9c-989571f35228">
-            <source>dataObject_bad9e13a-ee40-486c-a967-23a632d83aba</source>
-            <sourceSelector>/lattice</sourceSelector>
+        <dependenceEdge name="simInput_OpalMC" identifier="ddgEdge_c0284a40-0553-4fdf-9d9c-989571f35228">
+            <source>dataElement_800ec4a4-37ae-4c12-b263-6457b50e7806</source>
             <target>participant_OpalMC</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="simResults_processAllSnapshots" identifier="ddgEdge_c9439b34-27b7-44ba-8ab2-528bf5a5a4f6">
-            <source>dataObject_0fc3d647-21e0-4ef9-bc42-896dcfef0070</source>
-            <sourceSelector>/snapshots[]</sourceSelector>
+        <dependenceEdge name="simResults_processAllSnapshots" identifier="ddgEdge_c9439b34-27b7-44ba-8ab2-528bf5a5a4f6">
+            <source>dataElement_8d0d464e-0bd3-40aa-a479-f54bbcedb68d</source>
             <target>activity_9ba25df3-17f6-483b-9347-e5dc588b4a8a</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="simResults_OpalCLUS" identifier="ddgEdge_118fabdb-d435-4ccc-aa1a-7eaa4f7c7879">
-            <source>dataObject_0fc3d647-21e0-4ef9-bc42-896dcfef0070</source>
-            <sourceSelector>/snapshots[]</sourceSelector>
+        <dependenceEdge name="simResults_OpalCLUS" identifier="ddgEdge_118fabdb-d435-4ccc-aa1a-7eaa4f7c7879">
+            <source>dataElement_8d0d464e-0bd3-40aa-a479-f54bbcedb68d</source>
             <target>participant_OpalCLUS</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="OpalCLUS_clusters" identifier="ddgEdge_61c50455-b980-4f91-94e8-3a569f3b39d6">
+        <dependenceEdge name="OpalCLUS_clusters" identifier="ddgEdge_61c50455-b980-4f91-94e8-3a569f3b39d6">
             <source>participant_OpalCLUS</source>
-            <target>dataObject_3eb75550-0beb-414b-86b3-947d6b6242f9</target>
-            <targetSelector>/clusters[]</targetSelector>
+            <target>dataElement_833b2a55-9d95-4197-b0cf-7648666607af</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="clusters_OpalXYZR" identifier="ddgEdge_fd7e5047-32fc-4b08-a735-928852fe00d2">
-            <source>dataObject_3eb75550-0beb-414b-86b3-947d6b6242f9</source>
-            <sourceSelector>/clusters[]</sourceSelector>
+        <dependenceEdge name="clusters_OpalXYZR" identifier="ddgEdge_fd7e5047-32fc-4b08-a735-928852fe00d2">
+            <source>dataElement_833b2a55-9d95-4197-b0cf-7648666607af</source>
             <target>participant_OpalXYZR</target>
         </dependenceEdge>
-        <dependenceEdge type="VALUE" name="OpalXYZR_clusters" identifier="ddgEdge_5d57ec39-3bc1-4e38-a10b-694c09bff37d">
+        <dependenceEdge name="OpalXYZR_clusters" identifier="ddgEdge_5d57ec39-3bc1-4e38-a10b-694c09bff37d">
             <source>participant_OpalXYZR</source>
-            <target>dataObject_3eb75550-0beb-414b-86b3-947d6b6242f9</target>
-            <targetSelector>/posSizes[]</targetSelector>
+            <target>dataElement_d16d3b15-96a1-4f51-97ae-37452de44bce</target>
         </dependenceEdge>
     </dependenceEdges>
 </ns2:DataDependenceGraph>

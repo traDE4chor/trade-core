@@ -92,7 +92,7 @@ public enum HazelcastDataManager implements IDataManager {
     }
 
     @Override
-    public DataElement addDataElementToDataObject(String dataObjectId, String entity, String name, String contentType, String type) throws Exception {
+    public DataElement addDataElementToDataObject(String dataObjectId, String entity, String name, String contentType, String type, boolean isCollectionElement) throws Exception {
         return null;
     }
 
