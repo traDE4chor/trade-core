@@ -26,6 +26,7 @@ import io.swagger.trade.client.jersey.model.DataValue;
 import io.swagger.trade.client.jersey.model.DataValueData;
 import io.swagger.trade.client.jersey.model.DataValueWithLinks;
 import org.apache.camel.test.AvailablePortFinder;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,8 +34,7 @@ import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 /**
  * Created by hahnml on 31.01.2017.
@@ -159,6 +159,37 @@ public class DataValueApiIT {
             assertNotEquals(result.getType(), updated.getDataValue().getType());
 
             dvApiInstance.deleteDataValue(result.getId());
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void uploadAndDownloadDataOfDataValueTest() {
+        // Add a new data value
+        DataValueData request = new DataValueData();
+
+        request.setName("dataValue");
+        request.setCreatedBy("hahnml");
+        request.setType("binary");
+        request.setContentType("text/plain");
+
+        try {
+            DataValue dataValue = dvApiInstance.addDataValue(request);
+
+            // Create a String with length = 1000 * 2**13 (8MB of data)
+            String value = RandomStringUtils.randomAlphabetic(8192000);
+            int length = value.getBytes().length;
+            dvApiInstance.pushDataValue(dataValue.getId(), (long) length, value.getBytes());
+
+            byte[] resultData = dvApiInstance.pullDataValue(dataValue.getId());
+            assertNotNull(resultData);
+            assertFalse(resultData.length == 0);
+
+            assertEquals(length, resultData.length);
+            assertEquals(value, new String(resultData));
+
+            dvApiInstance.deleteDataValue(dataValue.getId());
         } catch (ApiException e) {
             e.printStackTrace();
         }

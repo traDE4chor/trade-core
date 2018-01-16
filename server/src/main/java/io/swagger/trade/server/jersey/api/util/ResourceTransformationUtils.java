@@ -377,24 +377,28 @@ public class ResourceTransformationUtils {
     }
 
     public static StatusEnum string2Status(String value) {
-        if (value.toUpperCase().equals(StatusEnum.CREATED.toString().toUpperCase())) {
-            return StatusEnum.CREATED;
-        } else if (value.toUpperCase().equals(StatusEnum.ARCHIVED.toString().toUpperCase())) {
-            return StatusEnum.ARCHIVED;
-        } else if (value.toUpperCase().equals(StatusEnum.READY.toString().toUpperCase())) {
-            return StatusEnum.READY;
+        if (value != null && !value.isEmpty()) {
+            if (value.toUpperCase().equals(StatusEnum.CREATED.toString().toUpperCase())) {
+                return StatusEnum.CREATED;
+            } else if (value.toUpperCase().equals(StatusEnum.ARCHIVED.toString().toUpperCase())) {
+                return StatusEnum.ARCHIVED;
+            } else if (value.toUpperCase().equals(StatusEnum.READY.toString().toUpperCase())) {
+                return StatusEnum.READY;
+            }
         }
 
         return StatusEnum.CREATED;
     }
 
     public static InstanceStatusEnum string2InstanceStatus(String value) {
-        if (value.toUpperCase().equals(InstanceStatusEnum.CREATED.toString().toUpperCase())) {
-            return InstanceStatusEnum.CREATED;
-        } else if (value.toUpperCase().equals(InstanceStatusEnum.ARCHIVED.toString().toUpperCase())) {
-            return InstanceStatusEnum.ARCHIVED;
-        } else if (value.toUpperCase().equals(InstanceStatusEnum.INITIALIZED.toString().toUpperCase())) {
-            return InstanceStatusEnum.INITIALIZED;
+        if (value != null && !value.isEmpty()) {
+            if (value.toUpperCase().equals(InstanceStatusEnum.CREATED.toString().toUpperCase())) {
+                return InstanceStatusEnum.CREATED;
+            } else if (value.toUpperCase().equals(InstanceStatusEnum.ARCHIVED.toString().toUpperCase())) {
+                return InstanceStatusEnum.ARCHIVED;
+            } else if (value.toUpperCase().equals(InstanceStatusEnum.INITIALIZED.toString().toUpperCase())) {
+                return InstanceStatusEnum.INITIALIZED;
+            }
         }
 
         return InstanceStatusEnum.CREATED;

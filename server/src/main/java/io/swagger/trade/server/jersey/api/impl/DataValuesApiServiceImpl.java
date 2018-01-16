@@ -23,10 +23,9 @@ import io.swagger.trade.server.jersey.model.*;
 import org.trade.core.data.management.DataManagerFactory;
 
 import javax.validation.constraints.Min;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.*;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -112,7 +111,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response getDataValuesDirectly( @Min(1) Integer start,  @Min(1) Integer size,  String status,  String createdBy, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataValuesDirectly(@Min(1) Integer start, @Min(1) Integer size, String status, String createdBy, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
@@ -123,13 +122,13 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
             // respond the whole filtered result list
             if (start > 0 && size > 0 && start <= dataValues.size()) {
                 // Calculate the two index
-                int toIndex = start-1 + size;
+                int toIndex = start - 1 + size;
                 // Check if the index is still in bounds
                 if (toIndex > dataValues.size()) {
                     toIndex = dataValues.size();
                 }
                 // Decrease start by one since the API starts counting indexes from 1
-                dataValues = dataValues.subList(start-1, toIndex);
+                dataValues = dataValues.subList(start - 1, toIndex);
             }
 
             DataValueArrayWithLinks resultList = new DataValueArrayWithLinks();
@@ -173,7 +172,22 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
             org.trade.core.model.data.DataValue value = DataManagerFactory.createDataManager().getDataValue(dataValueId);
 
             if (value != null) {
-                response = Response.ok(value.getData(), value.getContentType()).header("Content-Length", value.getSize())
+                StreamingOutput fileStream = new StreamingOutput() {
+                    @Override
+                    public void write(java.io.OutputStream output) throws IOException, WebApplicationException {
+                        try {
+                            byte[] data = value.getData();
+                            output.write(data);
+                            output.flush();
+                        } catch (Exception e) {
+                            throw new WebApplicationException("Streaming of data for Data Value with " +
+                                    "ID='" + dataValueId + "' caused an exception.", e);
+                        }
+                    }
+                };
+
+                response = Response.ok(fileStream, value.getContentType()).header("content-disposition",
+                        "attachment; filename = data.txt")
                         .build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections
@@ -289,7 +303,7 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response getDataElementInstancesUsingDataValue(String dataValueId,  @Min(1) Integer start,  @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response getDataElementInstancesUsingDataValue(String dataValueId, @Min(1) Integer start, @Min(1) Integer size, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         boolean exists = DataManagerFactory.createDataManager().hasDataValue(dataValueId);

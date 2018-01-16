@@ -1,24 +1,39 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath('io.swagger:swagger-codegen:2.3.0')
+    }
+}
+
 plugins {
-    id 'org.detoeuf.swagger-codegen' version '1.7.1'
     id 'java'
 }
 
+import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.DefaultGenerator
+
+def swaggerInput = file('src/main/resources/swagger.yaml').absolutePath
+def swaggerOutputDir = file('build/generated-sources/swagger')
 task generateClient {
-    swagger {
-        inputSpec = project.file('src/main/resources/swagger.yaml').absolutePath
-
-        outputDir = project.file("${project.buildDir.path}/generated-sources/swagger").absolutePath
-        lang = 'java'
-
-        additionalProperties = [
-                'invokerPackage'   : 'io.swagger.trade.client.jersey',
-                'modelPackage'     : 'io.swagger.trade.client.jersey.model',
-                'apiPackage'       : 'io.swagger.trade.client.jersey.api',
+    inputs.file(swaggerInput)
+    outputs.dir(swaggerOutputDir)
+    doLast {
+        def config = new CodegenConfigurator()
+        config.setInputSpec(swaggerInput)
+        config.setOutputDir(swaggerOutputDir.path)
+        config.setLang('java')
+        config.setAdditionalProperties([
+                'invokerPackage': 'io.swagger.trade.client.jersey',
+                'modelPackage'  : 'io.swagger.trade.client.jersey.model',
+                'apiPackage'    : 'io.swagger.trade.client.jersey.api',
+                'dateLibrary'   : 'java8',
                 'library'          : 'jersey2',
                 'jackson'          : 'true',
-                'serializableModel': 'true',
-                'dateLibrary'      : 'java8'
-        ]
+                'serializableModel': 'true'
+        ])
+        new DefaultGenerator().opts(config.toClientOptInput()).generate()
     }
 }
 
@@ -39,8 +54,8 @@ compileJava {
 }
 
 ext {
-    swagger_annotations_version = "1.5.8"
-    jackson_version = "2.7.5"
+    swagger_annotations_version = "1.5.15"
+    jackson_version = "2.8.9"
     jersey_version = "2.22.2"
 }
 

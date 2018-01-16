@@ -145,6 +145,7 @@ paths:
       operationId: downloadGraphModel
       produces:
         - application/octet-stream
+        - application/json
       parameters:
         - in: path
           name: graphId
@@ -384,6 +385,7 @@ paths:
       operationId: downloadDataModel
       produces:
         - application/octet-stream
+        - application/json
       parameters:
         - in: path
           name: dataModelId
@@ -1481,6 +1483,7 @@ paths:
       operationId: pullDataValue
       produces:
         - application/octet-stream
+        - application/json
       parameters:
         - in: path
           name: dataValueId

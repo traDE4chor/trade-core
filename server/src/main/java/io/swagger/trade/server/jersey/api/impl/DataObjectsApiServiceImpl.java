@@ -229,8 +229,8 @@ public class DataObjectsApiServiceImpl extends DataObjectsApiService {
             boolean exists = DataManagerFactory.createDataManager().hasDataObject(dataObjectId);
 
             if (exists) {
-                boolean isCollectionDataElement = dataElementData.getIsCollectionElement() == null ? false :
-                        dataElementData.getIsCollectionElement();
+                boolean isCollectionDataElement = dataElementData.isIsCollectionElement() == null ? false :
+                        dataElementData.isIsCollectionElement();
 
                 org.trade.core.model.data.DataElement dataElement = DataManagerFactory.createDataManager()
                         .addDataElementToDataObject(

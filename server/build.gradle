@@ -1,16 +1,30 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath('io.swagger:swagger-codegen:2.3.0')
+    }
+}
+
 plugins {
-    id 'org.detoeuf.swagger-codegen' version '1.7.1'
     id 'java'
 }
 
+import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.DefaultGenerator
+
+def swaggerInput = file('swagger.yaml').absolutePath
+def swaggerOutputDir = file('build/generated-sources/swagger')
 task generateSources {
-    swagger {
-        inputSpec = project.file('swagger.yaml').absolutePath
-
-        outputDir = project.file("${project.buildDir.path}/generated-sources/swagger").absolutePath
-        lang = 'jaxrs'
-
-        additionalProperties = [
+    inputs.file(swaggerInput)
+    outputs.dir(swaggerOutputDir)
+    doLast {
+        def config = new CodegenConfigurator()
+        config.setInputSpec(swaggerInput)
+        config.setOutputDir(swaggerOutputDir.path)
+        config.setLang('jaxrs')
+        config.setAdditionalProperties([
                 'invokerPackage'   : 'io.swagger.trade.server.jersey',
                 'modelPackage'     : 'io.swagger.trade.server.jersey.model',
                 'apiPackage'       : 'io.swagger.trade.server.jersey.api',
@@ -19,7 +33,8 @@ task generateSources {
                 'serializableModel': 'true',
                 'dateLibrary'      : 'java7',
                 'templateDir'      : project.file('templates').absolutePath
-        ]
+        ])
+        new DefaultGenerator().opts(config.toClientOptInput()).generate()
     }
 }
 
@@ -44,8 +59,8 @@ compileJava {
 }
 
 ext {
-    swagger_version = "1.5.8"
-    jackson_version = "2.7.5"
+    swagger_version = "1.5.15"
+    jackson_version = "2.8.9"
     jersey_version = "2.22.2"
 }
 

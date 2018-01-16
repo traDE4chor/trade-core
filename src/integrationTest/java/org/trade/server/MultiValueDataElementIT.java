@@ -103,11 +103,11 @@ public class MultiValueDataElementIT {
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain").isCollectionElement
                     (true)).getDataElement();
             assertNotNull(dElement);
-            assertTrue(dElement.getIsCollectionElement());
+            assertTrue(dElement.isIsCollectionElement());
 
             DataElementWithLinks dElm = deApiInstance.getDataElementDirectly(dElement.getId());
             assertNotNull(dElm.getDataElement());
-            assertTrue(dElm.getDataElement().getIsCollectionElement());
+            assertTrue(dElm.getDataElement().isIsCollectionElement());
 
             doApiInstance.deleteDataObject(dObject.getId());
         } catch (ApiException e) {
@@ -128,7 +128,7 @@ public class MultiValueDataElementIT {
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain").isCollectionElement
                     (true)).getDataElement();
             assertNotNull(dElement);
-            assertTrue(dElement.getIsCollectionElement());
+            assertTrue(dElement.isIsCollectionElement());
 
             // Set correlation property
             CorrelationPropertyArray corPropArray = new CorrelationPropertyArray();
@@ -167,7 +167,7 @@ public class MultiValueDataElementIT {
             assertTrue(elmInstance.getInstance().getNumberOfDataValues() == 2);
 
             // Assign data to the first data value
-            dvApiInstance.pushDataValue(firstDataValue.getDataValue().getId(), 4L, new String("test").getBytes());
+            dvApiInstance.pushDataValue(firstDataValue.getDataValue().getId(), 4L, "test".getBytes());
 
             // Data element instance should still be in state CREATED
             elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
@@ -175,7 +175,7 @@ public class MultiValueDataElementIT {
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
 
             // Assign data to the second data value
-            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), 4L, new String("abcd").getBytes());
+            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), 4L, "abcd".getBytes());
 
             // Data element instance should be be in state INITIALIZED now
             elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
@@ -218,7 +218,7 @@ public class MultiValueDataElementIT {
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain").isCollectionElement
                     (true)).getDataElement();
             assertNotNull(dElement);
-            assertTrue(dElement.getIsCollectionElement());
+            assertTrue(dElement.isIsCollectionElement());
 
             // Set correlation property
             CorrelationPropertyArray corPropArray = new CorrelationPropertyArray();
