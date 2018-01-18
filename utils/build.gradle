@@ -2,6 +2,12 @@ configurations {
     testOutput
 }
 
+ext {
+    jersey_version = "2.22.2"
+}
+
 dependencies {
     testOutput sourceSets.test.output
+
+    compile "org.glassfish.jersey.core:jersey-client:$jersey_version"
 }

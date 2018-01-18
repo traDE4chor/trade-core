@@ -1522,14 +1522,24 @@ paths:
           required: true
           type: string
         - in: header
+          name: X-ResolveAsLinkToData
+          description: Whether the body contains the actual data (false) or a link to the data (true).
+          required: false
+          type: boolean
+          default: false
+        - in: header
           name: Content-Length
           description: The size of the data passed as header
-          required: true
           type: integer
           format: int64
         - in: body
           name: data
-          description: The data to push.
+          description: >-
+            The data to push. It can be either provided directly in binary format
+            (byte[]) or referenced through a link (http://example.org/data) where the
+            data can be retrieved. If a link is passed, the **X-ResolveAsLinkToData**
+            header should be set to true, to trigger the resolution of the link, else
+            the link itself will be perceived as the data to be stored.
           required: true
           schema:
             type: string

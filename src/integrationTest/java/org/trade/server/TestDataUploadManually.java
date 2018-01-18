@@ -91,7 +91,7 @@ public class TestDataUploadManually {
             byte[] data = TestUtils.getData("video.mp4");
 
             // Push data to second data value
-            dvApiInstance.pushDataValue(idOfDataValue, new Long(data.length), data);
+            dvApiInstance.pushDataValue(idOfDataValue, data, null, new Long(data.length));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ApiException e) {

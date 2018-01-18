@@ -167,7 +167,7 @@ public class MultiValueDataElementIT {
             assertTrue(elmInstance.getInstance().getNumberOfDataValues() == 2);
 
             // Assign data to the first data value
-            dvApiInstance.pushDataValue(firstDataValue.getDataValue().getId(), 4L, "test".getBytes());
+            dvApiInstance.pushDataValue(firstDataValue.getDataValue().getId(), "test".getBytes(), null, 4L);
 
             // Data element instance should still be in state CREATED
             elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
@@ -175,7 +175,7 @@ public class MultiValueDataElementIT {
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
 
             // Assign data to the second data value
-            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), 4L, "abcd".getBytes());
+            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), "abcd".getBytes(), null, 4L);
 
             // Data element instance should be be in state INITIALIZED now
             elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
@@ -183,7 +183,7 @@ public class MultiValueDataElementIT {
             assertEquals(InstanceStatusEnum.INITIALIZED, elmInstance.getInstance().getStatus());
 
             // Unset data from the second data value
-            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), 0L, null);
+            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), null, null, 0L);
 
             // Data element instance should be be in state CREATED again
             elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst

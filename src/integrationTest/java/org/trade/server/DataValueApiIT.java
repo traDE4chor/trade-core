@@ -47,16 +47,18 @@ public class DataValueApiIT {
 
     private static DataValueApi dvApiInstance;
 
+    private static int serverPort;
+
     @BeforeClass
     public static void setupEnvironment() {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
 
         // Find an unused available port
-        int port = AvailablePortFinder.getNextAvailable();
+        serverPort = AvailablePortFinder.getNextAvailable();
 
         // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
+        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(serverPort));
 
         // Create a new server
         server = new TraDEServer();
@@ -72,7 +74,7 @@ public class DataValueApiIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + port + "/api");
+        client.setBasePath("http://127.0.0.1:" + serverPort + "/api");
 
         dvApiInstance = new DataValueApi(client);
     }
@@ -180,7 +182,7 @@ public class DataValueApiIT {
             // Create a String with length = 1000 * 2**13 (8MB of data)
             String value = RandomStringUtils.randomAlphabetic(8192000);
             int length = value.getBytes().length;
-            dvApiInstance.pushDataValue(dataValue.getId(), (long) length, value.getBytes());
+            dvApiInstance.pushDataValue(dataValue.getId(), value.getBytes(), false, (long) length);
 
             byte[] resultData = dvApiInstance.pullDataValue(dataValue.getId());
             assertNotNull(resultData);
@@ -188,6 +190,36 @@ public class DataValueApiIT {
 
             assertEquals(length, resultData.length);
             assertEquals(value, new String(resultData));
+
+            dvApiInstance.deleteDataValue(dataValue.getId());
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void uploadDataThroughALinkTest() {
+        // Add a new data value
+        DataValueData request = new DataValueData();
+
+        request.setName("dataValue");
+        request.setCreatedBy("hahnml");
+        request.setType("binary");
+        request.setContentType("text/plain");
+
+        try {
+            DataValue dataValue = dvApiInstance.addDataValue(request);
+
+            // Use a link to the Swagger API YAML file provided through the server to test data resolution through links
+            String link = "http://127.0.0.1:" + serverPort + "/docs/swagger.yaml";
+            dvApiInstance.pushDataValue(dataValue.getId(), link.getBytes(), true, null);
+
+            byte[] resultData = dvApiInstance.pullDataValue(dataValue.getId());
+            String result = new String(resultData);
+            assertNotNull(resultData);
+            assertFalse(resultData.length == 0);
+
+            assertTrue(result.startsWith("swagger: '2.0'"));
 
             dvApiInstance.deleteDataValue(dataValue.getId());
         } catch (ApiException e) {

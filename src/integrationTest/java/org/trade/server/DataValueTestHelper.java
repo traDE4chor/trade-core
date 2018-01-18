@@ -185,7 +185,7 @@ public class DataValueTestHelper {
             byte[] data1 = TestUtils.getData("data.dat");
 
             // Push data to first data value
-            dvApiInstance.pushDataValue(idOfDataValue1, new Long(data1.length), data1);
+            dvApiInstance.pushDataValue(idOfDataValue1, data1, null, new Long(data1.length));
 
             OffsetDateTime newTime = dvApiInstance.getDataValueDirectly(idOfDataValue1).getDataValue().getLastModified();
             // Check if the lastModified property is updated
@@ -194,17 +194,17 @@ public class DataValueTestHelper {
             byte[] data2 = TestUtils.getData("video.mp4");
 
             // Push data to second data value
-            dvApiInstance.pushDataValue(idOfDataValue2, new Long(data2.length), data2);
+            dvApiInstance.pushDataValue(idOfDataValue2, data2, null, new Long(data2.length));
 
             // Push different data to the same data value
             byte[] simpleData = "some data".getBytes();
-            dvApiInstance.pushDataValue(idOfDataValue2, 9L, simpleData);
+            dvApiInstance.pushDataValue(idOfDataValue2, simpleData, null, 9L);
             // Check if the data is successfully updated
             assertEquals(simpleData.length, dvApiInstance.getDataValueDirectly(idOfDataValue2).getDataValue().getSize().intValue());
 
             // Push data to third data value
             String data = "test value";
-            dvApiInstance.pushDataValue(idOfDataValue3, new Long(data.length()), data.getBytes());
+            dvApiInstance.pushDataValue(idOfDataValue3, data.getBytes(), null, new Long(data.length()));
         } catch (ApiException e) {
             System.err.println("Exception when calling DataValueApi#pushDataValue");
             throw e;

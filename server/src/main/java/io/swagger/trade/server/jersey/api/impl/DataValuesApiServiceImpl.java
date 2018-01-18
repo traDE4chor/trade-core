@@ -21,6 +21,7 @@ import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
 import org.trade.core.data.management.DataManagerFactory;
+import org.trade.core.utils.DataReferenceUtils;
 
 import javax.validation.constraints.Min;
 import javax.ws.rs.WebApplicationException;
@@ -205,7 +206,8 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
     }
 
     @Override
-    public Response pushDataValue(String dataValueId, Long contentLength, byte[] data, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+    public Response pushDataValue(String dataValueId, byte[] data, Boolean xResolveAsLinkToData, Long contentLength,
+                                  SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
         try {
@@ -213,6 +215,12 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
 
             if (value != null) {
                 if (data != null && contentLength != null) {
+                    // Check if the body contains a link
+                    if (xResolveAsLinkToData != null && xResolveAsLinkToData) {
+                        // Try to resolve the data referenced through the link
+                        data = DataReferenceUtils.resolveLink(new String(data));
+                    }
+
                     value.setData(data, contentLength);
 
                     response = Response.status(Response.Status.NO_CONTENT).build();

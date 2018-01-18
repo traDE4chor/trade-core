@@ -153,7 +153,7 @@ public class LocalPersistenceProviderIT {
             dvApiInstance.associateDataValueToDataElementInstance(deInst.getId(), new DataValue().id(dataValue.getId())).getDataValue();
 
             // Upload some data for the data value
-            dvApiInstance.pushDataValue(dataValue.getId(), 4L, "test".getBytes());
+            dvApiInstance.pushDataValue(dataValue.getId(), "test".getBytes(), null, 4L);
 
             // Update the local values since the objects will have changed at the server (lifecycle states, etc.)
             dObject = dataObjectApiInstance.getDataObjectById(dObject.getId()).getDataObject();
