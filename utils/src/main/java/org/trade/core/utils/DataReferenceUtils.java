@@ -32,6 +32,8 @@ public class DataReferenceUtils {
 
     private static final String HTTP_LINK = "http://";
 
+    private static final String HTTPS_LINK = "https://";
+
     private Logger logger = LoggerFactory.getLogger("org.trade.core.utils.DataReferenceUtils");
 
     /**
@@ -43,7 +45,7 @@ public class DataReferenceUtils {
     public static byte[] resolveLink(String link) throws Exception {
         byte[] result;
 
-        if (link.startsWith(HTTP_LINK)) {
+        if (link.startsWith(HTTP_LINK) || link.startsWith(HTTPS_LINK)) {
             Client client = ClientBuilder.newClient();
 
             // We accept any response and resolve the data from the returned response. The clients are responsible for
@@ -70,7 +72,7 @@ public class DataReferenceUtils {
             client.close();
         } else {
             throw new UnknownLinkFormatException("The format of the link '" + link + "' is not supported. Please " +
-                    "specify a link according to the following schema: http://[hostname]([:optional " +
+                    "specify a link according to the following schema: http(s)://[hostname]([:optional " +
                     "port])(/[resource])+");
         }
 
