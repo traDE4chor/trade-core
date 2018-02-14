@@ -44,8 +44,18 @@
         </encoder>
     </appender>
 
-    <!-- Configure the loggers for all errors in camel routes -->
+    <!-- Configure the loggers for all errors in camel notification routes -->
     <logger name="org.trade.core.notification.management.camel.route" level="DEBUG">
+        <appender-ref ref="ROUTE_ERROR_FILE" />
+    </logger>
+
+    <root level="DEBUG">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Configure the loggers for all errors in camel data transformation routes -->
+    <logger name="org.trade.core.data.transformation.management.camel.route" level="DEBUG">
         <appender-ref ref="ROUTE_ERROR_FILE" />
     </logger>
 

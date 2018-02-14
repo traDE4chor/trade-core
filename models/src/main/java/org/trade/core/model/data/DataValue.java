@@ -22,6 +22,10 @@ import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.persistence.annotations.State;
+import org.trade.core.auditing.AuditingServiceFactory;
+import org.trade.core.auditing.IAuditingService;
+import org.trade.core.auditing.events.DataChangeEvent;
+import org.trade.core.auditing.events.internal.DataValueAssociationChanged;
 import org.trade.core.model.ABaseResource;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.instance.DataElementInstance;
@@ -29,7 +33,9 @@ import org.trade.core.model.lifecycle.DataValueLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
+import org.trade.core.utils.events.DataEvents;
 import org.trade.core.utils.events.InstanceEvents;
+import org.trade.core.utils.states.DataStates;
 import org.trade.core.utils.states.InstanceStates;
 
 import java.io.IOException;
@@ -239,6 +245,10 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
                 // Persist the changes at the data source
                 this.storeToDS();
+
+                // Fire a corresponding data value association change event
+                AuditingServiceFactory.createAuditingService().fireEvent(new DataValueAssociationChanged
+                        (this.getIdentifier(), DataValue.class, this));
             }
         }
     }
@@ -250,6 +260,10 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
                 // Persist the changes at the data source
                 this.storeToDS();
+
+                // Fire a corresponding data value association change event
+                AuditingServiceFactory.createAuditingService().fireEvent(new DataValueAssociationChanged
+                        (this.getIdentifier(), DataValue.class, this));
             }
         }
     }
@@ -291,6 +305,8 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
     public void initialize() throws Exception {
         boolean hasChanged = false;
 
+        IAuditingService auditing = AuditingServiceFactory.createAuditingService();
+
         if (this.isCreated()) {
             // If this is the first time data is set, we trigger the corresponding state change that the data
             // value is now initialized
@@ -298,13 +314,30 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
             // Trigger the initialized event for the data value
             this.lifeCycle.triggerEvent(this, InstanceEvents.initialize);
             hasChanged = true;
-        } else if (this.isInitialized() && !hasData()) {
-            // If the data value was already initialized (i.e., has associated data) we have to change the state
-            // back to created when the associated data is deleted (data==null or hasData()==false)
 
-            // Trigger the created event for the data value
-            this.lifeCycle.triggerEvent(this, InstanceEvents.create);
-            hasChanged = true;
+            // Fire a corresponding 'initialize' data change event
+            auditing.fireEvent(new DataChangeEvent(this.getIdentifier(),
+                        DataValue.class, this, DataStates.NO_VALUE.name(), DataStates.INITIALIZED.name(), DataEvents
+                    .initialize.name()));
+        } else if (this.isInitialized()) {
+            if (!hasData()) {
+                // If the data value was already initialized (i.e., has associated data) we have to change the state
+                // back to created when the associated data is deleted (data==null or hasData()==false)
+
+                // Trigger the created event for the data value
+                this.lifeCycle.triggerEvent(this, InstanceEvents.create);
+                hasChanged = true;
+
+                // Fire a corresponding 'delete' data change event
+                auditing.fireEvent(new DataChangeEvent(this.getIdentifier(),
+                        DataValue.class, this, DataStates.INITIALIZED.name(), DataStates.NO_VALUE.name(), DataEvents
+                        .delete.name()));
+            } else {
+                // Fire a corresponding 'update' data change event
+                auditing.fireEvent(new DataChangeEvent(this.getIdentifier(),
+                        DataValue.class, this, DataStates.INITIALIZED.name(), DataStates.INITIALIZED.name(), DataEvents
+                        .update.name()));
+            }
         }
 
         // If the state of this data value has changed, we have to inform all related data element instance which are
@@ -325,6 +358,11 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
         this.lifeCycle.triggerEvent(this, InstanceEvents.archive);
 
+        // Fire a corresponding 'archive' data change event
+        AuditingServiceFactory.createAuditingService().fireEvent(new DataChangeEvent(this.getIdentifier(),
+                DataValue.class, this, DataStates.INITIALIZED.name(), DataStates.ARCHIVED.name(), DataEvents
+                .archive.name()));
+
         // Persist the changes at the data source
         this.storeToDS();
     }
@@ -334,6 +372,17 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         // TODO: Add logic for unarchiving data values.
 
         this.lifeCycle.triggerEvent(this, InstanceEvents.unarchive);
+
+        // Fire a corresponding 'unarchive' data change event
+        if (hasData) {
+            AuditingServiceFactory.createAuditingService().fireEvent(new DataChangeEvent(this.getIdentifier(),
+                    DataValue.class, this, DataStates.ARCHIVED.name(), DataStates.INITIALIZED.name(), DataEvents
+                    .unarchive.name()));
+        } else {
+            AuditingServiceFactory.createAuditingService().fireEvent(new DataChangeEvent(this.getIdentifier(),
+                    DataValue.class, this, DataStates.ARCHIVED.name(), DataStates.NO_VALUE.name(), DataEvents
+                    .unarchive.name()));
+        }
 
         // Persist the changes at the data source
         this.storeToDS();

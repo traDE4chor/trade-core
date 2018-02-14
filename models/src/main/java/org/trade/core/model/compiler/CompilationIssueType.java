@@ -21,5 +21,6 @@ package org.trade.core.model.compiler;
  * Created by hahnml on 10.04.2017.
  */
 public enum CompilationIssueType {
-    Unknown, MissingElements, MissingName, MissingIdentifier, MissingData, UnknownElement, UnresolveableReference
+    Unknown, MissingElements, MissingName, MissingIdentifier, MissingData, UnknownElement, UnresolveableReference,
+    InvalidQuery, InvalidSourceType, InvalidTargetType
 }

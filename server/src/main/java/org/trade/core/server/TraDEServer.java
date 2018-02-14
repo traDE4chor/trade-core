@@ -17,22 +17,18 @@
 package org.trade.core.server;
 
 import io.swagger.trade.server.jersey.api.ApiOriginFilter;
-import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.*;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.trade.core.data.management.DataManagerFactory;
 import org.trade.core.data.management.IDataManager;
 import org.trade.core.notification.management.INotificationManager;
 import org.trade.core.notification.management.NotificationManagerFactory;
 import org.trade.core.utils.TraDEProperties;
-
-import java.io.File;
 
 /**
  * Created by hahnml on 07.11.2016.

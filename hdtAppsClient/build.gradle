@@ -1,0 +1,66 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath('io.swagger:swagger-codegen:2.3.0')
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.DefaultGenerator
+
+def swaggerInput = file('src/main/resources/hdtapps.yaml').absolutePath
+def swaggerOutputDir = file('build/swagger')
+task generateClient {
+    inputs.file(swaggerInput)
+    outputs.dir(swaggerOutputDir)
+    doLast {
+        def config = new CodegenConfigurator()
+        config.setInputSpec(swaggerInput)
+        config.setOutputDir(swaggerOutputDir.path)
+        config.setLang('java')
+        config.setAdditionalProperties([
+                'invokerPackage': 'io.swagger.hdtapps.client.jersey',
+                'modelPackage'  : 'io.swagger.hdtapps.client.jersey.model',
+                'apiPackage'    : 'io.swagger.hdtapps.client.jersey.api',
+                'dateLibrary'   : 'java8',
+                'library'          : 'jersey2',
+                'jackson'          : 'true',
+                'serializableModel': 'true'
+        ])
+        new DefaultGenerator().opts(config.toClientOptInput()).generate()
+    }
+}
+
+// Add generated classes to the main source set
+sourceSets.main.java.srcDirs += "${project.buildDir.path}/swagger/src/main/java"
+sourceSets.main.resources.srcDirs += "${project.buildDir.path}/swagger/docs"
+
+// Add dependencies to
+compileJava {
+    dependsOn generateClient
+}
+
+ext {
+    swagger_annotations_version = "1.5.15"
+    jackson_version = "2.8.9"
+    jersey_version = "2.25.1"
+}
+
+dependencies {
+    compile "io.swagger:swagger-annotations:$swagger_annotations_version"
+    compile "org.glassfish.jersey.core:jersey-client:$jersey_version"
+    compile "org.glassfish.jersey.core:jersey-common:$jersey_version"
+    compile "org.glassfish.jersey.media:jersey-media-multipart:$jersey_version"
+    compile "org.glassfish.jersey.media:jersey-media-json-jackson:$jersey_version"
+    compile "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    compile "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    compile "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
+    compile "com.brsanthu:migbase64:2.2"
+}

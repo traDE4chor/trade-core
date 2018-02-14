@@ -37,10 +37,10 @@ public class ATraDEEventTest {
         assertNotNull(list);
 
         List<EventFilterInformation> dataHandling = list.stream().filter(e -> e.getEventType().equals
-                (DataHandlingEvent.class.getSimpleName())).collect(Collectors.toList());
+                (DataChangeEvent.class.getSimpleName())).collect(Collectors.toList());
 
         assertNotNull(dataHandling);
-        assertEquals(5, dataHandling.size());
+        assertEquals(6, dataHandling.size());
 
         List<EventFilterInformation> instanceState = list.stream().filter(e -> e.getEventType().equals
                 (InstanceStateChangeEvent.class.getSimpleName())).collect(Collectors.toList());

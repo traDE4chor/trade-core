@@ -1,0 +1,9 @@
+ext {
+    camelVersion = '2.18.3'
+}
+
+dependencies {
+    compile project(':models'), project(':hdtAppsClient'), project(':client')
+
+    compile group: 'org.apache.camel', name: 'camel-core', version: "$camelVersion"
+}

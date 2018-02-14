@@ -21,6 +21,7 @@ import io.swagger.trade.server.jersey.api.NotFoundException;
 import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
 import org.trade.core.data.management.DataManagerFactory;
+import org.trade.core.data.management.IDataManager;
 import org.trade.core.model.compiler.CompilationException;
 import org.trade.core.model.compiler.CompilationIssue;
 
@@ -314,16 +315,18 @@ public class DataDependencyGraphsApiServiceImpl extends DataDependencyGraphsApiS
     public Response uploadGraphModel(String graphId, Long contentLength, byte[] graph, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;
 
-        boolean exists = DataManagerFactory.createDataManager().hasDataDependencyGraph(graphId);
+        IDataManager manager = DataManagerFactory.createDataManager();
+
+        boolean exists = manager.hasDataDependencyGraph(graphId);
 
         if (exists) {
             // Since we don't support the recompilation (updates) of data dependency graphs, at the moment, this
             // method automatically invokes the compilation of the provided serialized data dependency graph.
             try {
-                DataManagerFactory.createDataManager().setSerializedModelOfDDG(graphId, graph);
+                manager.setSerializedModelOfDDG(graphId, graph);
 
                 // TODO: We need to add the list of issues as part of the response!
-                List<CompilationIssue> issues = DataManagerFactory.createDataManager().compileDataDependencyGraph(graphId, graph);
+                List<CompilationIssue> issues = manager.compileDataDependencyGraph(graphId, graph);
             } catch (CompilationException e) {
                 // TODO: We need some special response type that allows us to forward the list of CompilationIssue's!
                 e.printStackTrace();

@@ -21,6 +21,7 @@ import org.trade.core.auditing.events.InstanceStateChangeEvent;
 import org.trade.core.auditing.events.ModelStateChangeEvent;
 import org.trade.core.auditing.events.ATraDEEvent;
 import org.trade.core.data.management.IDataManager;
+import org.trade.core.data.transformation.DataTransformationManagerFactory;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.data.*;
 import org.trade.core.model.data.instance.DataElementInstance;
@@ -44,6 +45,14 @@ public enum SimpleDataManager implements IDataManager {
 
     SimpleDataManager() {
         AuditingServiceFactory.createAuditingService().registerEventListener(this);
+
+        // Create a corresponding {@link IDataTransformationManager} for all registered data dependency graphs that
+        // have one or more specified data transformations
+        for (DataDependencyGraph graph : this.dataDependencyGraphs.values()) {
+            if (graph.hasDataTransformations()) {
+                DataTransformationManagerFactory.INSTANCE.createDataTransformationManager(graph);
+            }
+        }
     }
 
     // TODO: Is the use of a singleton object appropriate or will this become a bottleneck in future?
@@ -482,7 +491,7 @@ public enum SimpleDataManager implements IDataManager {
                 }
 
                 // Persist the changes at the data source
-                result.storeToDS();
+                value.storeToDS();
             } else {
                 throw new IllegalModificationException("Trying to update data object '" + dataObjectId + "' which " +
                         "belongs to a data model (" + value.getDataModel().getIdentifier() + ") and is therefore " +
@@ -515,7 +524,7 @@ public enum SimpleDataManager implements IDataManager {
                 }
 
                 // Persist the changes at the data source
-                result.storeToDS();
+                value.storeToDS();
             } else {
                 throw new IllegalModificationException("Trying to update data element '" + dataElementId + "' which " +
                         "belongs to a data model (" + value.getParent().getDataModel().getIdentifier() + ") and is therefore" +
@@ -542,6 +551,12 @@ public enum SimpleDataManager implements IDataManager {
             result = ddg.compileDataDependencyGraph(graph);
 
             registerContentsOfDataDependencyGraph(ddg);
+
+            // Create and register a new IDataTransformationManager for the specified data transformations of the newly
+            // compiled data dependency graph
+            if (ddg.hasDataTransformations()) {
+                DataTransformationManagerFactory.INSTANCE.createDataTransformationManager(ddg);
+            }
         }
 
         return result;
@@ -700,7 +715,7 @@ public enum SimpleDataManager implements IDataManager {
     public void onEvent(ATraDEEvent event) {
         // TODO: 21.04.2017 Handle events!
         switch (event.getType()) {
-            case dataHandling:
+            case data:
                 break;
             case modelLifecycle:
                 ModelStateChangeEvent modelStateChangeEvent = (ModelStateChangeEvent) event;

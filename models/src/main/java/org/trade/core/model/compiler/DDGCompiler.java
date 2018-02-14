@@ -18,18 +18,21 @@ package org.trade.core.model.compiler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.trade.core.model.ABaseResource;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.DataElement;
 import org.trade.core.model.data.DataModel;
 import org.trade.core.model.data.DataObject;
-import org.trade.core.model.ddg.DataDependenceGraph;
-import org.trade.core.model.ddg.DataElementType;
-import org.trade.core.model.ddg.DataObjectType;
+import org.trade.core.model.dataTransformation.DataTransformation;
+import org.trade.core.model.ddg.*;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.model.utils.DDGUtils;
+import org.trade.core.query.Query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class provides functionality to compile data dependency graphs. This means a serialized, XML-based
@@ -46,6 +49,10 @@ public class DDGCompiler extends ACompiler {
     private String targetNamespace = "";
 
     private DataModel dataModel = null;
+
+    private Map<String, ABaseResource> compiledResourcesCache = new HashMap<>();
+
+    private List<DataTransformation> dataTransformations;
 
     // TODO: 10.04.2017 Requires rework if we restructure/refactor data dependence graph and data model schemas (XSD files)...
 
@@ -152,7 +159,16 @@ public class DDGCompiler extends ACompiler {
                     "generated and initialized correctly.", this.compilationIssues);
         }
 
-        // TODO: 10.04.2017 Add compilation support for PROCESSORS and DEPENDENCE EDGES
+        // Compile specified data transformations
+        this.dataTransformations = new ArrayList<>();
+        for (DataDependenceEdgeType edge : ddgDefinition.getDependenceEdges().getDependenceEdge()) {
+            DataTransformation transf = compile(edge);
+            if (transf != null) {
+                dataTransformations.add(transf);
+            }
+        }
+
+        // TODO: 10.04.2017 Add compilation support for PROCESSORS and DEPENDENCE EDGES in general
     }
 
     private DataObject compile(DataObjectType dataObject, String entity) throws CompilationException {
@@ -199,6 +215,9 @@ public class DDGCompiler extends ACompiler {
             compiledDataObject = new DataObject(this.dataModel, entity, name);
         }
 
+        // Add the new data object to the cache
+        compiledResourcesCache.put(compiledDataObject.getIdentifier(), compiledDataObject);
+
         for (DataElementType dataElement : dataObject.getDataElements().getDataElement()) {
             // Try to add the compiled data element to its data object
             DataElement compiledDataElement = compile(compiledDataObject, dataElement, entity);
@@ -215,7 +234,7 @@ public class DDGCompiler extends ACompiler {
                         this.compilationIssues);
             } catch (Exception e) {
                 logger.error("The generated data element '{}' could not be initialized. " +
-                        "Please check if the corresponding data element is generated correctly.",
+                                "Please check if the corresponding data element is generated correctly.",
                         compiledDataElement.getName());
 
                 throw new CompilationException("The generated data element '" + compiledDataElement.getName() + "' " +
@@ -268,6 +287,9 @@ public class DDGCompiler extends ACompiler {
             compiledElement = new DataElement(compiledDataObject, entity, name, isCollection);
         }
 
+        // Add the new data element to the cache
+        compiledResourcesCache.put(compiledElement.getIdentifier(), compiledElement);
+
         boolean isBinaryType = false;
         if (dataElement.getType() == null || dataElement.getType().isEmpty()) {
             String msg = "Data element '" + dataElement.getName() + "' does not specify a type. This might have " +
@@ -295,11 +317,129 @@ public class DDGCompiler extends ACompiler {
         return compiledElement;
     }
 
+    private DataTransformation compile(DataDependenceEdgeType edge) throws
+            CompilationException {
+        DataTransformation compiledTransformation = null;
+
+        DataTransformationType dataTransformation = edge.getTransformation();
+        if (dataTransformation != null) {
+            String name;
+
+            if (dataTransformation.getTransformerID() == null || dataTransformation.getTransformerID().isEmpty()) {
+                // No transformer is specified, there we cannot compile the data transformation
+                logger.error("A data transformation does not specify a transformerID. Please update the data " +
+                        "dependency graph so that for each data transformation of a data dependency edge is at least " +
+                        "the transformerID specified.");
+
+                throw new CompilationException("A data transformation does not specify a transformerID. Please update the data " +
+                        "dependency graph so that for each data transformation of a data dependency edge is at least " +
+                        "the transformerID specified.", this.compilationIssues);
+            } else {
+                if (dataTransformation.getName() == null || dataTransformation.getName().isEmpty()) {
+                    String msg = "Data transformation '" + dataTransformation.getTransformerID() + "' does not " +
+                            "specify a name. We therefore use the name of the data dependency edge that contains the " +
+                            "transformation. Please specify a name value if you want to predefine the name of a" +
+                            " data transformation in the future.";
+                    CompilationIssue issue = new CompilationIssue(CompilationIssueType.MissingName, msg);
+                    this.compilationIssues.add(issue);
+
+                    // Use the name of the data dependency edge
+                    name = edge.getName();
+                } else {
+                    // Use the provided name
+                    name = dataTransformation.getName();
+                }
+
+                // Resolve source and target objects of the data dependence edge
+                ABaseResource source = null;
+                ABaseResource target = null;
+                if (edge.getSource() != null) {
+                    Object edgeSource = edge.getSource();
+
+                    // TODO: For now, we only allow transformations on data dependency edges that connect data
+                    // elements. This should be enhanced in future...
+                    if (edgeSource instanceof DataElementType) {
+                        DataElementType elm = (DataElementType) edgeSource;
+
+                        // Resolve the corresponding compiled object from the cache
+                        source = compiledResourcesCache.get(elm.getIdentifier());
+                    }
+                }
+
+                if (edge.getTarget() != null) {
+                    Object edgeTarget = edge.getTarget();
+
+                    // TODO: For now, we only allow transformations on data dependency edges that connect data
+                    // elements. This should be enhanced in future...
+                    if (edgeTarget instanceof DataElementType) {
+                        DataElementType elm = (DataElementType) edgeTarget;
+
+                        // Resolve the corresponding compiled object from the cache
+                        target = compiledResourcesCache.get(elm.getIdentifier());
+                    }
+                }
+
+                if (source != null && target != null) {
+                    // Create a new DataTransformation to which we can add transformation parameters in the following
+                    compiledTransformation = new DataTransformation(name, dataTransformation
+                            .getTransformerID());
+
+                    compiledTransformation.setDataModel(this.dataModel);
+
+                    if (dataTransformation.getParameters() != null) {
+                        Map<String, Object> parameters = new HashMap<>();
+
+                        for (TransformationParameterType param : dataTransformation.getParameters().getParameter()) {
+                            // Check if the parameter value is a query
+                            if (param.getParameterValue().startsWith("$")) {
+                                Query query = Query.parseQuery(param.getParameterValue());
+
+                                // Check if the query is valid or not
+                                if (query.isValid()) {
+                                    parameters.put(param.getParameterName(), query);
+                                } else {
+                                    String msg = "The parameter '" + param.getParameterName() + "' of data transformation" +
+                                            " '" + compiledTransformation.getName() + "' does not " +
+                                            "specify a valid query as value. The parameter is therefore ignored. Please " +
+                                            "specify a valid query string as value if you want to enable the correct " +
+                                            "resolution of a corresponding data value during run time in the future.";
+                                    CompilationIssue issue = new CompilationIssue(CompilationIssueType.InvalidQuery, msg);
+                                    this.compilationIssues.add(issue);
+                                }
+                            } else {
+                                parameters.put(param.getParameterName(), param.getParameterValue());
+                            }
+                        }
+
+                        // Set the defined parameters to the data transformation
+                        compiledTransformation.setTransformerParameters(parameters);
+                    }
+                } else {
+                    // Add an issue
+                    String msg = "The data dependency edge '" + edge.getIdentifier() + "' specifies a data " +
+                            "transformation from/to a resource other than a data element. The middleware only " +
+                            "supports data transformations between data elements (source and target) at the " +
+                            "moment. The data transformation is therefore ignored. Please " +
+                            "adapt the underlying model if you want to enable the correct " +
+                            "compilation and resolution of data transformations in the future.";
+                    CompilationIssue issue = new CompilationIssue(CompilationIssueType.InvalidSourceType, msg);
+                    this.compilationIssues.add(issue);
+                }
+            }
+        }
+
+        return compiledTransformation;
+    }
+
     public String getTargetNamespace() {
         return targetNamespace;
     }
 
     public DataModel getCompiledDataModel() {
         return this.dataModel;
+    }
+
+    public List<DataTransformation> getCompiledDataTransformations() {
+        return this.dataTransformations;
     }
 }

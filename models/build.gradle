@@ -20,7 +20,7 @@ dependencies {
 
     compile group: 'org.statefulj', name: 'statefulj-fsm', version: '3.0'
 
-    compile project(':utils'), project(':persistence'), project(':auditing')
+    compile project(':utils'), project(':persistence'), project(':auditing'), project(':query-language')
 
     testCompile group: 'commons-io', name: 'commons-io', version: '2.5'
 }

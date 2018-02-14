@@ -22,5 +22,5 @@ package org.trade.core.utils.states;
  * Created by hahnml on 15.05.2017.
  */
 public enum DataStates {
-    INITIALIZED, WRITING, READING, PROCESSING_FAULTED, ARCHIVED, UNARCHIVED
+    NO_VALUE, INITIALIZED, ARCHIVED
 }

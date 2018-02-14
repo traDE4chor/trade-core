@@ -1,0 +1,751 @@
+swagger: "2.0"
+info:
+  description: "Handling data transformation applications (HDTApps) framework's API specification "
+  version: "1.0.0"
+  title: "HDTApps Framework"
+  termsOfService: "http://swagger.io/terms/"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+tags:
+- name: "Applications"
+  description: "Data Transformation Application resource"
+- name: "Tasks"
+  description: "Data Transformation Tasks resource"
+- name: "Transformations"
+  description: "Data Transformation resource"
+schemes:
+- "http"
+paths:
+  /apps:
+    get:
+      tags:
+      - "Applications"
+      summary: "Retrieve the list of applications"
+      description: "Multiple status values can be provided with comma separated strings"
+      operationId: "hdtapps.api.find_apps"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tags[]"
+        in: "query"
+        description: "Tags to filter by"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Application"
+        400:
+          description: "Invalid status value"
+    post:
+      tags:
+      - "Applications"
+      summary: "Publish a new data transformation application to the repository"
+      description: "Publish an application"
+      operationId: "hdtapps.api.publish_app"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Application object that needs to be published to the repository"
+        required: true
+        schema:
+          $ref: "#/definitions/AppArchive"
+      responses:
+        201:
+          description: "Application published"
+        405:
+          description: "Invalid input"
+  /apps/{appID}:
+    get:
+      tags:
+      - "Applications"
+      summary: "Find application by ID"
+      description: "Returns a single application"
+      operationId: "hdtapps.api.get_app_by_id"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "appID"
+        in: "path"
+        description: "ID of the application to return"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Application"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "App not found"
+    put:
+      tags:
+      - "Applications"
+      summary: "Update an existing application"
+      description: ""
+      operationId: "hdtapps.api.update_app"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "appID"
+        in: "path"
+        description: "App id to update"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "App object that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/AppArchive"
+      responses:
+        200:
+          description: "Update successful"
+        400:
+          description: "Invalid data supplied"
+        404:
+          description: "App not found"
+        405:
+          description: "Validation exception"
+    delete:
+      tags:
+      - "Applications"
+      summary: "Deletes an application"
+      description: ""
+      operationId: "hdtapps.api.delete_app"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "appID"
+        in: "path"
+        description: "App id to delete"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Delete successful"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "App not found"
+  /apps/{appID}/transformations:
+    get:
+      tags:
+      - "Applications"
+      summary: "Get transformations supported by application"
+      description: "Returns a list of transformations"
+      operationId: "hdtapps.api.get_transfs_by_app_id"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "appID"
+        in: "path"
+        description: "ID of the application"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Transformation"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Application not found"
+
+  /transformations:
+    get:
+      tags:
+      - "Transformations"
+      summary: "Retrieve the list of available transformations"
+      description: "Multiple status values can be provided with comma separated strings"
+      operationId: "hdtapps.api.find_transformations"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "qname"
+        in: "query"
+        description: "Transformation's qualified name"
+        type: "string"
+      - name: "pnum"
+        in: "query"
+        description: "Number of input parameters"
+        type: "integer"
+        format: "int32"
+      - name: "infile[]"
+        in: "query"
+        description: "Formats of the input files"
+        type: "array"
+        items:
+          type: "string"
+      - name: "infsets[]"
+        in: "query"
+        description: "Formats of the input filesets"
+        type: "array"
+        items:
+          type: "string"
+      - name: "outfile[]"
+        in: "query"
+        description: "Formats of the output files"
+        type: "array"
+        items:
+          type: "string"
+      - name: "strict"
+        in: "query"
+        description: "Strict signature matching"
+        type: "boolean"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Transformation"
+        400:
+          description: "Invalid status value"
+  /tasks:
+    post:
+      tags:
+      - "Tasks"
+      summary: "Request new data transformation"
+      description:  >-
+        Request transformation from the Task Manager. Note if specifying an input file set you can
+        either point to an archive ('linkToArchive') or list links to all related files individually in an array ('linksToFiles')
+      operationId: "hdtapps.api.create_task"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "TransformationRequest object"
+        required: true
+        schema:
+          $ref: "#/definitions/TransformationRequest"
+      responses:
+        200:
+          description: "Task created"
+          schema:
+            $ref: "#/definitions/Task"
+        405:
+          description: "Invalid input"
+  /tasks/{taskID}:
+    get:
+      tags:
+      - "Tasks"
+      summary: "Monitor the task's execution"
+      description: "Returns task's execution state"
+      operationId: "hdtapps.api.get_task_by_id"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "taskID"
+        in: "path"
+        description: "ID of the task"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Application"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "App not found"
+    put:
+      tags:
+      - "Tasks"
+      summary: "Cancel an existing task"
+      description: ""
+      operationId: "hdtapps.api.cancel_task"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "taskID"
+        in: "path"
+        description: "Id of the task to cancel"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Task has been canceled"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Task not found"
+    delete:
+      tags:
+      - "Tasks"
+      summary: "Delete an existing task"
+      description: ""
+      operationId: "hdtapps.api.delete_task"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "taskID"
+        in: "path"
+        description: "Id of the task to delete"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Task has been deleted"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Task not found"
+definitions:
+  AppArchive:
+    type: "object"
+    required:
+    - "name"
+    - "archiveURL"
+    properties:
+      name:
+        type: "string"
+        example: "opalVideo"
+      deploy:
+        type: "boolean"
+      test:
+        type: "boolean"
+      archiveURL:
+        type: "string"
+        example: "link/to/dropbox"
+  Application:
+    type: "object"
+    properties:
+      appInfo:
+        type: "object"
+        properties:
+          appID:
+            type: "string"
+            example: "dummyID"
+          appName:
+            type: "string"
+            example: "dummyApp"
+          appVersion:
+            type: "string"
+            example: "dummyVersion"
+          appPublisher:
+            type: "string"
+            example: "dummyPublisher"
+          appDesc:
+            type: "string"
+            example: "dummyDescription"
+          appDevelopers:
+            type: "array"
+            items:
+              type: "string"
+            example:
+              - "dev1"
+              - "dev2"
+          appLicense:
+            type: "string"
+            example: "dummyLicense"
+          tags:
+            type: "array"
+            items:
+              type: "string"
+            example:
+              - "tag1"
+              - "tag2"
+          validated:
+            type: "boolean"
+            example: false
+          path:
+            type: "string"
+            example: "path/to/app/archive"
+          providers:
+            type: "array"
+            items:
+              $ref: "#/definitions/Provider"
+          transformationsCount:
+            type: "integer"
+            format: "int32"
+          envDepsCount:
+            type: "integer"
+            format: "int32"
+          softDepsCount:
+            type: "integer"
+            format: "int32"
+          fileDepsCount:
+            type: "integer"
+            format: "int32"
+            
+      transformations:
+        type: "array"
+        items:
+          $ref: "#/definitions/Transformation"
+      dependencies:
+        type: "object"
+        properties:
+          envDeps:
+            type: "array"
+            items:
+              $ref: "#/definitions/EnvironmentDependency"
+          softDeps:
+            type: "array"
+            items:
+              $ref: "#/definitions/SoftwareDependency"
+          fileDeps:
+            type: "array"
+            items:
+              $ref: "#/definitions/FileDependency"
+      configurations:
+        type: "array"
+        items:
+          $ref: "#/definitions/Configuration"
+      invocations:
+        type: "array"
+        items:
+          $ref: "#/definitions/InvocationCLI"
+      testRuns:
+        type: "array"
+        items:
+          $ref: "#/definitions/TestRun"
+
+  Provider:
+    type: "object"
+    properties:
+      providerQName:
+        type: "string"
+        example: "TM1"
+      pkgID:
+        type: "string"
+        example: "some Docker Image ID"
+
+  Transformation:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      qname:
+        type: "string"
+      appID:
+        type: "string"
+      transformationID:
+        type: "string"
+      providers:
+        type: "array"
+        items:
+          $ref: "#/definitions/Provider"
+      strictSignature:
+        type: "string"
+        description: "including optional input parameters"
+      relaxedSignature:
+        type: "string"
+        description: "excluding optional input parameters"
+      strictMIMESignature:
+        type: "string"
+        description: "including optional input parameters and using MIME types"
+      relaxedMIMESignature:
+        type: "string"
+        description: "excluding optional input parameters  and using MIME types"
+      inputTotalParamCount:
+        type: "integer"
+        format: "int32"
+      inputNumericParamCount:
+        type: "integer"
+        format: "int32"
+      inputStringParamCount:
+        type: "integer"
+        format: "int32"
+      inputParams:
+        type: "array"
+        items:
+          $ref: "#/definitions/InputParameter" 
+      inputFileCount:
+        type: "integer"
+        format: "int32"
+      inputFiles:
+        type: "array"
+        items:
+          $ref: "#/definitions/InputFile"
+      inputFileSetCount:
+        type: "integer"
+        format: "int32"
+      inputFileSets:
+        type: "array"
+        items:
+          $ref: "#/definitions/InputFileSet"
+      outputFileCount:
+        type: "integer"
+        format: "int32"
+      outputFiles:
+        type: "array"
+        items:
+          $ref: "#/definitions/OutputFile"
+  
+  InputParameter:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      isOptional:
+        type: "boolean"
+      value:
+        type: "string"
+      paramType:
+        type: "string"
+  
+  InputFile:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      isOptional:
+        type: "boolean"
+      format:
+        type: "string"
+      schemaPath:
+        type: "string"
+      requiredPath:
+        type: "string"
+
+  InputFileSet:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      isOptional:
+        type: "boolean"
+      format:
+        type: "string"
+      schemaPath:
+        type: "string"
+      requiredPath:
+        type: "string"
+      fileSetSize:
+        type: "integer"
+        format: "int32"
+  
+  OutputFile:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      format:
+        type: "string"
+      schemaPath:
+        type: "string"
+      accessPath:
+        type: "string"
+  
+  EnvironmentDependency:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      desc:
+        type: "string"
+      value:
+        type: "string"
+        
+  SoftwareDependency:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      desc:
+        type: "string"
+      version:
+        type: "string"
+      path:
+        type: "string"
+      commands:
+        type: "array"
+        items:
+          type: "string"
+  
+  FileDependency:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      alias:
+        type: "string"
+      desc:
+        type: "string"
+      path:
+        type: "string"
+        
+  Configuration:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      commands:
+        type: "array"
+        items:
+          type: "string"
+          
+  InvocationCLI:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      description:
+        type: "string"
+      command:
+        type: "string"
+        
+  TestRun:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      transformation:
+        type: "string"
+      description:
+        type: "string"
+      sampleInputs:
+        type: "object"
+        properties:
+          sampleInputParams:
+            type: "array"
+            items:
+              $ref: "#/definitions/SampleInputParameter"
+          sampleInputFiles:
+            type: "array"
+            items:
+              $ref: "#/definitions/SampleInputFile"
+          sampleInputFileSets:
+            type: "array"
+            items:
+              $ref: "#/definitions/SampleInputFileSet"
+      resultingOutput:
+        type: "array"
+        items:
+          $ref: "#/definitions/ResultingOutput"
+  
+  SampleInputParameter:
+    type: "object"
+    properties:
+      alias:
+        type: "string"
+      value:
+        type: "string"
+        
+  SampleInputFile:
+    type: "object"
+    properties:
+      alias:
+        type: "string"
+      accessPath:
+        type: "string"
+        
+  SampleInputFileSet:
+    type: "object"
+    properties:
+      alias:
+        type: "string"
+      accessPath:
+        type: "string"
+        
+  ResultingOutput:
+    type: "object"
+    properties:
+      alias:
+        type: "string"
+      accessPath:
+        type: "string"
+  
+  TransformationRequest:
+    type: "object"
+    properties:
+      appID:
+        type: "string"
+      transformationID:
+        type: "string"
+      resultsEndpoint:
+        type: "string"
+      providers:
+        type: "array"
+        items:
+          $ref: "#/definitions/Provider"
+      inputParams:
+        type: "array"
+        items:
+          $ref: "#/definitions/RequestInputParameter"
+      inputFiles:
+        type: "array"
+        items:
+          $ref: "#/definitions/RequestInputFile"
+      inputFileSets:
+        type: "array"
+        items:
+          $ref: "#/definitions/RequestInputFileSet"
+
+  RequestInputParameter:
+    type: "object"
+    properties:
+      key:
+        type: "string"
+      value:
+        type: "string"
+      paramType:
+        type: "string"
+
+  RequestInputFile:
+    type: "object"
+    properties:
+      format:
+        type: "string"
+      link:
+        type: "string"
+
+  RequestInputFileSet:
+    type: "object"
+    properties:
+      format:
+        type: "string"
+      count:
+        type: "integer"
+        format: "int32"
+      linkToArchive:
+        type: "string"
+      linksToFiles:
+        type: "array"
+        items:
+          type: "string"
+
+  Task:
+    type: "object"
+    properties:
+      taskID:
+        type: "string"
+      state:
+        type: "string"

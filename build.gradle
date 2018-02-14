@@ -1,4 +1,4 @@
-group 'de.unistuttgart.iaas.trade'
+group 'org.trade.core'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'application'
@@ -71,7 +71,7 @@ subprojects {
 
     jar.baseName = 'traDE-' + project.name
 
-    group 'de.unistuttgart.iaas.trade'
+    group 'org.trade.core'
     version '1.0-SNAPSHOT'
     sourceCompatibility = 1.8
 }

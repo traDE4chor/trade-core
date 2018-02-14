@@ -248,7 +248,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     }
 
     private boolean areDataValuesInitialized() {
-         return this.dataValues.stream().allMatch(dataValue -> dataValue.isInitialized());
+        return this.dataValues.stream().allMatch(dataValue -> dataValue.isInitialized());
     }
 
     @Override
@@ -342,7 +342,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
 
     @Override
     public boolean equals(Object object) {
-        if(object instanceof DataElementInstance) {
+        if (object instanceof DataElementInstance) {
             DataElementInstance s = (DataElementInstance) object;
             return this.identifier.equals(s.identifier);
         }

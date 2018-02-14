@@ -61,15 +61,15 @@
             </outgoing>
             <dataElements>
                 <dataElement name="lattice" identifier="dataElement_800ec4a4-37ae-4c12-b263-6457b50e7806">
-                    <type>Binary</type>
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
                 <dataElement name="energy" identifier="dataElement_b0f22ff5-b8de-4db2-beb2-8f4bdee345fa">
-                    <type>Binary</type>
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
                 <dataElement name="opal_in" identifier="dataElement_d04fcb75-e72a-4c48-bbba-78bfc81ec1f7">
-                    <type>Binary</type>
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
             </dataElements>
@@ -84,11 +84,11 @@
             </outgoing>
             <dataElements>
                 <dataElement name="snapshots[]" isCollection= "true" identifier="dataElement_8d0d464e-0bd3-40aa-a479-f54bbcedb68d">
-                    <type>Binary[]</type>
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
                 <dataElement name="saturation" identifier="dataElement_b541923b-d46f-4e2a-ad92-27d8545cead9">
-                    <type>Binary</type>
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
             </dataElements>
@@ -102,12 +102,12 @@
                 <edge>ddgEdge_fd7e5047-32fc-4b08-a735-928852fe00d2</edge>
             </outgoing>
             <dataElements>
-                <dataElement name="clusters[]" identifier="dataElement_833b2a55-9d95-4197-b0cf-7648666607af">
-                    <type>Binary[]</type>
+                <dataElement name="clusters[]" isCollection="true" identifier="dataElement_833b2a55-9d95-4197-b0cf-7648666607af">
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
-                <dataElement name="posSizes[]" identifier="dataElement_d16d3b15-96a1-4f51-97ae-37452de44bce">
-                    <type>Binary[]</type>
+                <dataElement name="posSizes[]" isCollection="true" identifier="dataElement_d16d3b15-96a1-4f51-97ae-37452de44bce">
+                    <type>binary</type>
                     <contentType>text/plain</contentType>
                 </dataElement>
             </dataElements>
@@ -117,11 +117,11 @@
             <outgoing/>
             <dataElements>
                 <dataElement name="plot" identifier="dataElement_099b9e22-ce82-4f08-9d8e-044ca310d196">
-                    <type>Binary</type>
+                    <type>binary</type>
                     <contentType>image/png</contentType>
                 </dataElement>
                 <dataElement name="video" identifier="dataElement_731bb5d7-fb92-4fcf-9af5-faa614bcd7ad">
-                    <type>Binary</type>
+                    <type>binary</type>
                     <contentType>video/mpeg</contentType>
                 </dataElement>
             </dataElements>

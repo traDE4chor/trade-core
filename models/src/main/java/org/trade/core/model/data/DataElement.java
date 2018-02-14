@@ -265,6 +265,18 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         return opt.orElse(null);
     }
 
+    /**
+     * Gets a data element instance by its correlation properties.
+     *
+     * @param correlationProperties the correlation properties
+     * @return the data element instance matching the given correaltion properties
+     */
+    public DataElementInstance getDataElementInstanceByCorrelation(Map<String, String> correlationProperties) {
+        Optional<DataElementInstance> opt = this.instances.stream().filter(s -> s.getCorrelationProperties().equals(correlationProperties))
+                .findFirst();
+        return opt.orElse(null);
+    }
+
     public void initialize() throws Exception {
         // TODO: 27.10.2016 Add data element specific parameters and assignments, e.g. data type, type system, etc.
 

@@ -26,6 +26,7 @@ import org.trade.core.model.ABaseResource;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.compiler.CompilationIssue;
 import org.trade.core.model.compiler.DDGCompiler;
+import org.trade.core.model.dataTransformation.DataTransformation;
 import org.trade.core.model.lifecycle.DataDependencyGraphLifeCycle;
 import org.trade.core.model.lifecycle.LifeCycleException;
 import org.trade.core.persistence.IPersistenceProvider;
@@ -69,6 +70,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
 
     @Reference
     private DataModel dataModel;
+
+    @Reference
+    private List<DataTransformation> dataTransformations;
 
     /**
      * Instantiates a new data dependency graph.
@@ -144,6 +148,42 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      */
     public DataModel getDataModel() {
         return this.dataModel;
+    }
+
+    /**
+     * Whether the data dependency graph has specified data transformations or not.
+     *
+     * @return True, if the data dependency graph specifies on or more data transformations. False, otherwise.
+     */
+    public boolean hasDataTransformations() {
+        return this.dataTransformations != null && !this.dataTransformations.isEmpty();
+    }
+
+    /**
+     * Provides the list of data transformations specified by the data dependency graph.
+     *
+     * @return The list of data transformations
+     */
+    public List<DataTransformation> getDataTransformations() {
+        return this.dataTransformations != null ? Collections.unmodifiableList(this.dataTransformations) : null;
+    }
+
+    /**
+     * Sets a list of data transformations to the data dependency graph, e.g., the data transformations resolved
+     * during compilation of the graph.
+     *
+     * @param transformations the list of data transformations
+     */
+    public void setDataTransformations(List<DataTransformation> transformations) {
+        for (DataTransformation transformation : transformations) {
+            this.dataTransformations.add(transformation);
+
+            // Persist the transformation at the data source
+            transformation.storeToDS();
+        }
+
+        // Persist the changes at the data source
+        this.storeToDS();
     }
 
     /**
@@ -243,6 +283,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
 
             this.targetNamespace = comp.getTargetNamespace();
 
+            // Set the resulting data transformations to this DDG
+            setDataTransformations(comp.getCompiledDataTransformations());
+
             // Get the list of compilation issues
             issues = comp.getCompilationIssues();
 
@@ -338,6 +381,9 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             this.name = null;
             this.lifeCycle = null;
             this.dataModel = null;
+
+            this.dataTransformations.clear();
+            this.dataTransformations = null;
         } else {
             logger.info("The data dependency graph ({}) can not be deleted because it is in state '{}'.", this
                             .getIdentifier(),
@@ -428,7 +474,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
 
     @Override
     public boolean equals(Object object) {
-        if(object instanceof DataDependencyGraph) {
+        if (object instanceof DataDependencyGraph) {
             DataDependencyGraph s = (DataDependencyGraph) object;
             return this.identifier.equals(s.identifier);
         }

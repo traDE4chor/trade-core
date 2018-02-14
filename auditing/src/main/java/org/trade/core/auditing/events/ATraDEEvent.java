@@ -47,15 +47,18 @@ public abstract class ATraDEEvent implements Serializable {
      */
     public enum TYPE {
         /**
-         * Data handling type.
+         * Data change type.
          */
-        dataHandling, /**
+        data, /**
          * Model lifecycle type.
          */
         modelLifecycle, /**
          * Instance lifecycle type.
          */
-        instanceLifecycle
+        instanceLifecycle, /**
+         * Internal event type.
+         */
+        internal
     }
 
     private Date timestamp = new Date();
@@ -206,7 +209,7 @@ public abstract class ATraDEEvent implements Serializable {
 
         result.addAll(InstanceStateChangeEvent.getPossibleEventFilters());
 
-        result.addAll(DataHandlingEvent.getPossibleEventFilters());
+        result.addAll(DataChangeEvent.getPossibleEventFilters());
 
         return result;
     }

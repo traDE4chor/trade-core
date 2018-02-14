@@ -19,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.model.data.DataModel;
+import org.trade.core.model.dataTransformation.DataTransformation;
 import org.trade.core.model.ddg.DataDependenceGraph;
 import org.trade.core.model.utils.DDGUtils;
 import org.trade.core.utils.states.ModelStates;
@@ -77,6 +78,35 @@ public class DDGCompilerTest {
         assertEquals(ModelStates.READY.toString(), dataModel.getState());
         assertNotNull(dataModel.getDataObjects());
         assertTrue(dataModel.getDataObjects().size() > 0);
+
+        // Get the list of compilation issues
+        List<CompilationIssue> issues = comp.getCompilationIssues();
+        assertNotNull(issues);
+        assertEquals(0, issues.size());
+    }
+
+    @Test
+    public void testDDGCompilationWithDataTransformations() throws Exception {
+        DataDependenceGraph graph = DDGUtils.unmarshalGraph(getClass().getResourceAsStream("/opalDataTransformation." +
+                ModelConstants.DDG_FILE_EXTENSION));
+
+        assertNotNull(graph);
+
+        // Deserialize and compile the provided data dependency graph, i.e., generate the specified data objects and data
+        // elements
+        DDGCompiler comp = new DDGCompiler();
+        comp.compile(UUID.randomUUID().toString(), "someTestEntity", graph);
+
+        // Get the resulting data model of this DDG
+        DataModel dataModel = comp.getCompiledDataModel();
+        assertNotNull(dataModel);
+        assertEquals(ModelStates.READY.toString(), dataModel.getState());
+        assertNotNull(dataModel.getDataObjects());
+        assertTrue(dataModel.getDataObjects().size() > 0);
+
+        List<DataTransformation> transformations = comp.getCompiledDataTransformations();
+        assertNotNull(transformations);
+        assertTrue(transformations.size() == 2);
 
         // Get the list of compilation issues
         List<CompilationIssue> issues = comp.getCompilationIssues();
