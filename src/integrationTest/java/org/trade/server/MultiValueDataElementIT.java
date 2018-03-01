@@ -23,7 +23,6 @@ import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
 import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
-import org.apache.camel.test.AvailablePortFinder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -57,12 +56,6 @@ public class MultiValueDataElementIT {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
 
-        // Find an unused available port
-        int port = AvailablePortFinder.getNextAvailable();
-
-        // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
-
         // Create a new server
         server = new TraDEServer();
 
@@ -77,7 +70,7 @@ public class MultiValueDataElementIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + port + "/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         dvApiInstance = new DataValueApi(client);
 
@@ -200,6 +193,10 @@ public class MultiValueDataElementIT {
 
             assertTrue(elmInstance.getInstance().getNumberOfDataValues() == 1);
             assertEquals(InstanceStatusEnum.INITIALIZED, elmInstance.getInstance().getStatus());
+
+            // Delete data values
+            dvApiInstance.deleteDataValue(firstDataValue.getDataValue().getId());
+            dvApiInstance.deleteDataValue(secondDataValue.getDataValue().getId());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -259,6 +256,10 @@ public class MultiValueDataElementIT {
             assertNotNull(dvArray2.getDataValues());
             assertFalse(dvArray2.getDataValues().isEmpty());
             assertEquals(secondDataValue.getDataValue().getId(), dvArray2.getDataValues().get(0).getDataValue().getId());
+
+            // Delete data values
+            dvApiInstance.deleteDataValue(firstDataValue.getDataValue().getId());
+            dvApiInstance.deleteDataValue(secondDataValue.getDataValue().getId());
         } catch (ApiException e) {
             e.printStackTrace();
         }

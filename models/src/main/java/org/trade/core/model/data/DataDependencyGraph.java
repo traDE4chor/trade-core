@@ -38,9 +38,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * This class represents a data dependency graph within the middleware.
@@ -84,6 +82,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
         this.name = name;
         this.entity = entity;
 
+        this.dataTransformations = new ArrayList<>();
         this.lifeCycle = new DataDependencyGraphLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataDependencyGraph.class);
     }
@@ -156,7 +155,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      * @return True, if the data dependency graph specifies on or more data transformations. False, otherwise.
      */
     public boolean hasDataTransformations() {
-        return this.dataTransformations != null && !this.dataTransformations.isEmpty();
+        return !this.dataTransformations.isEmpty();
     }
 
     /**
@@ -165,7 +164,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      * @return The list of data transformations
      */
     public List<DataTransformation> getDataTransformations() {
-        return this.dataTransformations != null ? Collections.unmodifiableList(this.dataTransformations) : null;
+        return Collections.unmodifiableList(this.dataTransformations);
     }
 
     /**
@@ -462,8 +461,17 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
                     if (value == null) {
                         continue;
                     }
-                    sb.append("\n\t").append(field).append(" = ")
-                            .append(value.toString());
+
+                    if (value instanceof ABaseResource) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(((ABaseResource) value).getIdentifier());
+                    } else if (isABaseResourceTypeCollection(value)) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(translateCollection2String((Collection) value));
+                    } else {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(value.toString());
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

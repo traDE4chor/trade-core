@@ -22,6 +22,8 @@ import org.mongodb.morphia.annotations.Version;
 import org.trade.core.persistence.PersistableObject;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
 
 /**
@@ -92,8 +94,17 @@ public abstract class ABaseResource implements PersistableObject {
                     if (value == null) {
                         continue;
                     }
-                    sb.append("\n\t").append(field).append(" = ")
-                            .append(value.toString());
+
+                    if (value instanceof ABaseResource) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(((ABaseResource) value).getIdentifier());
+                    } else if (isABaseResourceTypeCollection(value)) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(translateCollection2String((Collection) value));
+                    } else {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(value.toString());
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -102,8 +113,44 @@ public abstract class ABaseResource implements PersistableObject {
         return sb.toString();
     }
 
-    public static String resourceName(ABaseResource event) {
+    protected static String resourceName(ABaseResource event) {
         String name = event.getClass().getName();
         return name.substring(name.lastIndexOf('.') + 1);
+    }
+
+    protected static boolean isABaseResourceTypeCollection(Object obj) {
+        boolean result = false;
+
+        if (Collection.class.isAssignableFrom(obj.getClass())) {
+            Collection collection = (Collection) obj;
+
+            // Check the first element of the collection, if there is one
+            Iterator iter = collection.iterator();
+            if (iter.hasNext()) {
+                result = ABaseResource.class.isAssignableFrom(iter.next().getClass());
+            }
+        }
+
+        return result;
+    }
+
+    protected static String translateCollection2String(Collection collection) {
+        StringBuilder builder = new StringBuilder();
+
+        // Open the list
+        builder.append("[");
+
+        for (Object obj : collection) {
+            builder.append(((ABaseResource) obj).getIdentifier());
+            builder.append(",");
+        }
+
+        // Delete the last comma
+        builder.deleteCharAt(builder.lastIndexOf(","));
+
+        // Close the list
+        builder.append("]");
+
+        return builder.toString();
     }
 }

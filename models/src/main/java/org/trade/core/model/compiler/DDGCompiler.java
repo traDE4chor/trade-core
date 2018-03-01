@@ -386,8 +386,11 @@ public class DDGCompiler extends ACompiler {
 
                     compiledTransformation.setDataModel(this.dataModel);
 
+                    compiledTransformation.setSource(source);
+                    compiledTransformation.setTarget(target);
+
                     if (dataTransformation.getParameters() != null) {
-                        Map<String, Object> parameters = new HashMap<>();
+                        Map<String, String> parameters = new HashMap<>();
 
                         for (TransformationParameterType param : dataTransformation.getParameters().getParameter()) {
                             // Check if the parameter value is a query
@@ -396,7 +399,7 @@ public class DDGCompiler extends ACompiler {
 
                                 // Check if the query is valid or not
                                 if (query.isValid()) {
-                                    parameters.put(param.getParameterName(), query);
+                                    parameters.put(param.getParameterName(), query.toString());
                                 } else {
                                     String msg = "The parameter '" + param.getParameterName() + "' of data transformation" +
                                             " '" + compiledTransformation.getName() + "' does not " +

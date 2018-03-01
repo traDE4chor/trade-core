@@ -80,12 +80,6 @@ public class NotificationHttpIT {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
 
-        // Find an unused available port
-        int port = AvailablePortFinder.getNextAvailable();
-
-        // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
-
         // Create a new server
         server = new TraDEServer();
 
@@ -100,7 +94,7 @@ public class NotificationHttpIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + port + "/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         notificationApi = new NotificationApi(client);
 

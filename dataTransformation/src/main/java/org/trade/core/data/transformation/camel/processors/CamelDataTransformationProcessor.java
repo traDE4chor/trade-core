@@ -134,12 +134,12 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
         // Resolve data transformation source and target to know the inputs and outputs for transformation
 
         // Map simple (single value) data elements to file inputs
-        if (transf.getInputFileCount() != null && transf.getInputFileCount() > 0) {
+        if (transf.getInputFiles() != null && transf.getInputFiles().size() > 0) {
             request.setInputFiles(resolveInputFiles(transf, instanceContext));
         }
 
         // Map collection data elements to input file set
-        if (transf.getInputFileSets() != null && transf.getInputFileSetCount() > 0) {
+        if (transf.getInputFileSets() != null && transf.getInputFileSets().size() > 0) {
             request.setInputFileSets(resolveInputFileSets(transf, instanceContext));
         }
 
@@ -170,11 +170,11 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                     inp.setKey(param.getName());
                     inp.setParamType(param.getParamType());
 
-                    Object value = this.transformation.getTransformerParameters().get(param.getName());
-                    if (value instanceof Query) {
-                        inp.setValue(resolveQuery((Query) value, instanceContext));
+                    String value = this.transformation.getTransformerParameters().get(param.getName());
+                    if (value.startsWith(Query.QUERY_PREFIX)) {
+                        inp.setValue(resolveQuery(Query.parseQuery(value), instanceContext));
                     } else {
-                        inp.setValue(value.toString());
+                        inp.setValue(value);
                     }
 
                     inputParams.add(inp);
@@ -252,33 +252,36 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
 
                                                 if (valueQuery.specifiesPropertySelection()) {
                                                     // Queries like: "$dataObject/dataElement/value[index]?property"
-                                                    io.swagger.trade.client.jersey.model.DataValueWithLinks
-                                                            valueWithLinks = null;
-                                                    try {
-                                                        valueWithLinks = this.dataValueApi.getDataValueDirectly(value
-                                                                .getIdentifier());
-                                                    } catch (io.swagger.trade.client.jersey.ApiException e) {
-                                                        logger.error("Resolution of the query statement '" + valueQuery
-                                                                .getQueryString() + "' for transformation '" + this
-                                                                .transformation.getTransformerQName() +
-                                                                "' caused an exception. Therefore, the empty string is used as" +
-                                                                " query result value which might lead to undesired effects.", e);
-                                                    }
 
-                                                    if (valueWithLinks != null && valueWithLinks.getDataValue() != null) {
-                                                        switch (valueQuery.getProperty()) {
-                                                            case URL:
+                                                    switch (valueQuery.getProperty()) {
+                                                        case URL:
+                                                            io.swagger.trade.client.jersey.model.DataValueWithLinks
+                                                                    valueWithLinks = null;
+                                                            try {
+                                                                valueWithLinks = this.dataValueApi.getDataValueDirectly(value
+                                                                        .getIdentifier());
+                                                            } catch (io.swagger.trade.client.jersey.ApiException e) {
+                                                                logger.error("Resolution of the query statement '" + valueQuery
+                                                                        .getQueryString() + "' for transformation '" + this
+                                                                        .transformation.getTransformerQName() +
+                                                                        "' caused an exception. Therefore, the empty string is used as" +
+                                                                        " query result value which might lead to undesired effects.", e);
+                                                            }
+
+                                                            if (valueWithLinks != null && valueWithLinks.getDataValue() != null) {
+
                                                                 // Retrieve the URL of the data value and use it as the query
                                                                 // result
                                                                 result = valueWithLinks.getDataValue().getHref();
-                                                                break;
-                                                            case SIZE:
-                                                                // The size is by default 1
-                                                                result = "1";
-                                                                break;
-                                                            default:
-                                                                break;
-                                                        }
+                                                            }
+
+                                                            break;
+                                                        case SIZE:
+                                                            // The size is by default 1
+                                                            result = "1";
+                                                            break;
+                                                        default:
+                                                            break;
                                                     }
                                                 } else {
                                                     // Queries like: "$dataObject/dataElement/value[index]"
@@ -330,23 +333,24 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                                         if (valueQuery.specifiesPropertySelection()) {
                                             // Queries like: "$dataObject/dataElement/value?property"
                                             if (dataElement.isCollectionElement()) {
-                                                // Get all data values associated to the data element instance
-                                                io.swagger.trade.client.jersey.model.DataValueArrayWithLinks
-                                                        dataValueArrayWithLinks = null;
-                                                try {
-                                                    dataValueArrayWithLinks = this.dataValueApi.getDataValues
-                                                            (elementInstance.getIdentifier(), null);
-                                                } catch (io.swagger.trade.client.jersey.ApiException e) {
-                                                    logger.error("Resolution of the query statement '" + valueQuery
-                                                            .getQueryString() + "' for transformation '" + this
-                                                            .transformation.getTransformerQName() +
-                                                            "' caused an exception. Therefore, the empty string is used as" +
-                                                            " query result value which might lead to undesired effects.", e);
-                                                }
 
-                                                if (dataValueArrayWithLinks != null && dataValueArrayWithLinks.getDataValues() != null) {
-                                                    switch (valueQuery.getProperty()) {
-                                                        case URL:
+                                                switch (valueQuery.getProperty()) {
+                                                    case URL:
+                                                        // Get all data values associated to the data element instance
+                                                        io.swagger.trade.client.jersey.model.DataValueArrayWithLinks
+                                                                dataValueArrayWithLinks = null;
+                                                        try {
+                                                            dataValueArrayWithLinks = this.dataValueApi.getDataValues
+                                                                    (elementInstance.getIdentifier(), null);
+                                                        } catch (io.swagger.trade.client.jersey.ApiException e) {
+                                                            logger.error("Resolution of the query statement '" + valueQuery
+                                                                    .getQueryString() + "' for transformation '" + this
+                                                                    .transformation.getTransformerQName() +
+                                                                    "' caused an exception. Therefore, the empty string is used as" +
+                                                                    " query result value which might lead to undesired effects.", e);
+                                                        }
+
+                                                        if (dataValueArrayWithLinks != null && dataValueArrayWithLinks.getDataValues() != null) {
                                                             // Retrieve the URLs of the data values, concatenate them
                                                             // and use the resulting string as query result
                                                             StringBuilder builder = new StringBuilder();
@@ -358,48 +362,49 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                                                             // Remove the unnecessary "," at the end of the string
                                                             builder.deleteCharAt(builder.lastIndexOf(","));
                                                             result = builder.toString();
-                                                            break;
-                                                        case SIZE:
-                                                            // The size is the number of data values associated to
-                                                            // the data element instance
-                                                            result = String.valueOf(elementInstance.getNumberOfDataValues());
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
+                                                        }
+                                                        break;
+                                                    case SIZE:
+                                                        // The size is the number of data values associated to
+                                                        // the data element instance
+                                                        result = String.valueOf(elementInstance.getNumberOfDataValues());
+                                                        break;
+                                                    default:
+                                                        break;
                                                 }
                                             } else {
-                                                // Get the data value associated to the data element instance
-                                                io.swagger.trade.client.jersey.model.DataValueArrayWithLinks
-                                                        dataValueArrayWithLinks = null;
-                                                try {
-                                                    dataValueArrayWithLinks = this.dataValueApi.getDataValues
-                                                            (elementInstance.getIdentifier(), null);
-                                                } catch (io.swagger.trade.client.jersey.ApiException e) {
-                                                    logger.error("Resolution of the query statement '" + valueQuery
-                                                            .getQueryString() + "' for transformation '" + this
-                                                            .transformation.getTransformerQName() +
-                                                            "' caused an exception. Therefore, the empty string is used as" +
-                                                            " query result value which might lead to undesired effects.", e);
-                                                }
+                                                switch (valueQuery.getProperty()) {
+                                                    case URL:
+                                                        // Get the data value associated to the data element instance
+                                                        io.swagger.trade.client.jersey.model.DataValueArrayWithLinks
+                                                                dataValueArrayWithLinks = null;
+                                                        try {
+                                                            dataValueArrayWithLinks = this.dataValueApi.getDataValues
+                                                                    (elementInstance.getIdentifier(), null);
+                                                        } catch (io.swagger.trade.client.jersey.ApiException e) {
+                                                            logger.error("Resolution of the query statement '" + valueQuery
+                                                                    .getQueryString() + "' for transformation '" + this
+                                                                    .transformation.getTransformerQName() +
+                                                                    "' caused an exception. Therefore, the empty string is used as" +
+                                                                    " query result value which might lead to undesired effects.", e);
+                                                        }
 
-                                                if (dataValueArrayWithLinks != null && dataValueArrayWithLinks
-                                                        .getDataValues() != null && !dataValueArrayWithLinks
-                                                        .getDataValues().isEmpty()) {
-                                                    switch (valueQuery.getProperty()) {
-                                                        case URL:
+                                                        if (dataValueArrayWithLinks != null && dataValueArrayWithLinks
+                                                                .getDataValues() != null && !dataValueArrayWithLinks
+                                                                .getDataValues().isEmpty()) {
                                                             // Retrieve the URL of the data value
                                                             // and use it as query result
                                                             result = dataValueArrayWithLinks.getDataValues().get(0)
                                                                     .getDataValue().getHref();
-                                                            break;
-                                                        case SIZE:
-                                                            // The size is by default 1
-                                                            result = "1";
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
+                                                        }
+
+                                                        break;
+                                                    case SIZE:
+                                                        // The size is by default 1
+                                                        result = "1";
+                                                        break;
+                                                    default:
+                                                        break;
                                                 }
                                             }
                                         } else {
@@ -441,33 +446,34 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                             } else {
                                 if (valueQuery.specifiesPropertySelection()) {
                                     // Queries like: "$dataObject/dataElement?property"
-                                    io.swagger.trade.client.jersey.model.DataElementInstanceWithLinks instanceWithLinks =
-                                            null;
-                                    try {
-                                        instanceWithLinks = this.dataElementInstanceApi
-                                                .getDataElementInstance(elementInstance.getIdentifier());
-                                    } catch (io.swagger.trade.client.jersey.ApiException e) {
-                                        logger.error("Resolution of the query statement '" + valueQuery
-                                                .getQueryString() + "' for transformation '" + this
-                                                .transformation.getTransformerQName() +
-                                                "' caused an exception. Therefore, the empty string is used as" +
-                                                " query result value which might lead to undesired effects.", e);
-                                    }
 
-                                    if (instanceWithLinks != null && instanceWithLinks.getInstance() != null) {
-                                        switch (valueQuery.getProperty()) {
-                                            case URL:
+                                    switch (valueQuery.getProperty()) {
+                                        case URL:
+                                            io.swagger.trade.client.jersey.model.DataElementInstanceWithLinks instanceWithLinks =
+                                                    null;
+                                            try {
+                                                instanceWithLinks = this.dataElementInstanceApi
+                                                        .getDataElementInstance(elementInstance.getIdentifier());
+                                            } catch (io.swagger.trade.client.jersey.ApiException e) {
+                                                logger.error("Resolution of the query statement '" + valueQuery
+                                                        .getQueryString() + "' for transformation '" + this
+                                                        .transformation.getTransformerQName() +
+                                                        "' caused an exception. Therefore, the empty string is used as" +
+                                                        " query result value which might lead to undesired effects.", e);
+                                            }
+
+                                            if (instanceWithLinks != null && instanceWithLinks.getInstance() != null) {
                                                 // Retrieve the URL of the data element instance and use it as the query
                                                 // result
                                                 result = instanceWithLinks.getInstance().getHref();
-                                                break;
-                                            case SIZE:
-                                                // The size is by default 1
-                                                result = "1";
-                                                break;
-                                            default:
-                                                break;
-                                        }
+                                            }
+                                            break;
+                                        case SIZE:
+                                            // The size is by default 1
+                                            result = "1";
+                                            break;
+                                        default:
+                                            break;
                                     }
                                 } else {
                                     // Queries like: "$dataObject/dataElement" do not point to a usable value
@@ -488,37 +494,39 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                     } else {
                         if (valueQuery.specifiesPropertySelection()) {
                             // Queries like: "$dataObject?property"
-                            DataObjectInstanceWithLinks instanceWithLinks = null;
-                            try {
-                                DataObjectInstance objInstance = dataObject.getDataObjectInstanceByCorrelationProps
-                                        (instanceContext.getCorrelationProperties());
 
-                                if (objInstance != null) {
-                                    instanceWithLinks = this.dataObjectInstanceApi.getDataObjectInstance(objInstance
-                                            .getIdentifier());
-                                }
-                            } catch (io.swagger.trade.client.jersey.ApiException e) {
-                                logger.error("Resolution of the query statement '" + valueQuery
-                                        .getQueryString() + "' for transformation '" + this
-                                        .transformation.getTransformerQName() +
-                                        "' caused an exception. Therefore, the empty string is used as" +
-                                        " query result value which might lead to undesired effects.", e);
-                            }
+                            switch (valueQuery.getProperty()) {
+                                case URL:
+                                    DataObjectInstanceWithLinks instanceWithLinks = null;
+                                    try {
+                                        DataObjectInstance objInstance = dataObject.getDataObjectInstanceByCorrelationProps
+                                                (instanceContext.getCorrelationProperties());
 
-                            if (instanceWithLinks != null && instanceWithLinks.getInstance() != null) {
-                                switch (valueQuery.getProperty()) {
-                                    case URL:
+                                        if (objInstance != null) {
+                                            instanceWithLinks = this.dataObjectInstanceApi.getDataObjectInstance(objInstance
+                                                    .getIdentifier());
+                                        }
+                                    } catch (io.swagger.trade.client.jersey.ApiException e) {
+                                        logger.error("Resolution of the query statement '" + valueQuery
+                                                .getQueryString() + "' for transformation '" + this
+                                                .transformation.getTransformerQName() +
+                                                "' caused an exception. Therefore, the empty string is used as" +
+                                                " query result value which might lead to undesired effects.", e);
+                                    }
+
+                                    if (instanceWithLinks != null && instanceWithLinks.getInstance() != null) {
                                         // Retrieve the URL of the data object instance and use it as the query
                                         // result
                                         result = instanceWithLinks.getInstance().getHref();
-                                        break;
-                                    case SIZE:
-                                        // The size is by default "1"
-                                        result = "1";
-                                        break;
-                                    default:
-                                        break;
-                                }
+                                    }
+
+                                    break;
+                                case SIZE:
+                                    // The size is by default "1"
+                                    result = "1";
+                                    break;
+                                default:
+                                    break;
                             }
                         } else {
                             // Queries like: "$dataObject" do not point to a usable value

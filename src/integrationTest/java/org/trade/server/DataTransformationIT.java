@@ -16,12 +16,16 @@
 
 package org.trade.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+import io.swagger.hdtapps.client.jersey.JSON;
+import io.swagger.hdtapps.client.jersey.model.TransformationRequest;
 import io.swagger.trade.client.jersey.ApiClient;
+import io.swagger.trade.client.jersey.ApiException;
 import io.swagger.trade.client.jersey.api.*;
-import org.apache.camel.test.AvailablePortFinder;
+import io.swagger.trade.client.jersey.model.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -38,7 +42,16 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by hahnml on 14.02.2018.
@@ -49,30 +62,24 @@ public class DataTransformationIT {
 
     private static TraDEProperties properties;
 
-    private static NotificationApi notificationApi;
+    private static DataDependencyGraphApi ddgApi;
 
-    private static DataValueApi dvApiInstance;
+    private static DataModelApi dataModelApi;
 
-    private static DataObjectApi doApiInstance;
+    private static DataObjectApi dataObjectApi;
 
-    private static DataObjectInstanceApi doInstApiInstance;
+    private static DataObjectInstanceApi dataObjectInstanceApi;
 
-    private static DataElementApi deApiInstance;
+    private static DataElementInstanceApi dataElementInstanceApi;
+
+    private static DataValueApi dataValueApi;
 
     private static Server hdtAppsServer;
-
-    private static int hdtAppsServerPort;
 
     @BeforeClass
     public static void setupEnvironment() throws Exception {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
-
-        // Find an unused available port
-        int port = AvailablePortFinder.getNextAvailable();
-
-        // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
 
         // Create a new server
         server = new TraDEServer();
@@ -88,25 +95,19 @@ public class DataTransformationIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + port + "/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
-        notificationApi = new NotificationApi(client);
-
-        dvApiInstance = new DataValueApi(client);
-
-        doApiInstance = new DataObjectApi(client);
-
-        doInstApiInstance = new DataObjectInstanceApi(client);
-
-        deApiInstance = new DataElementApi(client);
+        ddgApi = new DataDependencyGraphApi(client);
+        dataModelApi = new DataModelApi(client);
+        dataObjectApi = new DataObjectApi(client);
+        dataObjectInstanceApi = new DataObjectInstanceApi(client);
+        dataElementInstanceApi = new DataElementInstanceApi(client);
+        dataValueApi = new DataValueApi(client);
 
         // Create a new embedded HTTP server which consumes the requests sent to the HDT API
-        hdtAppsServerPort = AvailablePortFinder.getNextAvailable();
-        hdtAppsServer = new Server(new InetSocketAddress("0.0.0.0", hdtAppsServerPort));
-
-        // Set the resulting HDT endpoint in the properties
-        properties.setProperty(TraDEProperties.PROPERTY_HDT_APP_FRAMEWORK_URL, "http://127.0.0.1:" + String.valueOf
-                (port));
+        // Here we also have to use the default port since the HDT endpoint is read from the properties file
+        // in CamelDataTransformationManager
+        hdtAppsServer = new Server(new InetSocketAddress("0.0.0.0", 8082));
 
         // Create a handler to check the transformation requests send to the HDT framework API
         Handler handler = new AbstractHandler() {
@@ -124,40 +125,293 @@ public class DataTransformationIT {
 
     @Test
     public void triggerDataTransformationTest() throws Exception {
-        // TODO: 14.02.2018 Implement a test case
         // 1. Upload a DDG with data transformations
-        // 2. Prepare an instance (data object instance, data element instances)
-        // 3. Associate data to the instance so that one of the modeled data transformations is triggered
-        // 4. Check if the result data is uploaded to the specified target data value
+        String entity = "hahnml";
+        String name = "DataTransformationDataDependencyGraph";
 
-        // TODO: 14.02.2018 Add more test cases which target different aspects of the transformation functionality, e.g., retriggering of logic by changing data values, etc.
+        DataDependencyGraphData ddg = new DataDependencyGraphData();
+        ddg.setEntity(entity);
+        ddg.setName(name);
+
+        DataDependencyGraphWithLinks ddgResponse = ddgApi.addDataDependencyGraph(ddg);
+
+        assertNotNull(ddgResponse);
+        assertNotNull(ddgResponse.getDataDependencyGraph());
+        assertNotNull(ddgResponse.getDataDependencyGraph().getId());
+        assertEquals(entity, ddgResponse.getDataDependencyGraph().getEntity());
+        assertEquals(name, ddgResponse.getDataDependencyGraph().getName());
+
+        String graphId = ddgResponse.getDataDependencyGraph().getId();
+
+        byte[] graph = TestUtils.getData("opalDataTransformation.trade");
+
+        // Try to upload and compile a serialized DDG
+        ddgApi.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
+
+        // Query the data dependency graph again to check if all data transformations are compiled as expected
+        DataDependencyGraphWithLinks ddgResponseAfterCompile = ddgApi.getDataDependencyGraphDirectly(graphId);
+        // Check if the DDG contains two transformations
+        assertEquals(2, ddgResponseAfterCompile.getDataDependencyGraph().getTransformations().size());
+        // Check if both transformations specify together two parameters (actually only one of the transformations
+        // contains both parameters)
+        assertEquals(2, ddgResponseAfterCompile.getDataDependencyGraph().getTransformations().stream().map
+                (DataTransformation::getTransformerParameters).filter(params -> params != null).mapToInt(List::size)
+                .sum());
+
+        // 2. Prepare an instance (data object instance, data element instances)
+        // Resolve the required data object
+        DataObjectWithLinks dataObject = resolveDataObject("http://de.uni-stuttgart.iaas/opalChor",
+                "OpalSimulationTransformationChoreography", "simResults");
+        assertNotNull(dataObject);
+
+        // Instantiate the data object
+        String dObjId = dataObject.getDataObject().getId();
+
+        CorrelationPropertyArray correlationProperties = new CorrelationPropertyArray();
+        correlationProperties.add(new CorrelationProperty().key("test").value("value"));
+
+        DataObjectInstanceData instanceData = new DataObjectInstanceData();
+        instanceData.setCreatedBy("test");
+        instanceData.setCorrelationProperties(correlationProperties);
+
+        DataObjectInstanceWithLinks dObjInstance = dataObjectInstanceApi.addDataObjectInstance(dObjId,
+                instanceData);
+        assertNotNull(dObjInstance);
+        assertNotNull(dObjInstance.getInstance());
+
+        String dObjInstanceId = dObjInstance.getInstance().getId();
+
+        DataElementInstanceWithLinks dElementInstance = dataElementInstanceApi
+                .getDataElementInstanceByDataElementName(
+                        dObjInstanceId, "snapshots[]");
+        assertNotNull(dElementInstance);
+        assertNotNull(dElementInstance.getInstance());
+
+        // 3. Associate data to the instance so that one of the modeled data transformations is triggered
+        // Create and associate a new data value to the data element instance
+        DataValue dataValueData = new DataValue();
+
+        dataValueData.setType("binary");
+        dataValueData.setContentType("text/plain");
+        dataValueData.setName("testDataValue");
+        dataValueData.setCreatedBy("test");
+
+        DataValueWithLinks value = dataValueApi.associateDataValueToDataElementInstance(dElementInstance.getInstance()
+                .getId(), dataValueData);
+        assertNotNull(value);
+        assertNotNull(value.getDataValue());
+
+        DataValueArrayWithLinks values = dataValueApi.getDataValuesDirectly(null, null, null, null);
+        assertNotNull(values.getDataValues());
+        int size = values.getDataValues().size();
+
+        // Upload data to the data value
+        dataValueApi.pushDataValue(value.getDataValue().getId(), "TEST-DATA".getBytes(), false,
+                9L);
+
+        // Wait some time until the transformation results are stored in a new data value
+        Thread.sleep(60000);
+
+        values = dataValueApi.getDataValuesDirectly(null, null, null, null);
+        assertNotNull(values.getDataValues());
+        assertEquals(size + 1, values.getDataValues().size());
+
+        // Remove the associations between the data values and the data element instances and delete the data values
+        for (DataValueWithLinks dataValue : values.getDataValues()) {
+            DataElementInstanceArrayWithLinks elementInstances = dataElementInstanceApi
+                    .getDataElementInstancesUsingDataValue(dataValue.getDataValue().getId(), null,
+                            null);
+
+            // Remove all associations
+            for (DataElementInstanceWithLinks elmInstance : elementInstances.getInstances()) {
+                dataValueApi.removeDataValueFromDataElementInstance(elmInstance.getInstance().getId(),
+                        dataValue.getDataValue().getId());
+            }
+
+            // Delete the data object
+            dataValueApi.deleteDataValue(dataValue.getDataValue().getId());
+        }
     }
+
+    // TODO: 14.02.2018 Add more test cases which target different aspects of the transformation functionality, e.g.,
+    // re-triggering of logic by changing data values, etc.
 
     private static void handleHttpRequest(String target, HttpServletRequest request, HttpServletResponse response) {
         try {
-            ServletInputStream reqStream = request.getInputStream();
-            int contentLength = request.getContentLength();
+            if (target.equals("/transformations")) {
 
-            byte[] buffer = new byte[contentLength];
-            reqStream.read(buffer);
-            reqStream.close();
+                String respString = "[]";
 
-            String message = new String(buffer);
+                if (request.getParameter("qname") != null && request.getParameter("qname").equals
+                        ("opalSnapshotArray2mpg")) {
+                    // Reply an available transformation app
+                    respString = "[\n" +
+                            "  {\n" +
+                            "    \"appID\": \"michaelhahn_mlhn_opal3danimatedloopfile_1.0.0\",\n" +
+                            "    \"inputFileSets\": [\n" +
+                            "      {\n" +
+                            "        \"alias\": \"$inputsShapshots\",\n" +
+                            "        \"fileSetSize\": \"$numberOfFilesToAnimate\",\n" +
+                            "        \"format\": \"dat\",\n" +
+                            "        \"name\": \"snapshots\",\n" +
+                            "        \"isOptional\": false,\n" +
+                            "        \"requiredPath\": \"{r}/\",\n" +
+                            "        \"schema\": \"\"\n" +
+                            "      }\n" +
+                            "    ],\n" +
+                            "    \"inputFileSetsCount\": 1,\n" +
+                            "    \"inputFiles\": [],\n" +
+                            "    \"inputFilesCount\": 0,\n" +
+                            "    \"inputNumParamCount\": 1,\n" +
+                            "    \"inputOptParamCount\": 0,\n" +
+                            "    \"inputParamCount\": 2,\n" +
+                            "    \"inputParams\": [\n" +
+                            "      {\n" +
+                            "        \"alias\": \"$prefixName\",\n" +
+                            "        \"name\": \"prefixName\",\n" +
+                            "        \"isOptional\": false,\n" +
+                            "        \"type\": \"string\",\n" +
+                            "        \"value\": \"\"\n" +
+                            "      },\n" +
+                            "      {\n" +
+                            "        \"alias\": \"$numberOfFilesToAnimate\",\n" +
+                            "        \"name\": \"numberOfFilesToAnimate\",\n" +
+                            "        \"isOptional\": false,\n" +
+                            "        \"type\": \"integer\",\n" +
+                            "        \"value\": \"\"\n" +
+                            "      }\n" +
+                            "    ],\n" +
+                            "    \"inputStrParamCount\": 1,\n" +
+                            "    \"name\": \"snapshots-to-video\",\n" +
+                            "    \"outputFiles\": [\n" +
+                            "      {\n" +
+                            "        \"accessPath\": \"{r}/\",\n" +
+                            "        \"alias\": \"$outputVideo\",\n" +
+                            "        \"format\": \"mp4\",\n" +
+                            "        \"name\": \"opalClusterSnapshots\",\n" +
+                            "        \"schema\": \"\"\n" +
+                            "      }\n" +
+                            "    ],\n" +
+                            "    \"outputFilesCount\": 1,\n" +
+                            "    \"providers\": [\n" +
+                            "      {\n" +
+                            "        \"pkgID\": \"sha256:91917bddfefe4f5e8969a2b34071978af641d6bf0e6a1487742ad23aad87b0bd\",\n" +
+                            "        \"providerQName\": \"default\"\n" +
+                            "      }\n" +
+                            "    ],\n" +
+                            "    \"qname\": \"opalSnapshotArray2mpg\",\n" +
+                            "    \"relaxedSignature\": \"[pi:2][fsi:1:dat][fo:1:mp4]\",\n" +
+                            "    \"strictSignature\": \"[pi:2][fsi:1:dat][fo:1:mp4]\",\n" +
+                            "    \"transformationID\": \"5a73223b0cbf23000b74d9f9\"\n" +
+                            "  }\n" +
+                            "]";
 
-            // TODO: 14.02.2018 Validate the content of the request message 
 
-            // TODO: 14.02.2018 Mimic the behavior of the transformation app by uploading some result data to the specified result data value URL
+                }
 
-            System.out.println("Data Transformation Request: " + message);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.setContentType("application/json");
+                response.getWriter().write(respString);
+            } else if (target.equals("/tasks")) {
+                ServletInputStream reqStream = request.getInputStream();
+                int contentLength = request.getContentLength();
 
-            response.setContentType("text/plain");
-            response.setStatus(HttpServletResponse.SC_OK);
-            ((Request) request).setHandled(true);
+                byte[] buffer = new byte[contentLength];
+                reqStream.read(buffer);
+                reqStream.close();
+
+                String message = new String(buffer);
+
+                System.out.println("Data Transformation Request: " + message);
+
+                JSON json = new JSON();
+                ObjectMapper mapper = json.getContext(null);
+                TransformationRequest transfRequest = mapper.readValue(message, TransformationRequest.class);
+
+                // Validate the structure of the request message
+                assertEquals("michaelhahn_mlhn_opal3danimatedloopfile_1.0.0", transfRequest.getAppID());
+                assertEquals("5a73223b0cbf23000b74d9f9", transfRequest.getTransformationID());
+                assertEquals(1, transfRequest.getInputFileSets().size());
+                assertEquals(1, transfRequest.getInputFileSets().get(0).getLinksToFiles().size());
+                assertEquals(2, transfRequest.getInputParams().size());
+
+                // Mimic the behavior of the transformation app by uploading some result data to the specified result data value URL
+                String responseUrl = transfRequest.getResultsEndpoint();
+                URL url = new URL(responseUrl);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+
+                byte[] out = "transformationResult".getBytes(StandardCharsets.UTF_8);
+                int length = out.length;
+
+                con.setFixedLengthStreamingMode(length);
+                con.setRequestProperty("Content-Type", "application/octet-stream");
+                con.connect();
+                try (OutputStream os = con.getOutputStream()) {
+                    os.write(out);
+                }
+
+                // Get the result
+                int status = con.getResponseCode();
+
+                assertEquals(204, status);
+
+                con.disconnect();
+
+                // Send a response to the client
+                String respString = "{\n" +
+                        "  \"taskID\": \"someID\",\n" +
+                        "  \"state\": \"completed\"\n" +
+                        "}";
+
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(respString);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         ((Request) request).setHandled(true);
+    }
+
+    private DataObjectWithLinks resolveDataObject(String dataModelNamespace, String dataModelName, String dataObjectName) throws ApiException {
+        DataObjectWithLinks result = null;
+
+        DataModelArrayWithLinks dataModels = dataModelApi.getDataModels(null,
+                null, dataModelNamespace,
+                dataModelName, null);
+
+        if (dataModels.getDataModels() != null
+                && !dataModels.getDataModels().isEmpty()) {
+
+            Iterator<DataModelWithLinks> iter = dataModels.getDataModels()
+                    .iterator();
+
+            while (result == null && iter.hasNext()) {
+                DataModelWithLinks model = iter.next();
+
+                // Retrieve the list of data objects which should contain
+                // the searched one
+                DataObjectArrayWithLinks list = dataObjectApi.getDataObjects(
+                        model.getDataModel().getId(), null, null);
+                Iterator<DataObjectWithLinks> iterObj = list.getDataObjects()
+                        .iterator();
+                while (result == null && iterObj.hasNext()) {
+                    DataObjectWithLinks cur = iterObj.next();
+
+                    // Check if the data object is the one we are looking
+                    // for
+                    if (cur.getDataObject().getName()
+                            .equals(dataObjectName)) {
+                        result = cur;
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     @AfterClass
@@ -180,6 +434,7 @@ public class DataTransformationIT {
         dataStore.getCollection("dataModels").drop();
         dataStore.getCollection("dataDependencyGraphs").drop();
         dataStore.getCollection("notifications").drop();
+        dataStore.getCollection("dataTransformations").drop();
 
         dataStoreClient.close();
 

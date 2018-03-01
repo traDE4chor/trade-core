@@ -1890,6 +1890,10 @@ definitions:
         type: string
       targetNamespace:
         type: string
+      transformations:
+        type: array
+        items:
+          $ref: '#/definitions/DataTransformation'
   DataDependencyGraphWithLinks:
     type: object
     properties:
@@ -1908,6 +1912,22 @@ definitions:
         $ref: '#/definitions/DataDependencyGraphArray'
       links:
         $ref: '#/definitions/LinkArray'
+  DataTransformation:
+    type: object
+    properties:
+      name:
+        type: string
+      transformerQName:
+        type: string
+      transformerParameters:
+        type: array
+        items:
+          type: object
+          properties:
+            parameterName:
+              type: string
+            parameterValue:
+              type: string
   DataModel:
     type: object
     properties:

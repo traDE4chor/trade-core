@@ -16,6 +16,7 @@
 
 package org.trade.core.model.dataTransformation;
 
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -41,6 +42,8 @@ import java.util.Set;
 @Entity("dataTransformations")
 public class DataTransformation extends ABaseResource {
 
+    private static final long serialVersionUID = -4138632257189421934L;
+
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.dataTransformation.DataTransformation");
 
@@ -55,13 +58,16 @@ public class DataTransformation extends ABaseResource {
     private Object hdtTransformer;
 
     // The source model object (data object or data element) of the data transformation.
+    @Reference
     private ABaseResource source = null;
 
     // The target model object (data object or data element) of the data transformation.
+    @Reference
     private ABaseResource target = null;
 
     // A map of key-value pairs representing the transformer parameters and their values.
-    private Map<String, Object> transformerParameters;
+    @Embedded
+    private Map<String, String> transformerParameters;
 
     @Transient
     private Map<String, Set<DataElementInstance>> relatedDataElementInstances = new HashMap<>();
@@ -213,7 +219,7 @@ public class DataTransformation extends ABaseResource {
      *
      * @return the transformer parameters
      */
-    public Map<String, Object> getTransformerParameters() {
+    public Map<String, String> getTransformerParameters() {
         return transformerParameters;
     }
 
@@ -222,7 +228,7 @@ public class DataTransformation extends ABaseResource {
      *
      * @param transformerParameters the transformer parameters
      */
-    public void setTransformerParameters(Map<String, Object> transformerParameters) {
+    public void setTransformerParameters(Map<String, String> transformerParameters) {
         this.transformerParameters = transformerParameters;
     }
 

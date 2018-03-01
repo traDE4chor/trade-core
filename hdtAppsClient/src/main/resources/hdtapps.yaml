@@ -543,8 +543,7 @@ definitions:
       requiredPath:
         type: "string"
       fileSetSize:
-        type: "integer"
-        format: "int32"
+        type: "string"
   
   OutputFile:
     type: "object"

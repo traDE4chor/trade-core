@@ -599,8 +599,17 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                     if (value == null) {
                         continue;
                     }
-                    sb.append("\n\t").append(field).append(" = ")
-                            .append(value.toString());
+
+                    if (value instanceof ABaseResource) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(((ABaseResource) value).getIdentifier());
+                    } else if (isABaseResourceTypeCollection(value)) {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(translateCollection2String((Collection) value));
+                    } else {
+                        sb.append("\n\t").append(field).append(" = ")
+                                .append(value.toString());
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

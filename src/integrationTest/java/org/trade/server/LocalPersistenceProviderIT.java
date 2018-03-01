@@ -52,12 +52,9 @@ public class LocalPersistenceProviderIT {
 
     private static DataElementInstanceApi deInstApiInstance;
 
-    public static void setupEnvironment(int port) {
+    public static void setupEnvironment() {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
-
-        // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
 
         // Create a new server
         server = new TraDEServer();
@@ -73,7 +70,7 @@ public class LocalPersistenceProviderIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + port + "/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         dataObjectApiInstance = new DataObjectApi(client);
         dataElementApiInstance = new DataElementApi(client);
@@ -85,11 +82,8 @@ public class LocalPersistenceProviderIT {
     @Test
     public void createAndLoadDataObjectAfterShutdownTest() {
         try {
-            // Find an unused available port
-            int port = AvailablePortFinder.getNextAvailable();
-
             // Start the environment
-            setupEnvironment(port);
+            setupEnvironment();
 
             DataObjectData request = new DataObjectData();
 
@@ -102,7 +96,7 @@ public class LocalPersistenceProviderIT {
             shutdownEnvironment();
 
             // Start the environment again
-            setupEnvironment(port);
+            setupEnvironment();
 
             // Try to query the data object and check if it's loaded correctly
             DataObjectWithLinks reloaded = dataObjectApiInstance.getDataObjectById(result.getId());
@@ -120,7 +114,7 @@ public class LocalPersistenceProviderIT {
             int port = AvailablePortFinder.getNextAvailable();
 
             // Start the environment
-            setupEnvironment(port);
+            setupEnvironment();
 
             // Create a new data object
             DataObject dObject = dataObjectApiInstance.addDataObject(new DataObjectData().entity("hahnml").name
@@ -166,7 +160,7 @@ public class LocalPersistenceProviderIT {
             shutdownEnvironment();
 
             // Start the environment again
-            setupEnvironment(port);
+            setupEnvironment();
 
             // Try to query all created objects and check if they are loaded correctly
             DataObjectWithLinks doReloaded = dataObjectApiInstance.getDataObjectById(dObject.getId());
@@ -183,6 +177,10 @@ public class LocalPersistenceProviderIT {
 
             DataValueWithLinks dataValueReloaded = dvApiInstance.getDataValueDirectly(dataValue.getId());
             assertEquals(dataValue, dataValueReloaded.getDataValue());
+
+            // Remove the association to the data element instance and delete data value
+            dvApiInstance.removeDataValueFromDataElementInstance(deInst.getId(), dataValueReloaded.getDataValue().getId());
+            dvApiInstance.deleteDataValue(dataValueReloaded.getDataValue().getId());
         } catch (ApiException e) {
             e.printStackTrace();
         }

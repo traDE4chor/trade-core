@@ -189,6 +189,26 @@ public class ResourceTransformationUtils {
         result.setTargetNamespace(graph.getTargetNamespace());
         result.setId(graph.getIdentifier());
 
+        if (graph.getDataTransformations() != null) {
+            for (org.trade.core.model.dataTransformation.DataTransformation transformation : graph.getDataTransformations()) {
+                DataTransformation transf = new DataTransformation();
+                transf.setName(transformation.getName());
+                transf.setTransformerQName(transformation.getTransformerQName());
+
+                for (String parameterName : transformation.getTransformerParameters().keySet()) {
+                    DataTransformationTransformerParameters param = new DataTransformationTransformerParameters();
+                    param.setParameterName(parameterName);
+
+                    String parameterValue = transformation.getTransformerParameters().get(parameterName);
+                    param.setParameterValue(parameterValue);
+
+                    transf.addTransformerParametersItem(param);
+                }
+
+                result.addTransformationsItem(transf);
+            }
+        }
+
         return result;
     }
 

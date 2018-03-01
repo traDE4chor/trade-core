@@ -25,7 +25,6 @@ import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataValue;
 import io.swagger.trade.client.jersey.model.DataValueData;
 import io.swagger.trade.client.jersey.model.DataValueWithLinks;
-import org.apache.camel.test.AvailablePortFinder;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -47,18 +46,10 @@ public class DataValueApiIT {
 
     private static DataValueApi dvApiInstance;
 
-    private static int serverPort;
-
     @BeforeClass
     public static void setupEnvironment() {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
-
-        // Find an unused available port
-        serverPort = AvailablePortFinder.getNextAvailable();
-
-        // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(serverPort));
 
         // Create a new server
         server = new TraDEServer();
@@ -74,7 +65,7 @@ public class DataValueApiIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + serverPort + "/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         dvApiInstance = new DataValueApi(client);
     }
@@ -211,7 +202,7 @@ public class DataValueApiIT {
             DataValue dataValue = dvApiInstance.addDataValue(request);
 
             // Use a link to the Swagger API YAML file provided through the server to test data resolution through links
-            String link = "http://127.0.0.1:" + serverPort + "/docs/swagger.yaml";
+            String link = "http://127.0.0.1:8080/docs/swagger.yaml";
             dvApiInstance.pushDataValue(dataValue.getId(), link.getBytes(), true, null);
 
             byte[] resultData = dvApiInstance.pullDataValue(dataValue.getId());

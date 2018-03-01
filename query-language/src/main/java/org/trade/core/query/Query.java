@@ -35,6 +35,8 @@ import java.util.List;
  */
 public class Query {
 
+    public static final String QUERY_PREFIX = "$";
+
     private String queryString;
 
     private String dataObjectName;
@@ -302,6 +304,11 @@ public class Query {
      */
     public String getQueryString() {
         return queryString;
+    }
+
+    @Override
+    public String toString() {
+        return this.queryString;
     }
 
     /**

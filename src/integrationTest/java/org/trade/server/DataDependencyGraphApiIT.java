@@ -26,7 +26,6 @@ import io.swagger.trade.client.jersey.api.DataElementApi;
 import io.swagger.trade.client.jersey.api.DataModelApi;
 import io.swagger.trade.client.jersey.api.DataObjectApi;
 import io.swagger.trade.client.jersey.model.*;
-import org.apache.camel.test.AvailablePortFinder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -63,12 +62,6 @@ public class DataDependencyGraphApiIT {
         // Load custom properties such as MongoDB url and db name
         properties = new TraDEProperties();
 
-        // Find an unused available port
-        int port = AvailablePortFinder.getNextAvailable();
-
-        // Set the port
-        properties.setProperty(TraDEProperties.PROPERTY_HTTP_SERVER_PORT, String.valueOf(port));
-
         // Create a new server
         server = new TraDEServer();
 
@@ -83,7 +76,7 @@ public class DataDependencyGraphApiIT {
 
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
-        client.setBasePath("http://127.0.0.1:" + port + "/api");
+        client.setBasePath("http://127.0.0.1:8080/api");
 
         ddgApiInstance = new DataDependencyGraphApi(client);
         dataModelApiInstance = new DataModelApi(client);
@@ -267,6 +260,7 @@ public class DataDependencyGraphApiIT {
         dataStore.getCollection("dataModels").drop();
         dataStore.getCollection("dataDependencyGraphs").drop();
         dataStore.getCollection("notifications").drop();
+        dataStore.getCollection("dataValues").drop();
 
         dataStoreClient.close();
 
