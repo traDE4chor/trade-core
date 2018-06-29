@@ -1,26 +1,32 @@
-version: '2'
+version: '3'
 services:
-  trade-mongodb:
-    build:
-      context: .
-      dockerfile: Dockerfile-db
-    image: trade-core:mongodb
-    container_name: "trade-core"
+
+  trade-core:
+    image: trade4chor/trade-core
+    environment:
+      - PERSISTENCE_MODE=DB
+      - MONGO_DB_URL=mongodb://mongodb:27017
     depends_on:
       - mongodb
     ports:
       - "8081:8081"
-    links:
-      - mongodb
+    networks:
+      - trade
+
   mongodb:
-    image: mongo:latest
-    container_name: "mongodb"
+    image: mongo
     environment:
       - MONGO_DATA_DIR=/db-data/db
       - MONGO_LOG_DIR=/db-dev/null
     ports:
       - 27017:27017
     command: mongod --smallfiles --logpath=/dev/null # --quiet
+    networks:
+      - trade
+
+networks:
+  trade:
+    driver: bridge
 
 #
 # Build and run as daemon:

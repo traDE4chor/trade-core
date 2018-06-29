@@ -1,42 +1,50 @@
-FROM openjdk:8-jdk
+FROM openjdk:8-jdk as builder
 
-MAINTAINER Michael Hahn
+RUN rm /dev/random && ln -s /dev/urandom /dev/random
 
-ENV TRADE_HOME /opt/trade
-ENV TRADE_VERSION 1.0-SNAPSHOT
-
-ENV PATH ${PATH}:${TRADE_HOME}/bin:${JAVA_HOME}/bin
-
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get -y update
-RUN apt-get clean
-
-# Copy the sources and build the TraDE source to create required binaries
-COPY . /src
-WORKDIR /src
+COPY . /opt/trade4chor/trade
+WORKDIR /opt/trade4chor/trade
 RUN ./gradlew build
 
-# Unzip TraDE archive file from /build into ${TRADE_HOME}
-RUN tar -xf /src/build/distributions/traDE-all-${TRADE_VERSION}.tar -C /opt
-RUN ln -s /opt/traDE-all-${TRADE_VERSION} ${TRADE_HOME}
-RUN chmod -R a+x ${TRADE_HOME}/bin/*
 
-# Change the default (Windows-based) persistence directory path to a Linux path in the config.properties file
-RUN sed -i 's/data.persistence.file.directory=D:\\\\tradeDATA/data.persistence.file.directory=\/tradeData/' ${TRADE_HOME}/config/config.properties
+FROM openjdk:8-jdk
 
-# Change all log levels from DEBUG to INFO in the logback.xml configuration file
-RUN sed -i 's/DEBUG/INFO/' ${TRADE_HOME}/config/logback.xml
+LABEL maintainer "Michael Hahn <mhahn.dev@gmail.com>"
 
-# Clean-up source code & gradle cache
-RUN rm -r /src
-RUN rm -r ~/.gradle
+ARG DOCKERIZE_VERSION=v0.3.0
 
-WORKDIR ${TRADE_HOME}
+ENV TRADE_VERSION 1.0-SNAPSHOT
+ENV PATH ${PATH}:/usr/local/bin/trade/bin:${JAVA_HOME}/bin
+
+ENV HDTApps_URL http://127.0.0.1:8082
+ENV LOG_LEVEL INFO
+ENV PERSISTENCE_MODE FILE
+ENV DATA_DIRECTORY /tradeData
+ENV MONGO_DB_URL mongodb://127.0.0.1:27017
+
+RUN rm /dev/random && ln -s /dev/urandom /dev/random \
+    && wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
+# Copy the TraDE binary
+COPY --from=builder /opt/trade4chor/trade/build/distributions /opt/trade4chor/trade
+
+# Unzip TraDE archive file from /build into /usr/local/bin/trade
+RUN tar -xf /opt/trade4chor/trade/traDE-all-${TRADE_VERSION}.tar -C /opt/trade4chor/trade
+RUN ln -s /opt/trade4chor/trade/traDE-all-${TRADE_VERSION} /usr/local/bin/trade
+RUN chmod -R a+x /usr/local/bin/trade/bin/*
+
+ADD docker/config.properties.tpl /usr/local/bin/trade/config.properties.tpl
+ADD docker/logback.xml.tpl /usr/local/bin/trade/logback.xml.tpl
+
+WORKDIR /usr/local/bin/trade
 
 EXPOSE 8081
 
-ENTRYPOINT [ "traDE" ]
+CMD dockerize -template /usr/local/bin/trade/config.properties.tpl:/usr/local/bin/trade/config/config.properties \
+    -template /usr/local/bin/trade/logback.xml.tpl:/usr/local/bin/trade/config/logback.xml \
+    traDE
 
 #
 # Build and run:
@@ -67,16 +75,16 @@ ENTRYPOINT [ "traDE" ]
 # Further details about mounting host directories as data volumes are provided here: https://docs.docker.com/engine/tutorials/dockervolumes/#mount-a-host-directory-as-a-data-volume
 # Don't forget to restart/recreate the trade-core container after changing the configuration so that the changes are applied.
 #
-# As an alternative option, a customized image can be build as provided by Dockerfile-db which uses MongoDB as
-# persistence layer. To run both services, TraDE and MongoDB, a corresponding docker-compose.yml is provided as an example.
+# As an alternative option, the persistence layer can be configured through the specified environment variables PERSISTENCE_MODE, DATA_DIRECTORY, MONGO_DB_URL.
+# To configure and run both services, TraDE Middleware and MongoDB, a corresponding docker-compose.yml is provided as an example.
 #
 
 #
 # Interactive access for debugging:
 #
-#   docker run --rm --name trade-core -p 8081:8081 -ti --entrypoint "/bin/bash" trade4chor/trade-core
+#   docker run --rm --name trade-core -p 8081:8081 -ti trade4chor/trade-core bash
 #
-# Inside the container, the TraDE middleware has to be started manually through "traDE". In order to be able to use
+# Inside the container, the TraDE Middleware has to be configured and started manually through "traDE". In order to be able to use
 # the shell after the middleware is started, the following command allows running the middleware in the background:
 #
 #   nohup traDE &

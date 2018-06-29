@@ -35,3 +35,6 @@ out/
 !gradle-wrapper.jar
 build/
 bin/
+
+# Linux
+*~

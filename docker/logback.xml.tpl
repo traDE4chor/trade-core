@@ -54,7 +54,7 @@
         <appender-ref ref="ROUTE_ERROR_FILE" />
     </logger>
 
-    <root level="DEBUG">
+    <root level="{{ .Env.LOG_LEVEL }}">
         <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>
