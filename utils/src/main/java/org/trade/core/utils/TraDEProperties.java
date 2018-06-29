@@ -40,6 +40,9 @@ public class TraDEProperties extends Properties {
     public static final String PROPERTY_CACHE_DB_URL = "cache.db.url";
     public static final String PROPERTY_CACHE_DB_NAME = "cache.db.name";
 
+    // Regular expression to identify and resolve system ENVIRONMENT VARIABLES inside the *.properties file
+    public static final String ENV_VARIABLE_REGEX = "\\$\\{.+\\}";
+
     public enum DataPersistenceMode {
         FILE, DB, CUSTOM
     }
@@ -224,5 +227,29 @@ public class TraDEProperties extends Properties {
         } catch (IOException e) {
             logger.info("Loading properties from file was not successful. Using default properties instead.");
         }
+    }
+
+    @Override
+    public String getProperty(String pname) {
+        String result = super.getProperty(pname);
+
+        // Check if the value references an environment variable and resolve it
+        if (result != null && result.matches(ENV_VARIABLE_REGEX)) {
+            result = System.getenv(result.substring(2, result.length() - 1));
+        }
+
+        return result;
+    }
+
+    @Override
+    public String getProperty(String key, String dflt) {
+        String result = super.getProperty(key, dflt);
+
+        // Check if the value references an environment variable and resolve it
+        if (result != null && result.matches(ENV_VARIABLE_REGEX)) {
+            result = System.getenv(result.substring(2, result.length() - 1));
+        }
+
+        return result;
     }
 }
