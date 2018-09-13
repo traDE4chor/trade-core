@@ -187,8 +187,8 @@ public class DataValuesApiServiceImpl extends DataValuesApiService {
                     }
                 };
 
-                response = Response.ok(fileStream, value.getContentType()).header("content-disposition",
-                        "attachment; filename = data.txt")
+                response = Response.ok(fileStream).header("content-disposition",
+                        "attachment; filename = " + value.getName())
                         .build();
             } else {
                 response = Response.status(Response.Status.NOT_FOUND).entity(new NotFound().properties(Collections

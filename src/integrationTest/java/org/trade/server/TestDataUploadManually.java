@@ -35,6 +35,9 @@ import static org.junit.Assert.assertNotNull;
 public class TestDataUploadManually {
 
     public static void main(String[] args) {
+
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+
         testDataValueApi();
         //createAndUploadDataDependencyGraphTest();
     }
@@ -83,7 +86,7 @@ public class TestDataUploadManually {
             value.setName("inputData");
             value.setCreatedBy("hahnml");
             value.setType("binary");
-            value.setContentType("text/plain");
+            value.setContentType("video/mp4");
 
             DataValue result = dvApiInstance.addDataValue(value);
             String idOfDataValue = result.getId();
