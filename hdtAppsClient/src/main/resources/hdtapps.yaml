@@ -544,6 +544,8 @@ definitions:
         type: "string"
       fileSetSize:
         type: "string"
+      fileName:
+        type: "string"
   
   OutputFile:
     type: "object"
