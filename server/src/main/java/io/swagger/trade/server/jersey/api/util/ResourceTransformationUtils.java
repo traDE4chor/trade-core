@@ -195,14 +195,16 @@ public class ResourceTransformationUtils {
                 transf.setName(transformation.getName());
                 transf.setTransformerQName(transformation.getTransformerQName());
 
-                for (String parameterName : transformation.getTransformerParameters().keySet()) {
-                    DataTransformationTransformerParameters param = new DataTransformationTransformerParameters();
-                    param.setParameterName(parameterName);
+                if (transformation.getTransformerParameters() != null) {
+                    for (String parameterName : transformation.getTransformerParameters().keySet()) {
+                        DataTransformationTransformerParameters param = new DataTransformationTransformerParameters();
+                        param.setParameterName(parameterName);
 
-                    String parameterValue = transformation.getTransformerParameters().get(parameterName);
-                    param.setParameterValue(parameterValue);
+                        String parameterValue = transformation.getTransformerParameters().get(parameterName);
+                        param.setParameterValue(parameterValue);
 
-                    transf.addTransformerParametersItem(param);
+                        transf.addTransformerParametersItem(param);
+                    }
                 }
 
                 result.addTransformationsItem(transf);
