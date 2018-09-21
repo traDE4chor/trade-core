@@ -61,6 +61,61 @@ public class DataObjectInstancesApiServiceImpl extends DataObjectInstancesApiSer
     }
 
     @Override
+    public Response getAllDataObjectInstances(@Min(1) Integer start, @Min(1) Integer size, String status, SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+        Response response = null;
+
+        try {
+            List<org.trade.core.model.data.instance.DataObjectInstance> dataObjectInstances = DataManagerFactory.createDataManager()
+                    .getAllDataObjectInstances(status);
+            int filteredListSize = dataObjectInstances.size();
+
+            // Check if the start index and the size are in still the range of the filtered result list, if not
+            // respond the whole filtered result list
+            if (start > 0 && size > 0 && start <= dataObjectInstances.size()) {
+                // Calculate the two index
+                int toIndex = start - 1 + size;
+                // Check if the index is still in bounds
+                if (toIndex > dataObjectInstances.size()) {
+                    toIndex = dataObjectInstances.size();
+                }
+                // Decrease start by one since the API starts counting indexes from 1
+                dataObjectInstances = dataObjectInstances.subList(start - 1, toIndex);
+            }
+
+            DataObjectInstanceArrayWithLinks resultList = new DataObjectInstanceArrayWithLinks();
+            resultList.setInstances(new DataObjectInstanceArray());
+            for (org.trade.core.model.data.instance.DataObjectInstance dataObjectInstance : dataObjectInstances) {
+
+                DataObjectInstanceWithLinks result = new DataObjectInstanceWithLinks();
+
+                result.setInstance(ResourceTransformationUtils.model2Resource(dataObjectInstance));
+
+                // Set HREF and links to related resources
+                result.getInstance().setHref(uriInfo.getBaseUriBuilder().path(LinkUtils
+                        .TEMPLATE_COLLECTION_RESOURCE).build(LinkUtils.COLLECTION_DATA_OBJECT_INSTANCE, dataObjectInstance
+                        .getIdentifier()).toASCIIString());
+
+                // Set links to related data elements, etc.
+                result.setLinks(LinkUtils.createDataObjectInstanceLinks(uriInfo, dataObjectInstance, result
+                        .getInstance().getHref()));
+
+                resultList.getInstances().add(result);
+            }
+
+            resultList.setLinks(LinkUtils.createPaginationLinks("data object instances", uriInfo, start, size,
+                    filteredListSize));
+
+            response = Response.ok().entity(resultList).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response = Response.serverError().entity(e.getMessage()).build();
+        }
+
+        return response;
+    }
+
+    @Override
     public Response getDataElementInstanceByDataElementName(String dataObjectInstanceId, String dataElementName,
                                                             SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
         Response response = null;

@@ -187,6 +187,16 @@ public enum HazelcastDataManager implements IDataManager {
     }
 
     @Override
+    public List<DataObjectInstance> getAllDataObjectInstances(String status) {
+        return null;
+    }
+
+    @Override
+    public List<DataElementInstance> getAllDataElementInstances(String status) {
+        return null;
+    }
+
+    @Override
     public DataElementInstance getDataElementInstanceFromDataObjectInstanceByName(String dataObjectInstanceId, String dataElementName) {
         return null;
     }

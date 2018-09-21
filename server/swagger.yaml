@@ -812,6 +812,31 @@ paths:
           $ref: '#/responses/ErrorResponse'
   /dataObjectInstances:
     x-swagger-router-controller: DataObjectInstance
+    get:
+      tags:
+      - dataObjectInstance
+      description: >-
+        Gets all available `DataObjectInstance` resources.
+
+        Optional query parameter of **start** and **size** enable pagination of
+        the collection of data object instance resources and param **status**
+        filters result list by status of the data object instances.
+      operationId: getAllDataObjectInstances
+      parameters:
+      - $ref: '#/parameters/startParam'
+      - $ref: '#/parameters/sizeParam'
+      - name: status
+        in: query
+        description: Status of data object instances to return
+        required: false
+        type: string
+      responses:
+        '200':
+          description: Returns all `DataObjectInstance` resources based on the provided parameters.
+          schema:
+            $ref: '#/definitions/DataObjectInstanceArrayWithLinks'
+        '500':
+          $ref: '#/responses/ErrorResponse'
     post:
       tags:
         - dataObjectInstance
@@ -1135,6 +1160,31 @@ paths:
           $ref: '#/responses/ErrorResponse'
   /dataElementInstances:
     x-swagger-router-controller: DataElementInstance
+    get:
+      tags:
+      - dataElementInstance
+      description: >-
+        Gets all available `DataElementInstance` resources.
+
+        Optional query parameter of **start** and **size** enable pagination of
+        the collection of data element instance resources and param **status**
+        filters result list by status of the data element instances.
+      operationId: getAllDataElementInstances
+      parameters:
+      - $ref: '#/parameters/startParam'
+      - $ref: '#/parameters/sizeParam'
+      - name: status
+        in: query
+        description: Status of data element instances to return
+        required: false
+        type: string
+      responses:
+        '200':
+          description: Returns all `DataElementInstance` resources based on the provided parameters.
+          schema:
+            $ref: '#/definitions/DataElementInstanceArrayWithLinks'
+        '500':
+          $ref: '#/responses/ErrorResponse'
     post:
       tags:
         - dataElementInstance

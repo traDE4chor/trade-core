@@ -22,6 +22,7 @@ import io.swagger.trade.server.jersey.api.util.ResourceTransformationUtils;
 import io.swagger.trade.server.jersey.model.*;
 import org.trade.core.data.management.DataManagerFactory;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -122,7 +123,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
                                 .singletonList(elementInstanceId)).message("There is no data value associated to the " +
                                 "specified data element instance at the given index " +
                                 "(" + indexOfDataValue + "'. A valid index value has to be in the range of [1," +
-                                numberOfDataValues+"].")).build();
+                                numberOfDataValues + "].")).build();
                     }
                 } else {
                     List<org.trade.core.model.data.DataValue> dataValues = dataElementInstance.getDataValues();
@@ -243,6 +244,63 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
             result.setLinks(LinkUtils.createDataValueLinks(uriInfo, value, result.getDataValue().getHref()));
 
             response = Response.ok().entity(result).build();
+        }
+
+        return response;
+    }
+
+    @Override
+    public Response getAllDataElementInstances(@Min(1) Integer start, @Min(1) Integer size, String status,
+                                               SecurityContext securityContext, UriInfo uriInfo) throws NotFoundException {
+        Response response = null;
+
+        try {
+            List<org.trade.core.model.data.instance.DataElementInstance> dataElementInstances = DataManagerFactory.createDataManager()
+                    .getAllDataElementInstances(status);
+            int filteredListSize = dataElementInstances.size();
+
+            // Check if the start index and the size are in still the range of the filtered result list, if not
+            // respond the whole filtered result list
+            if (start > 0 && size > 0 && start <= dataElementInstances.size()) {
+                // Calculate the two index
+                int toIndex = start - 1 + size;
+                // Check if the index is still in bounds
+                if (toIndex > dataElementInstances.size()) {
+                    toIndex = dataElementInstances.size();
+                }
+                // Decrease start by one since the API starts counting indexes from 1
+                dataElementInstances = dataElementInstances.subList(start - 1, toIndex);
+            }
+
+            DataElementInstanceArrayWithLinks resultList = new DataElementInstanceArrayWithLinks();
+            resultList.setInstances(new DataElementInstanceArray());
+            for (org.trade.core.model.data.instance.DataElementInstance dataElementInstance : dataElementInstances) {
+
+                DataElementInstanceWithLinks result = new DataElementInstanceWithLinks();
+
+                result.setInstance(ResourceTransformationUtils.model2Resource(dataElementInstance));
+
+                // Set HREF and links to related resources
+                UriBuilder builder = uriInfo.getAbsolutePathBuilder();
+                URI valueUri = builder.path(result.getInstance().getId()).build();
+
+                result.getInstance().setHref(valueUri.toASCIIString());
+
+                // Set links to related resources
+                result.setLinks(LinkUtils.createDataElementInstanceLinks(uriInfo, dataElementInstance, result
+                        .getInstance().getHref()));
+
+                resultList.getInstances().add(result);
+            }
+
+            resultList.setLinks(LinkUtils.createPaginationLinks("data element instances", uriInfo, start, size,
+                    filteredListSize));
+
+            response = Response.ok().entity(resultList).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response = Response.serverError().entity(e.getMessage()).build();
         }
 
         return response;

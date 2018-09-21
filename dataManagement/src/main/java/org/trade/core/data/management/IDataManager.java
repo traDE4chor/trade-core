@@ -236,6 +236,22 @@ public interface IDataManager extends TraDEEventListener {
     List<DataObject> getAllDataObjects(String name, String entity, String status);
 
     /**
+     * Gets all data object instances based on the provided criteria.
+     *
+     * @param status the status to search for
+     * @return a list of all data object instances fulfilling the specified criteria
+     */
+    List<DataObjectInstance> getAllDataObjectInstances(String status);
+
+    /**
+     * Gets all data element instances based on the provided criteria.
+     *
+     * @param status the status to search for
+     * @return a list of all data element instances fulfilling the specified criteria
+     */
+    List<DataElementInstance> getAllDataElementInstances(String status);
+
+    /**
      * Gets a data element instance of a data object instance based on the name of the underlying data element.
      *
      * @param dataObjectInstanceId the ID of a data object instance

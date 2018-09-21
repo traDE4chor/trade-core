@@ -345,6 +345,34 @@ public enum SimpleDataManager implements IDataManager {
         return Collections.unmodifiableList(result);
     }
 
+    @Override
+    public List<DataObjectInstance> getAllDataObjectInstances(String status) {
+        Stream<DataObjectInstance> stream = dataObjectInstances.values().stream();
+
+        if (status != null && !status.isEmpty()) {
+            stream = stream.filter(d -> (d.getState() != null && d.getState().toUpperCase().equals(status.toUpperCase())));
+        }
+
+        List<DataObjectInstance> result = stream.collect(Collectors.toList());
+
+        // Return an unmodifiable copy of the list
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
+    public List<DataElementInstance> getAllDataElementInstances(String status) {
+        Stream<DataElementInstance> stream = dataElementInstances.values().stream();
+
+        if (status != null && !status.isEmpty()) {
+            stream = stream.filter(d -> (d.getState() != null && d.getState().toUpperCase().equals(status.toUpperCase())));
+        }
+
+        List<DataElementInstance> result = stream.collect(Collectors.toList());
+
+        // Return an unmodifiable copy of the list
+        return Collections.unmodifiableList(result);
+    }
+
     public DataElementInstance getDataElementInstanceFromDataObjectInstanceByName(String dataObjectInstanceId, String
             dataElementName) {
         DataElementInstance result = null;
