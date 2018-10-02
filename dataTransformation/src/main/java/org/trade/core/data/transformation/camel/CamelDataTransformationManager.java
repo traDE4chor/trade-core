@@ -145,7 +145,7 @@ public class CamelDataTransformationManager implements IDataTransformationManage
 
             // Create a new API client for the TraDE Middleware
             tradeClient = new io.swagger.trade.client.jersey.ApiClient();
-            tradeClient.setBasePath("http://127.0.0.1:" + properties.getHttpServerPort() + "/api");
+            tradeClient.setBasePath(properties.getTraDEMiddlewareURL());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -234,7 +234,7 @@ public class CamelDataTransformationManager implements IDataTransformationManage
                         // Check if the data element the data value belongs to, is specified as the source of the
                         // data transformation. If this is the case, we resolved a data transformation that has
                         // to be triggered and therefore add it to the result list
-                        if (currentTransformation.getSource() == element) {
+                        if (currentTransformation.getSource().getIdentifier().equals(element.getIdentifier())) {
                             // HINT: The same transformation could be added multiple times to the list for different
                             // data element instance that share the same data value. To keep track of this we hold a
                             // list of these data element instance at the transformation
@@ -253,8 +253,10 @@ public class CamelDataTransformationManager implements IDataTransformationManage
                     }
                 }
 
-                // Finally we add the resolved result list to the cache for its later reuse
-                this.cachedCorrelatedTransformations.put(value.getIdentifier(), transformations);
+                if (!transformations.isEmpty()) {
+                    // Finally we add the resolved result list to the cache for its later reuse
+                    this.cachedCorrelatedTransformations.put(value.getIdentifier(), transformations);
+                }
             }
         }
 

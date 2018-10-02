@@ -572,7 +572,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                         // Translate the data element to an input file
                         RequestInputFile input = new RequestInputFile();
 
-                        input.setFormat(value.getContentType());
+                        input.setFormat(file.getFormat());
                         // Use the HREF of the resolved data value and append the "/data" suffix to get the actual
                         // data from it
                         input.setLink(value.getHref() + DATA_URL_SUFFIX);
@@ -613,7 +613,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                         RequestInputFileSet input = new RequestInputFileSet();
 
                         // Set the format common to all input data values, i.e., use the format of the first one
-                        input.setFormat(valueArray.get(0).getDataValue().getContentType());
+                        input.setFormat(fileSet.getFormat());
 
                         // Set the count of input data values based on the array size
                         input.setCount(valueArray.size());

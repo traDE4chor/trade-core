@@ -75,6 +75,7 @@ public class TraDEProperties extends Properties {
     public static final String PROPERTY_SERVER_SSL_KEYSTORE = "server.ssl.keystore.path";
     public static final String PROPERTY_SERVER_SSL_KEYSTORE_PASSWORD = "server.ssl.keystore.password";
 
+    public static final String PROPERTY_TRADE_MIDDLEWARE_URL = "trade.url";
     public static final String PROPERTY_HDT_APP_FRAMEWORK_URL = "hdtApps.framework.url";
 
     public TraDEProperties() {
@@ -211,6 +212,10 @@ public class TraDEProperties extends Properties {
 
     public String getHdtAppFrameworkURL() {
         return getProperty(PROPERTY_HDT_APP_FRAMEWORK_URL, "http://127.0.0.1:8082");
+    }
+
+    public String getTraDEMiddlewareURL() {
+        return getProperty(PROPERTY_TRADE_MIDDLEWARE_URL, "http://127.0.0.1:8081/api");
     }
 
     private void loadProperties() {
