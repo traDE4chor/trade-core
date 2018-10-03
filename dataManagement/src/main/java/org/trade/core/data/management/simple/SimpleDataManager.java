@@ -195,7 +195,8 @@ public enum SimpleDataManager implements IDataManager {
         Stream<DataDependencyGraph> stream = dataDependencyGraphs.values().stream();
 
         if (targetNamespace != null && !targetNamespace.isEmpty()) {
-            stream = stream.filter(d -> (d.getTargetNamespace() != null && d.getTargetNamespace().toUpperCase().equals(targetNamespace
+            stream =
+                    stream.filter(d -> (d.getTargetNamespace() != null && d.getTargetNamespace().toUpperCase().contains(targetNamespace
                     .toUpperCase())));
         }
 
@@ -219,7 +220,7 @@ public enum SimpleDataManager implements IDataManager {
         Stream<DataModel> stream = dataModels.values().stream();
 
         if (targetNamespace != null && !targetNamespace.isEmpty()) {
-            stream = stream.filter(d -> (d.getTargetNamespace() != null && d.getTargetNamespace().toUpperCase().equals(targetNamespace
+            stream = stream.filter(d -> (d.getTargetNamespace() != null && d.getTargetNamespace().toUpperCase().contains(targetNamespace
                     .toUpperCase())));
         }
 
@@ -293,7 +294,7 @@ public enum SimpleDataManager implements IDataManager {
         Stream<DataElement> stream = dataElements.values().stream();
 
         if (name != null && !name.isEmpty()) {
-            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().equals(name
+            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().contains(name
                     .toUpperCase())));
         }
 
@@ -315,7 +316,7 @@ public enum SimpleDataManager implements IDataManager {
         }
 
         if (createdBy != null && !createdBy.isEmpty()) {
-            stream = stream.filter(d -> (d.getOwner() != null && d.getOwner().equals(createdBy)));
+            stream = stream.filter(d -> (d.getOwner() != null && d.getOwner().contains(createdBy)));
         }
 
         List<DataValue> result = stream.collect(Collectors.toList());
@@ -328,11 +329,11 @@ public enum SimpleDataManager implements IDataManager {
         Stream<DataObject> stream = dataObjects.values().stream();
 
         if (name != null && !name.isEmpty()) {
-            stream = stream.filter(d -> (d.getName() != null && d.getName().equals(name)));
+            stream = stream.filter(d -> (d.getName() != null && d.getName().contains(name)));
         }
 
         if (entity != null && !entity.isEmpty()) {
-            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().equals(entity)));
+            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().contains(entity)));
         }
 
         if (status != null && !status.isEmpty()) {
