@@ -201,12 +201,12 @@ public enum SimpleDataManager implements IDataManager {
         }
 
         if (name != null && !name.isEmpty()) {
-            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().equals(name
+            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().contains(name
                     .toUpperCase())));
         }
 
         if (entity != null && !entity.isEmpty()) {
-            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().toUpperCase().equals(entity
+            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().toUpperCase().contains(entity
                     .toUpperCase())));
         }
 
@@ -225,12 +225,12 @@ public enum SimpleDataManager implements IDataManager {
         }
 
         if (name != null && !name.isEmpty()) {
-            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().equals(name
+            stream = stream.filter(d -> (d.getName() != null && d.getName().toUpperCase().contains(name
                     .toUpperCase())));
         }
 
         if (entity != null && !entity.isEmpty()) {
-            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().toUpperCase().equals(entity
+            stream = stream.filter(d -> (d.getEntity() != null && d.getEntity().toUpperCase().contains(entity
                     .toUpperCase())));
         }
 
