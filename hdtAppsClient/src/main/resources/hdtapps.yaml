@@ -500,7 +500,7 @@ definitions:
   InputParameter:
     type: "object"
     properties:
-      name:
+      inputName:
         type: "string"
       alias:
         type: "string"
@@ -508,13 +508,13 @@ definitions:
         type: "boolean"
       value:
         type: "string"
-      paramType:
+      type:
         type: "string"
   
   InputFile:
     type: "object"
     properties:
-      name:
+      inputName:
         type: "string"
       alias:
         type: "string"
@@ -522,7 +522,7 @@ definitions:
         type: "boolean"
       format:
         type: "string"
-      schemaPath:
+      schema:
         type: "string"
       requiredPath:
         type: "string"
@@ -530,7 +530,7 @@ definitions:
   InputFileSet:
     type: "object"
     properties:
-      name:
+      inputName:
         type: "string"
       alias:
         type: "string"
@@ -538,7 +538,7 @@ definitions:
         type: "boolean"
       format:
         type: "string"
-      schemaPath:
+      schema:
         type: "string"
       requiredPath:
         type: "string"
@@ -550,13 +550,13 @@ definitions:
   OutputFile:
     type: "object"
     properties:
-      name:
+      outputName:
         type: "string"
       alias:
         type: "string"
       format:
         type: "string"
-      schemaPath:
+      schema:
         type: "string"
       accessPath:
         type: "string"

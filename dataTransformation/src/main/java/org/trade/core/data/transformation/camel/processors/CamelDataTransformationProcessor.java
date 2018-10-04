@@ -178,13 +178,13 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
         if (transformation.getInputParams() != null && !transformation.getInputParams().isEmpty()) {
             for (InputParameter param : transformation.getInputParams()) {
                 // Map the provided parameters to the one required by the transformation
-                if (this.transformation.getTransformerParameters().containsKey(param.getName())) {
+                if (this.transformation.getTransformerParameters().containsKey(param.getInputName())) {
                     // Translate the parameter to an input parameter
                     RequestInputParameter inp = new RequestInputParameter();
-                    inp.setKey(param.getName());
-                    inp.setParamType(param.getParamType());
+                    inp.setKey(param.getInputName());
+                    inp.setParamType(param.getType());
 
-                    String value = this.transformation.getTransformerParameters().get(param.getName());
+                    String value = this.transformation.getTransformerParameters().get(param.getInputName());
                     if (value.startsWith(Query.QUERY_PREFIX)) {
                         inp.setValue(resolveQuery(Query.parseQuery(value), instanceContext));
                     } else {
