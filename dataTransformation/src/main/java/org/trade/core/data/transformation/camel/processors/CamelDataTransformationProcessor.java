@@ -127,9 +127,14 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
         // Set the resolved transformer ID
         request.setTransformationID(transf.getTransformationID());
 
+        // Set the transformation provider
+        request.setProviders(resolveProviders(transf));
+
         // Resolve data transformation parameters to know the input parameter values in the context of the
         // instance the data event was fired for (data object/element instances with same correlationProperties)
-        request.setInputParams(resolveInputParameters(transf, instanceContext));
+        if (transf.getInputParams() != null && !transf.getInputParams().isEmpty()) {
+            request.setInputParams(resolveInputParameters(transf, instanceContext));
+        }
 
         // Resolve data transformation source and target to know the inputs and outputs for transformation
 
@@ -155,6 +160,15 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
         if (resultEndpoint != null) {
             transformationTaskApi.hdtappsApiCreateTask(request);
         }
+    }
+
+    private List<Provider> resolveProviders(Transformation transformation) {
+        List<Provider> providers = new ArrayList<>();
+
+        // By default we add all available providers
+        providers.addAll(transformation.getProviders());
+
+        return providers;
     }
 
     private List<RequestInputParameter> resolveInputParameters(Transformation transformation, DataElementInstance
