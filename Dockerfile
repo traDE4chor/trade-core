@@ -11,7 +11,7 @@ FROM openjdk:8-jdk
 
 LABEL maintainer "Michael Hahn <mhahn.dev@gmail.com>"
 
-ARG DOCKERIZE_VERSION=v0.3.0
+ENV DOCKERIZE_VERSION v0.6.1
 
 ENV TRADE_VERSION 1.0-SNAPSHOT
 ENV PATH ${PATH}:/usr/local/bin/trade/bin:${JAVA_HOME}/bin
