@@ -28,10 +28,8 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
@@ -51,6 +49,7 @@ import static org.junit.Assert.*;
 /**
  * Created by hahnml on 10.05.2017.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NotificationHttpIT {
 
     private static TraDEServer server;

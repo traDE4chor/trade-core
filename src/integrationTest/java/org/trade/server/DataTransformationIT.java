@@ -32,7 +32,9 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
@@ -56,6 +58,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by hahnml on 14.02.2018.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DataTransformationIT {
 
     private static TraDEServer server;

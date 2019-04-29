@@ -28,7 +28,9 @@ import io.swagger.trade.client.jersey.api.DataObjectApi;
 import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
@@ -43,6 +45,7 @@ import static org.junit.Assert.*;
  * <p>
  * Created by hahnml on 31.01.2017.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DataDependencyGraphApiIT {
 
     private static TraDEServer server;

@@ -25,7 +25,9 @@ import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
 import org.apache.camel.test.AvailablePortFinder;
 import org.junit.AfterClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.trade.core.model.ModelConstants;
 import org.trade.core.server.TraDEServer;
 import org.trade.core.utils.TraDEProperties;
@@ -36,6 +38,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by hahnml on 30.11.2017.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalPersistenceProviderIT {
 
     private static TraDEServer server;
