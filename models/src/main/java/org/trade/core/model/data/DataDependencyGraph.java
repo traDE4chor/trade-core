@@ -16,7 +16,6 @@
 package org.trade.core.model.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -56,23 +55,27 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataDependencyGraph");
 
+    @JsonProperty("entity")
     private String entity;
 
+    @JsonProperty("name")
     private String name;
 
+    @JsonProperty("targetNamespace")
     private String targetNamespace;
 
     private transient DataDependencyGraphLifeCycle lifeCycle;
 
     private transient IPersistenceProvider<DataDependencyGraph> persistProv;
 
+    @JsonProperty("state")
     @State
     private String state;
 
+    @JsonProperty("dataModel")
     @Reference
     private DataModel dataModel;
 
-    @JsonManagedReference
     @JsonProperty("dataTransformations")
     @Reference
     private List<DataTransformation> dataTransformations;
@@ -98,7 +101,6 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
     private DataDependencyGraph() {
         this.lifeCycle = new DataDependencyGraphLifeCycle(this, false);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataDependencyGraph.class);
-        this.dataTransformations = new ArrayList<>();
     }
 
     /**
@@ -152,6 +154,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      *
      * @return The data model
      */
+    @JsonIgnore
     public DataModel getDataModel() {
         return this.dataModel;
     }
@@ -200,6 +203,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      * @param dataModel the data model
      * @throws LifeCycleException the life cycle exception
      */
+    @JsonIgnore
     public void setDataModel(DataModel dataModel) throws LifeCycleException {
         if (dataModel != null) {
             if (dataModel.isReady()) {

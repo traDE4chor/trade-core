@@ -16,8 +16,8 @@
 
 package org.trade.core.model.data.instance;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -56,24 +56,29 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
 
     private transient IPersistenceProvider<DataElementInstance> persistProv;
 
+    @JsonProperty("creationTimestamp")
     private Date creationTimestamp;
 
+    @JsonProperty("createdBy")
     private String createdBy;
 
+    @JsonProperty("state")
     @State
     private String state;
 
-    @JsonBackReference(value = "dataElement")
+    @JsonProperty("dataElement")
     @Reference
     private DataElement dataElement;
 
-    @JsonBackReference(value = "dataObjectInstance")
+    @JsonProperty("dataObjectInstance")
     @Reference
     private DataObjectInstance dataObjectInstance;
 
+    @JsonProperty("dataValues")
     @Reference
     private List<DataValue> dataValues;
 
+    @JsonProperty("correlationProperties")
     private HashMap<String, String> correlationProperties;
 
     public DataElementInstance(DataElement dataElement, DataObjectInstance dataObjectInstance, String createdBy, HashMap<String, String>
@@ -362,10 +367,10 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     public int hashCode() {
         int hashCode = 0;
         if (this.dataElement != null) {
-            if (this.dataElement.getParent() != null && this.dataElement.getParent().getDataModel() != null) {
+            if (this.dataElement.getDataObject() != null && this.dataElement.getDataObject().getDataModel() != null) {
                 // Create a query optimized hash which can be used to later identify the matching instance faster
-                hashCode = Objects.hash(dataElement.getParent().getDataModel().getTargetNamespace(), dataElement.getParent()
-                                .getDataModel().getName(), dataElement.getParent().getName(),
+                hashCode = Objects.hash(dataElement.getDataObject().getDataModel().getTargetNamespace(), dataElement.getDataObject()
+                                .getDataModel().getName(), dataElement.getDataObject().getName(),
                         dataElement.getName(), correlationProperties);
             } else {
                 hashCode = Objects.hash(identifier, creationTimestamp, createdBy, dataElement.getName(), correlationProperties);

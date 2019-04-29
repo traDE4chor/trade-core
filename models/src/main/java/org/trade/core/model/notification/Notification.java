@@ -16,6 +16,7 @@
 
 package org.trade.core.model.notification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
@@ -43,26 +44,32 @@ public class Notification extends ABaseResource {
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.notification.Notification");
 
+    @JsonProperty("name")
     private String name = null;
 
     // The resource for which the notification is registered. Could be null, if the notification is defined based on
     // a collection of resources using corresponding filters instead of one concrete resource.
+    @JsonProperty("resource")
     private ABaseResource resource = null;
 
     // The URL of the resource for which the notification is registered at the TraDE middleware. Could be null, if
     // the notification is defined based on a collection of resources using corresponding filters instead of one
     // concrete resource.
+    @JsonProperty("resourceURL")
     private String resourceURL = null;
 
     // The id of a notifier service which will be used in order to conduct the notification.
+    @JsonProperty("selectedNotifierServiceId")
     private String selectedNotifierServiceId = null;
 
     // A collection of notifier parameters (key, value) which are required to configure the selected notifier service.
+    @JsonProperty("notifierParameters")
     private Map<String, String> notifierParameters = new HashMap<>();
 
     // A collection of resource filters (key, value) which are used to identify and filter changes on relevant resources
     // (based on events) (e.g., a data value is initialized) before forwarding them to the selected
     // notifier to trigger the provided notification logic.
+    @JsonProperty("resourceFilters")
     private Map<String, String> resourceFilters = new HashMap<>();
 
     private transient IPersistenceProvider<Notification> persistProv;

@@ -248,7 +248,7 @@ public class ResourceTransformationUtils {
         result.setContentType(dataElement.getContentType());
         result.setType(dataElement.getType());
         result.setId(dataElement.getIdentifier());
-        result.setDataObjectName(dataElement.getParent().getName());
+        result.setDataObjectName(dataElement.getDataObject().getName());
         result.setEntity(dataElement.getEntity());
         result.setStatus(string2Status(dataElement.getState()));
         result.setIsCollectionElement(dataElement.getIsCollectionElement());

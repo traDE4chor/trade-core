@@ -437,10 +437,10 @@ public enum SimpleDataManager implements IDataManager {
             // First, check if the correlation properties are equal since they are the main property for correlation
             if (inst.getCorrelationProperties().equals(correlationProperties) && inst.getDataElement().getName().equals(dataElementName)) {
                 // Check all other parameters, normally they should be equal by default
-                if (inst.getDataElement().getParent() != null && inst.getDataElement().getParent().getName().equals
+                if (inst.getDataElement().getDataObject() != null && inst.getDataElement().getDataObject().getName().equals
                         (dataObjectName) && inst
-                        .getDataElement().getParent().getDataModel() != null && inst.getDataElement().getParent().getDataModel().getName().equals
-                        (dataModelName) && inst.getDataElement().getParent().getDataModel().getTargetNamespace().equals
+                        .getDataElement().getDataObject().getDataModel() != null && inst.getDataElement().getDataObject().getDataModel().getName().equals
+                        (dataModelName) && inst.getDataElement().getDataObject().getDataModel().getTargetNamespace().equals
                         (dataModelNamespace)) {
                     result = inst;
                 }
@@ -541,7 +541,7 @@ public enum SimpleDataManager implements IDataManager {
             DataElement value = this.dataElements.get(dataElementId);
 
             // Check if the data object belongs to a data model
-            if (value.getParent().getDataModel() == null) {
+            if (value.getDataObject().getDataModel() == null) {
                 if (name != null && !name.isEmpty() && !name.equals(value.getName())) {
                     value.setName(name);
                 }
@@ -556,7 +556,7 @@ public enum SimpleDataManager implements IDataManager {
                 value.storeToDS();
             } else {
                 throw new IllegalModificationException("Trying to update data element '" + dataElementId + "' which " +
-                        "belongs to a data model (" + value.getParent().getDataModel().getIdentifier() + ") and is therefore" +
+                        "belongs to a data model (" + value.getDataObject().getDataModel().getIdentifier() + ") and is therefore" +
                         " protected against changes.");
             }
 
@@ -659,8 +659,8 @@ public enum SimpleDataManager implements IDataManager {
             DataElement result = this.dataElements.get(dataElementId);
 
             // Check if the data element belongs to a data model
-            if (result.getParent().getDataModel() == null) {
-                DataObject parent = result.getParent();
+            if (result.getDataObject().getDataModel() == null) {
+                DataObject parent = result.getDataObject();
 
                 // Try to delete the element from its parent data object
                 parent.deleteDataElement(result);
@@ -669,7 +669,7 @@ public enum SimpleDataManager implements IDataManager {
                 this.dataElements.remove(dataElementId);
             } else {
                 throw new IllegalModificationException("Trying to delete data element '" + dataElementId + "' which " +
-                        "belongs to a data model (" + result.getParent().getDataModel()
+                        "belongs to a data model (" + result.getDataObject().getDataModel()
                         .getIdentifier() + ") and is therefore " +
                         "protected against changes.");
             }

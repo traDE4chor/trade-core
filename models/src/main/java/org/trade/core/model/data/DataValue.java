@@ -59,27 +59,36 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataValue");
 
+    @JsonProperty("name")
     private String name;
 
+    @JsonProperty("creationTimestamp")
     private Date creationTimestamp;
 
+    @JsonProperty("owner")
     private String owner;
 
     private transient DataValueLifeCycle lifeCycle;
 
     private transient IPersistenceProvider<DataValue> persistProv;
 
+    @JsonProperty("hasData")
     private boolean hasData;
 
+    @JsonProperty("state")
     @State
     private String state;
 
+    @JsonProperty("type")
     private String type;
 
+    @JsonProperty("contentType")
     private String contentType;
 
+    @JsonProperty("lastModified")
     private Date lastModified = creationTimestamp;
 
+    @JsonProperty("size")
     private long size;
 
     @JsonProperty("dataElementInstances")

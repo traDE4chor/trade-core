@@ -759,7 +759,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                 request.setCreatedBy(INTERNAL);
 
                 try {
-                    this.dataObjectInstanceApi.addDataObjectInstance(((DataElement) target).getParent().getIdentifier(), request);
+                    this.dataObjectInstanceApi.addDataObjectInstance(((DataElement) target).getDataObject().getIdentifier(), request);
                 } catch (io.swagger.trade.client.jersey.ApiException e) {
                     logger.error("The transformation with name '" + this.transformation.getTransformerQName() + "' " +
                             "could not be triggered because the instantiation of the target data element caused an " +

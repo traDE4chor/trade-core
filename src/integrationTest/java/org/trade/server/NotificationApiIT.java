@@ -220,6 +220,15 @@ public class NotificationApiIT {
         assertNotEquals(response.getNotifierParameterValues(), updated.getNotification().getNotifierParameterValues());
 
         notificationApi.deleteNotification(response.getId());
+
+        try {
+            // Try to retrieve the deleted notification
+            notificationApi.getNotificationDirectly(response.getId());
+        } catch (ApiException e) {
+            e.printStackTrace();
+
+            assertEquals(404, e.getCode());
+        }
     }
 
     @AfterClass

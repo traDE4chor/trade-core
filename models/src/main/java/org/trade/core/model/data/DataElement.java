@@ -16,9 +16,7 @@
 
 package org.trade.core.model.data;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -55,28 +53,33 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataElement");
 
+    @JsonProperty("entity")
     private String entity;
 
+    @JsonProperty("name")
     private String name;
 
     private transient DataElementLifeCycle lifeCycle;
 
     private transient IPersistenceProvider<DataElement> persistProv;
 
+    @JsonProperty("type")
     private String type;
 
+    @JsonProperty("contentType")
     private String contentType;
 
+    @JsonProperty("isCollectionElement")
     private boolean isCollectionElement;
 
+    @JsonProperty("state")
     @State
     private String state;
 
-    @JsonBackReference(value = "dataObject")
+    @JsonProperty("dataObject")
     @Reference
-    private DataObject parent;
+    private DataObject dataObject;
 
-    @JsonManagedReference(value = "dataElement")
     @JsonProperty("instances")
     @Reference
     private List<DataElementInstance> instances;
@@ -90,7 +93,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      * @param isCollectionElement if the data element refers to a collection of data of similar type
      */
     public DataElement(DataObject object, String entity, String name, boolean isCollectionElement) {
-        this.parent = object;
+        this.dataObject = object;
         this.name = name;
         this.entity = entity;
         this.isCollectionElement = isCollectionElement;
@@ -110,7 +113,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      * @param isCollectionElement if the data element refers to a collection of data of similar type
      */
     public DataElement(DataObject object, String identifier, String entity, String name, boolean isCollectionElement) {
-        this.parent = object;
+        this.dataObject = object;
         this.identifier = identifier;
         this.name = name;
         this.entity = entity;
@@ -144,8 +147,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      *
      * @param entity to set
      */
+    @JsonIgnore
     public void setEntity(String entity) {
-        if (this.parent != null && this.parent.getDataModel() == null) {
+        if (this.dataObject != null && this.dataObject.getDataModel() == null) {
             this.entity = entity;
         }
     }
@@ -164,8 +168,9 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      *
      * @param name to set
      */
+    @JsonIgnore
     public void setName(String name) {
-        if (this.parent != null && this.parent.getDataModel() == null) {
+        if (this.dataObject != null && this.dataObject.getDataModel() == null) {
             this.name = name;
         }
     }
@@ -228,12 +233,12 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     }
 
     /**
-     * Provides the parent data object to which this data element belongs.
+     * Provides the dataObject data object to which this data element belongs.
      *
-     * @return the parent data object
+     * @return the dataObject data object
      */
-    public DataObject getParent() {
-        return parent;
+    public DataObject getDataObject() {
+        return dataObject;
     }
 
     /**
@@ -293,10 +298,10 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
             this.lifeCycle.triggerEvent(this, ModelEvents.ready);
 
             // Add the data element to the specified data object after it is initialized
-            this.getParent().addDataElement(this);
+            this.getDataObject().addDataElement(this);
 
-            // Persist the changed parent object
-            this.getParent().storeToDS();
+            // Persist the changed dataObject object
+            this.getDataObject().storeToDS();
         } catch (TooBusyException e) {
             logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                     "amount of retries", this.getIdentifier(), ModelEvents.ready);

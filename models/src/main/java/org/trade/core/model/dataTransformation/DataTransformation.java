@@ -16,7 +16,8 @@
 
 package org.trade.core.model.dataTransformation;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -48,29 +49,36 @@ public class DataTransformation extends ABaseResource {
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.dataTransformation.DataTransformation");
 
+    @JsonProperty("name")
     private String name = null;
 
+    @JsonProperty("transformerQName")
     private String transformerQName;
 
-    @JsonBackReference
+    @JsonProperty("dataDependencyGraph")
     @Reference
     private DataDependencyGraph dataDependencyGraph;
 
+    @JsonIgnore
     @Transient
     private Object hdtTransformer;
 
     // The source model object (data object or data element) of the data transformation.
+    @JsonProperty("source")
     @Reference
     private ABaseResource source = null;
 
     // The target model object (data object or data element) of the data transformation.
+    @JsonProperty("target")
     @Reference
     private ABaseResource target = null;
 
     // A map of key-value pairs representing the transformer parameters and their values.
+    @JsonProperty("transformerParameters")
     @Embedded
     private Map<String, String> transformerParameters;
 
+    @JsonIgnore
     @Transient
     private Map<String, Set<DataElementInstance>> relatedDataElementInstances = new HashMap<>();
 

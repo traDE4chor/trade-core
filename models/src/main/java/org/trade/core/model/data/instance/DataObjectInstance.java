@@ -16,9 +16,8 @@
 
 package org.trade.core.model.data.instance;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -52,10 +51,13 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
+    @JsonProperty("creationTimestamp")
     private Date creationTimestamp;
 
+    @JsonProperty("createdBy")
     private String createdBy;
 
+    @JsonProperty("state")
     @State
     private String state;
 
@@ -63,14 +65,15 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
 
     private transient IPersistenceProvider<DataObjectInstance> persistProv;
 
-    @JsonBackReference
+    @JsonProperty("dataObject")
     @Reference
     private DataObject dataObject;
 
-    @JsonManagedReference(value = "dataObjectInstance")
+    @JsonProperty("dataElementInstances")
     @Reference
     private List<DataElementInstance> dataElementInstances;
 
+    @JsonProperty("correlationProperties")
     private HashMap<String, String> correlationProperties;
 
     public DataObjectInstance(DataObject dataObject, String createdBy, HashMap<String, String>

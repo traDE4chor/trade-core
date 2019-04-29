@@ -253,9 +253,9 @@ public class LinkUtils {
         LinkArray links = new LinkArray();
 
         // Add link to parent data object, if there is one
-        if (dataElement != null && dataElement.getParent() != null) {
+        if (dataElement != null && dataElement.getDataObject() != null) {
             Link link = new Link();
-            link.setHref(calculateURI(uriInfo, dataElement.getParent()));
+            link.setHref(calculateURI(uriInfo, dataElement.getDataObject()));
             link.setRel(RELATION_DATA_OBJECT);
             link.setTitle("Provides the parent data object of this data element.");
             links.add(link);

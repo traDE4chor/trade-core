@@ -17,7 +17,6 @@
 package org.trade.core.model.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -57,10 +56,13 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataModel");
 
+    @JsonProperty("entity")
     private String entity;
 
+    @JsonProperty("name")
     private String name;
 
+    @JsonProperty("targetNamespace")
     private String targetNamespace;
 
     private transient DataModelLifeCycle lifeCycle;
@@ -69,10 +71,10 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
 
     private AtomicInteger referenceCounter;
 
+    @JsonProperty("state")
     @State
     private String state;
 
-    @JsonManagedReference
     @JsonProperty("dataObjects")
     @Reference
     private List<DataObject> dataObjects;

@@ -16,9 +16,7 @@
 
 package org.trade.core.model.data;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -54,27 +52,28 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.DataObject");
 
+    @JsonProperty("entity")
     private String entity;
 
+    @JsonProperty("name")
     private String name;
 
     private transient DataObjectLifeCycle lifeCycle;
 
     private transient IPersistenceProvider<DataObject> persistProv;
 
+    @JsonProperty("state")
     @State
     private String state;
 
-    @JsonBackReference
+    @JsonProperty("dataModel")
     @Reference
     private DataModel dataModel;
 
-    @JsonManagedReference(value = "dataObject")
     @JsonProperty("dataElements")
     @Reference
     private List<DataElement> dataElements;
 
-    @JsonManagedReference
     @JsonProperty("dataObjectInstances")
     @Reference
     private List<DataObjectInstance> dataObjectInstances;
@@ -140,6 +139,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      *
      * @param entity the entity to set
      */
+    @JsonIgnore
     public void setEntity(String entity) {
         if (this.dataModel == null) {
             this.entity = entity;
@@ -160,6 +160,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      *
      * @param name the name to set
      */
+    @JsonIgnore
     public void setName(String name) {
         if (this.dataModel == null) {
             this.name = name;
