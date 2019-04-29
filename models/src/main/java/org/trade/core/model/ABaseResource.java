@@ -16,9 +16,15 @@
 
 package org.trade.core.model;
 
+import com.fasterxml.jackson.annotation.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Version;
+import org.trade.core.model.data.*;
+import org.trade.core.model.data.instance.DataElementInstance;
+import org.trade.core.model.data.instance.DataObjectInstance;
+import org.trade.core.model.dataTransformation.DataTransformation;
+import org.trade.core.model.notification.Notification;
 import org.trade.core.persistence.PersistableObject;
 
 import java.lang.reflect.Method;
@@ -32,14 +38,33 @@ import java.util.UUID;
  * <p>
  * Created by hahnml on 22.11.2016.
  */
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "identifier")
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "javaType")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = DataDependencyGraph.class, name = "dataDependencyGraph"),
+        @JsonSubTypes.Type(value = DataModel.class, name = "dataModel"),
+        @JsonSubTypes.Type(value = DataObject.class, name = "dataObject"),
+        @JsonSubTypes.Type(value = DataElement.class, name = "dataElement"),
+        @JsonSubTypes.Type(value = DataValue.class, name = "dataValue"),
+        @JsonSubTypes.Type(value = DataObjectInstance.class, name = "dataObjectInstance"),
+        @JsonSubTypes.Type(value = DataElementInstance.class, name = "dataElementInstance"),
+        @JsonSubTypes.Type(value = DataTransformation.class, name = "dataTransformation"),
+        @JsonSubTypes.Type(value = Notification.class, name = "notification")
+})
 public abstract class ABaseResource implements PersistableObject {
 
     private static final long serialVersionUID = 1666273823086587345L;
 
     // We directly initialize the id to avoid problems with non-initialized @Id fields during runtime
+    @JsonIgnore
     @Id
     protected ObjectId id = new ObjectId();
 
+    @JsonIgnore
     @Version
     private Long version;
 

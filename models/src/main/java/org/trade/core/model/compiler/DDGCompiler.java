@@ -57,7 +57,7 @@ public class DDGCompiler extends ACompiler {
     // TODO: 10.04.2017 Requires rework if we restructure/refactor data dependence graph and data model schemas (XSD files)...
 
     public void compile(String ddgId, String entity, byte[] serializedDDG) throws CompilationException {
-        DataDependenceGraph ddgDef = null;
+        DataDependenceGraph ddgDef;
         try {
             ddgDef = DDGUtils.unmarshalGraph(serializedDDG);
 
@@ -87,8 +87,8 @@ public class DDGCompiler extends ACompiler {
 
     public void compile(String ddgId, String entity, DataDependenceGraph ddgDefinition) throws CompilationException {
         this.ddgId = ddgId;
-        String targetNamespace = "";
-        String name = "";
+        String targetNamespace;
+        String name;
 
         if (ddgDefinition == null) {
             logger.error("The data dependency graph '{}' could not be deserialized successfully. Please check if the " +
@@ -172,9 +172,9 @@ public class DDGCompiler extends ACompiler {
     }
 
     private DataObject compile(DataObjectType dataObject, String entity) throws CompilationException {
-        DataObject compiledDataObject = null;
+        DataObject compiledDataObject;
 
-        String name = null;
+        String name;
         String identifier = null;
 
         if (dataObject.getName() == null || dataObject.getName().isEmpty()) {
@@ -249,9 +249,9 @@ public class DDGCompiler extends ACompiler {
 
     private DataElement compile(DataObject compiledDataObject, DataElementType dataElement, String entity) throws
             CompilationException {
-        DataElement compiledElement = null;
+        DataElement compiledElement;
 
-        String name = null;
+        String name;
         String identifier = null;
 
         if (dataElement.getName() == null || dataElement.getName().isEmpty()) {
@@ -383,8 +383,6 @@ public class DDGCompiler extends ACompiler {
                     // Create a new DataTransformation to which we can add transformation parameters in the following
                     compiledTransformation = new DataTransformation(name, dataTransformation
                             .getTransformerID());
-
-                    compiledTransformation.setDataModel(this.dataModel);
 
                     compiledTransformation.setSource(source);
                     compiledTransformation.setTarget(target);

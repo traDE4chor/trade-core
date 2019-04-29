@@ -15,6 +15,9 @@
 
 package org.trade.core.model.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -69,6 +72,8 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
     @Reference
     private DataModel dataModel;
 
+    @JsonManagedReference
+    @JsonProperty("dataTransformations")
     @Reference
     private List<DataTransformation> dataTransformations;
 
@@ -93,6 +98,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
     private DataDependencyGraph() {
         this.lifeCycle = new DataDependencyGraphLifeCycle(this, false);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataDependencyGraph.class);
+        this.dataTransformations = new ArrayList<>();
     }
 
     /**
@@ -109,6 +115,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      *
      * @return The qualified name of the data dependency graph.
      */
+    @JsonIgnore
     public QName getQName() {
         return new QName(this.targetNamespace, name);
     }
@@ -163,6 +170,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      *
      * @return The list of data transformations
      */
+    @JsonIgnore
     public List<DataTransformation> getDataTransformations() {
         return Collections.unmodifiableList(this.dataTransformations);
     }
@@ -173,6 +181,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      *
      * @param transformations the list of data transformations
      */
+    @JsonIgnore
     public void setDataTransformations(List<DataTransformation> transformations) {
         for (DataTransformation transformation : transformations) {
             this.dataTransformations.add(transformation);
@@ -223,6 +232,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
         }
     }
 
+    @JsonIgnore
     public byte[] getSerializedModel() throws Exception {
         return this.persistProv.loadBinaryData(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION,
                 getIdentifier());
@@ -269,7 +279,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      * @throws Exception An exception thrown during the execution of this method
      */
     public List<CompilationIssue> compileDataDependencyGraph(byte[] data) throws Exception {
-        List<CompilationIssue> issues = Collections.emptyList();
+        List<CompilationIssue> issues;
 
         if (this.isInitial()) {
             // Deserialize and compile the provided data dependency graph, i.e., generate the specified data objects and data
@@ -282,8 +292,12 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
 
             this.targetNamespace = comp.getTargetNamespace();
 
-            // Set the resulting data transformations to this DDG
-            setDataTransformations(comp.getCompiledDataTransformations());
+            // Set the resulting data transformations to this DDG and vice versa
+            List<DataTransformation> transformations = comp.getCompiledDataTransformations();
+            for (DataTransformation transf : transformations) {
+                transf.setDataDependencyGraph(this);
+            }
+            setDataTransformations(transformations);
 
             // Get the list of compilation issues
             issues = comp.getCompilationIssues();
@@ -393,21 +407,25 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
         }
     }
 
+    @JsonIgnore
     public boolean isInitial() {
         return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
+    @JsonIgnore
     public boolean isReady() {
         return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
+    @JsonIgnore
     public boolean isArchived() {
         return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());

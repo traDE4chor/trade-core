@@ -22,8 +22,7 @@ import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.PersistableObject;
 import org.trade.core.utils.TraDEProperties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * Created by hahnml on 30.11.2017.
@@ -47,7 +46,8 @@ public class FileSystemPersistenceTest {
 
         PersistableObject loadedValue = persistProv.loadObject(value.getIdentifier());
 
-        assertEquals(value, loadedValue);
+        assertNotNull(loadedValue);
+        assertEquals(value.getIdentifier(), loadedValue.getIdentifier());
 
         persistProv.deleteObject(value.getIdentifier());
 

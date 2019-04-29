@@ -16,6 +16,8 @@
 
 package org.trade.core.model.data.instance;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -54,16 +56,18 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
 
     private transient IPersistenceProvider<DataElementInstance> persistProv;
 
-    private Date timestamp;
+    private Date creationTimestamp;
 
     private String createdBy;
 
     @State
     private String state;
 
+    @JsonBackReference(value = "dataElement")
     @Reference
-    private DataElement model;
+    private DataElement dataElement;
 
+    @JsonBackReference(value = "dataObjectInstance")
     @Reference
     private DataObjectInstance dataObjectInstance;
 
@@ -74,11 +78,11 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
 
     public DataElementInstance(DataElement dataElement, DataObjectInstance dataObjectInstance, String createdBy, HashMap<String, String>
             correlationProperties) {
-        this.model = dataElement;
+        this.dataElement = dataElement;
         this.dataObjectInstance = dataObjectInstance;
         this.createdBy = createdBy;
 
-        this.timestamp = new Date();
+        this.creationTimestamp = new Date();
 
         if (correlationProperties != null) {
             this.correlationProperties = correlationProperties;
@@ -101,7 +105,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     }
 
     public Date getCreationTimestamp() {
-        return timestamp;
+        return creationTimestamp;
     }
 
     public String getCreatedBy() {
@@ -121,7 +125,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     }
 
     public DataElement getDataElement() {
-        return this.model;
+        return this.dataElement;
     }
 
     public DataObjectInstance getDataObjectInstance() {
@@ -132,6 +136,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         return correlationProperties;
     }
 
+    @JsonIgnore
     public int getNumberOfDataValues() {
         return this.dataValues.size();
     }
@@ -146,7 +151,7 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
 
                 // Check if the data element is a simple or collection element and if it's a simple element if
                 // already a data value was set before
-                if (this.model.isCollectionElement() && !this.dataValues.contains(dataValue)) {
+                if (this.dataElement.getIsCollectionElement() && !this.dataValues.contains(dataValue)) {
                     // Add the new data value
                     this.dataValues.add(dataValue);
                 } else {
@@ -281,24 +286,28 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         }
     }
 
+    @JsonIgnore
     @Override
     public boolean isCreated() {
         return getState() != null && this.getState().equals(InstanceStates
                 .CREATED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isInitialized() {
         return getState() != null && this.getState().equals(InstanceStates
                 .INITIALIZED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isArchived() {
         return getState() != null && this.getState().equals(InstanceStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(InstanceStates
@@ -352,17 +361,17 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     @Override
     public int hashCode() {
         int hashCode = 0;
-        if (this.model != null) {
-            if (this.model.getParent() != null && this.model.getParent().getDataModel() != null) {
+        if (this.dataElement != null) {
+            if (this.dataElement.getParent() != null && this.dataElement.getParent().getDataModel() != null) {
                 // Create a query optimized hash which can be used to later identify the matching instance faster
-                hashCode = Objects.hash(model.getParent().getDataModel().getTargetNamespace(), model.getParent()
-                                .getDataModel().getName(), model.getParent().getName(),
-                        model.getName(), correlationProperties);
+                hashCode = Objects.hash(dataElement.getParent().getDataModel().getTargetNamespace(), dataElement.getParent()
+                                .getDataModel().getName(), dataElement.getParent().getName(),
+                        dataElement.getName(), correlationProperties);
             } else {
-                hashCode = Objects.hash(identifier, timestamp, createdBy, model.getName(), correlationProperties);
+                hashCode = Objects.hash(identifier, creationTimestamp, createdBy, dataElement.getName(), correlationProperties);
             }
         } else {
-            hashCode = Objects.hash(identifier, timestamp, createdBy);
+            hashCode = Objects.hash(identifier, creationTimestamp, createdBy);
         }
 
         return hashCode;

@@ -16,6 +16,10 @@
 
 package org.trade.core.model.data;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -61,14 +65,19 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     @State
     private String state;
 
+    @JsonBackReference
     @Reference
-    private DataModel model;
+    private DataModel dataModel;
 
+    @JsonManagedReference(value = "dataObject")
+    @JsonProperty("dataElements")
     @Reference
     private List<DataElement> dataElements;
 
+    @JsonManagedReference
+    @JsonProperty("dataObjectInstances")
     @Reference
-    private List<DataObjectInstance> instances;
+    private List<DataObjectInstance> dataObjectInstances;
 
     /**
      * Instantiates a new data object.
@@ -88,12 +97,12 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @param name   the name of the data object
      */
     public DataObject(DataModel model, String entity, String name) {
-        this.model = model;
+        this.dataModel = model;
         this.name = name;
         this.entity = entity;
 
-        this.dataElements = new ArrayList<DataElement>();
-        this.instances = new ArrayList<DataObjectInstance>();
+        this.dataElements = new ArrayList<>();
+        this.dataObjectInstances = new ArrayList<>();
         this.lifeCycle = new DataObjectLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObject.class);
     }
@@ -107,13 +116,13 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @param name       the name of the data object
      */
     public DataObject(DataModel model, String identifier, String entity, String name) {
-        this.model = model;
+        this.dataModel = model;
         this.identifier = identifier;
         this.name = name;
         this.entity = entity;
 
-        this.dataElements = new ArrayList<DataElement>();
-        this.instances = new ArrayList<DataObjectInstance>();
+        this.dataElements = new ArrayList<>();
+        this.dataObjectInstances = new ArrayList<>();
         this.lifeCycle = new DataObjectLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObject.class);
     }
@@ -132,7 +141,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @param entity the entity to set
      */
     public void setEntity(String entity) {
-        if (this.model == null) {
+        if (this.dataModel == null) {
             this.entity = entity;
         }
     }
@@ -152,7 +161,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @param name the name to set
      */
     public void setName(String name) {
-        if (this.model == null) {
+        if (this.dataModel == null) {
             this.name = name;
         }
     }
@@ -181,7 +190,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @return the parent data model or null, if the data object is defined independently.
      */
     public DataModel getDataModel() {
-        return model;
+        return dataModel;
     }
 
     /**
@@ -189,6 +198,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      *
      * @return An unmodifiable list of data elements.
      */
+    @JsonIgnore
     public List<DataElement> getDataElements() {
         return this.dataElements != null ? Collections.unmodifiableList(this.dataElements) : null;
     }
@@ -220,8 +230,9 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      *
      * @return An unmodifiable list of data object instances.
      */
+    @JsonIgnore
     public List<DataObjectInstance> getDataObjectInstances() {
-        return this.instances != null ? Collections.unmodifiableList(this.instances) : null;
+        return this.dataObjectInstances != null ? Collections.unmodifiableList(this.dataObjectInstances) : null;
     }
 
     /**
@@ -231,7 +242,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @return An unmodifiable list of matching data object instances.
      */
     public List<DataObjectInstance> getDataObjectInstances(String createdBy) {
-        List<DataObjectInstance> result = this.instances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
+        List<DataObjectInstance> result = this.dataObjectInstances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
                 (Collectors.toList());
         return Collections.unmodifiableList(result);
     }
@@ -243,7 +254,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @return the data object instance by id
      */
     public DataObjectInstance getDataObjectInstanceById(String identifier) {
-        Optional<DataObjectInstance> opt = this.instances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
+        Optional<DataObjectInstance> opt = this.dataObjectInstances.stream().filter(s -> s.getIdentifier().equals(identifier)).findFirst();
         return opt.orElse(null);
     }
 
@@ -254,7 +265,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      * @return The data object instance with the given correlation properties or NULL if no matching instance was found.
      */
     public DataObjectInstance getDataObjectInstanceByCorrelationProps(HashMap<String, String> correlationProperties) {
-        Optional<DataObjectInstance> opt = this.instances.stream().filter(s -> s.getCorrelationProperties().equals(correlationProperties)).findFirst();
+        Optional<DataObjectInstance> opt = this.dataObjectInstances.stream().filter(s -> s.getCorrelationProperties().equals(correlationProperties)).findFirst();
         return opt.orElse(null);
     }
 
@@ -385,7 +396,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     private void deleteDataObjectInstances() throws Exception {
         if (this.isInitial() || this.isReady() || this.isArchived()) {
             // Loop over all data object instances
-            for (Iterator<DataObjectInstance> iter = this.instances.iterator(); iter.hasNext(); ) {
+            for (Iterator<DataObjectInstance> iter = this.dataObjectInstances.iterator(); iter.hasNext(); ) {
                 DataObjectInstance objInst = iter.next();
 
                 // Remove the data object instance from the list
@@ -409,7 +420,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     public void archive() throws Exception {
         if (this.isReady()) {
             // Remember changed elements for undoing changes in case of an exception
-            List<DataElement> changedElements = new ArrayList<DataElement>();
+            List<DataElement> changedElements = new ArrayList<>();
 
             try {
                 for (DataElement element : this.dataElements) {
@@ -453,7 +464,7 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     public void unarchive() throws Exception {
         if (this.isArchived()) {
             // Remember changed elements for undoing changes in case of an exception
-            List<DataElement> changedElements = new ArrayList<DataElement>();
+            List<DataElement> changedElements = new ArrayList<>();
 
             try {
                 for (DataElement element : this.dataElements) {
@@ -554,13 +565,13 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
      */
     public DataObjectInstance instantiate(String createdBy, HashMap<String, String>
             correlationProperties) throws LifeCycleException {
-        DataObjectInstance result = null;
+        DataObjectInstance result;
 
         if (this.isReady()) {
             result = new DataObjectInstance(this, createdBy, correlationProperties);
 
             // Add the new instance to the list of instances
-            this.instances.add(result);
+            this.dataObjectInstances.add(result);
 
             // Persist the changed parent object
             this.storeToDS();
@@ -584,25 +595,29 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     public void removeDataObjectInstance(DataObjectInstance instance) {
         // Check if the object instance belongs to this data object
         if (instance.getDataObject() == this) {
-            this.instances.remove(instance);
+            this.dataObjectInstances.remove(instance);
         }
     }
 
+    @JsonIgnore
     public boolean isInitial() {
         return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
+    @JsonIgnore
     public boolean isReady() {
         return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
+    @JsonIgnore
     public boolean isArchived() {
         return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());

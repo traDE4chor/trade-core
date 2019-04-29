@@ -16,14 +16,19 @@
 
 package org.trade.core.persistence.local.filesystem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.PersistableObject;
 import org.trade.core.utils.TraDEProperties;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +48,8 @@ public class FileSystemPersistence<T extends PersistableObject> implements IPers
 
     private String persistenceFileDirectory;
 
+    private ObjectMapper objectMapper;
+
     @Override
     public void initProvider(Class<T> objectType, TraDEProperties properties) {
         this.objectType = objectType;
@@ -54,6 +61,8 @@ public class FileSystemPersistence<T extends PersistableObject> implements IPers
             String test = path.toAbsolutePath().toString();
             persistenceFileDirectory = Paths.get(".", persistenceFileDirectory).toString();
         }
+
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -112,7 +121,7 @@ public class FileSystemPersistence<T extends PersistableObject> implements IPers
 
             // Check if root folder is empty, if so delete also this folder
             File cFile = rootFolder.toFile();
-            if (cFile.isDirectory() && cFile.listFiles().length == 0) {
+            if (cFile.isDirectory() && cFile.listFiles() != null && cFile.listFiles().length == 0) {
                 Files.delete(rootFolder);
             }
         } catch (IOException e) {
@@ -160,12 +169,18 @@ public class FileSystemPersistence<T extends PersistableObject> implements IPers
 
         try {
             if (Files.exists(file)) {
-                InputStream fio = Files.newInputStream(file);
-                ObjectInputStream ois = new ObjectInputStream(fio);
-                result = (T) ois.readObject();
-
-                fio.close();
-                ois.close();
+//                InputStream fio = Files.newInputStream(file);
+//                ObjectInputStream ois = new ObjectInputStream(fio);
+//                result = (T) ois.readObject();
+//
+//                fio.close();
+//                ois.close();InputStream fio = Files.newInputStream(file);
+////                ObjectInputStream ois = new ObjectInputStream(fio);
+////                result = (T) ois.readObject();
+////
+////                fio.close();
+////                ois.close();
+                result = objectMapper.readValue(file.toFile(), objectType);
             }
         } catch (IOException e) {
             logger.error("Loading an object of type '{}' for the given identifier '{}' from file '{}' caused an " +
@@ -190,12 +205,13 @@ public class FileSystemPersistence<T extends PersistableObject> implements IPers
         }
 
         try {
-            // Write the serialized object to the file
-            OutputStream fio = Files.newOutputStream(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING);
-            ObjectOutputStream oos = new ObjectOutputStream(fio);
-            oos.writeObject(object);
-            oos.close();
+//            // Write the serialized object to the file
+//            OutputStream fio = Files.newOutputStream(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+//                    StandardOpenOption.TRUNCATE_EXISTING);
+//            ObjectOutputStream oos = new ObjectOutputStream(fio);
+//            oos.writeObject(object);
+//            oos.close();
+            objectMapper.writeValue(file.toFile(), object);
         } catch (IOException e) {
             logger.error("Storing an object of type '{}' with the given identifier '{}' in file '{}' caused an " +
                     "exception", objectType.getSimpleName(), object.getIdentifier(), file.toString());

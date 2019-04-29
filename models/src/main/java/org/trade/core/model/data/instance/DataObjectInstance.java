@@ -16,6 +16,9 @@
 
 package org.trade.core.model.data.instance;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -49,7 +52,7 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     @Transient
     private Logger logger = LoggerFactory.getLogger("org.trade.core.model.data.instance.DataObjectInstance");
 
-    private Date timestamp;
+    private Date creationTimestamp;
 
     private String createdBy;
 
@@ -60,9 +63,11 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
 
     private transient IPersistenceProvider<DataObjectInstance> persistProv;
 
+    @JsonBackReference
     @Reference
-    private DataObject model;
+    private DataObject dataObject;
 
+    @JsonManagedReference(value = "dataObjectInstance")
     @Reference
     private List<DataElementInstance> dataElementInstances;
 
@@ -71,9 +76,9 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     public DataObjectInstance(DataObject dataObject, String createdBy, HashMap<String, String>
             correlationProperties) {
         this.createdBy = createdBy;
-        this.model = dataObject;
+        this.dataObject = dataObject;
 
-        this.timestamp = new Date();
+        this.creationTimestamp = new Date();
 
         if (correlationProperties != null) {
             this.correlationProperties = correlationProperties;
@@ -81,7 +86,7 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
             this.correlationProperties = new HashMap<>();
         }
 
-        dataElementInstances = new ArrayList<DataElementInstance>();
+        dataElementInstances = new ArrayList<>();
         this.lifeCycle = new DataObjectInstanceLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataObjectInstance
                 .class);
@@ -97,7 +102,7 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     }
 
     public Date getCreationTimestamp() {
-        return timestamp;
+        return creationTimestamp;
     }
 
     public String getCreatedBy() {
@@ -109,7 +114,7 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     }
 
     public DataObject getDataObject() {
-        return this.model;
+        return this.dataObject;
     }
 
     public List<DataElementInstance> getDataElementInstances() {
@@ -201,24 +206,28 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
         getDataObject().removeDataObjectInstance(this);
     }
 
+    @JsonIgnore
     @Override
     public boolean isCreated() {
         return getState() != null && this.getState().equals(InstanceStates
                 .CREATED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isInitialized() {
         return getState() != null && this.getState().equals(InstanceStates
                 .INITIALIZED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isArchived() {
         return getState() != null && this.getState().equals(InstanceStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(InstanceStates
@@ -273,16 +282,16 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     public int hashCode() {
         int hashCode = 0;
 
-        if (this.model != null) {
-            if (this.model.getDataModel() != null) {
+        if (this.dataObject != null) {
+            if (this.dataObject.getDataModel() != null) {
                 // Create a query optimized hash which can be used to later identify the matching instance faster
-                hashCode = Objects.hash(model.getDataModel().getTargetNamespace(), model.getDataModel().getName(),
-                        model.getName(), correlationProperties);
+                hashCode = Objects.hash(dataObject.getDataModel().getTargetNamespace(), dataObject.getDataModel().getName(),
+                        dataObject.getName(), correlationProperties);
             } else {
-                hashCode = Objects.hash(identifier, timestamp, createdBy, model.getName(), correlationProperties);
+                hashCode = Objects.hash(identifier, creationTimestamp, createdBy, dataObject.getName(), correlationProperties);
             }
         } else {
-            hashCode = Objects.hash(identifier, timestamp, createdBy);
+            hashCode = Objects.hash(identifier, creationTimestamp, createdBy);
         }
 
         return hashCode;

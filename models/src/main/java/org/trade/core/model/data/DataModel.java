@@ -16,6 +16,9 @@
 
 package org.trade.core.model.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -39,6 +42,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class represents a data model within the middleware.
@@ -63,12 +67,13 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
 
     private transient IPersistenceProvider<DataModel> persistProv;
 
+    private AtomicInteger referenceCounter;
+
     @State
     private String state;
 
-    @Reference
-    private List<DataDependencyGraph> dataDependencyGraphs;
-
+    @JsonManagedReference
+    @JsonProperty("dataObjects")
     @Reference
     private List<DataObject> dataObjects;
 
@@ -84,8 +89,8 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         this.entity = entity;
         this.targetNamespace = targetNamespace;
 
-        this.dataDependencyGraphs = new ArrayList<DataDependencyGraph>();
-        this.dataObjects = new ArrayList<DataObject>();
+        this.referenceCounter = new AtomicInteger(0);
+        this.dataObjects = new ArrayList<>();
         this.lifeCycle = new DataModelLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataModel.class);
     }
@@ -106,6 +111,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
     private DataModel() {
         this.lifeCycle = new DataModelLifeCycle(this, false);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataModel.class);
+        this.referenceCounter = new AtomicInteger(0);
     }
 
     /**
@@ -122,6 +128,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
      *
      * @return The qualified name of the data model.
      */
+    @JsonIgnore
     public QName getQName() {
         return new QName(this.targetNamespace, name);
     }
@@ -158,6 +165,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
      *
      * @return An unmodifiable list of data objects.
      */
+    @JsonIgnore
     public List<DataObject> getDataObjects() {
         return this.dataObjects != null ? Collections.unmodifiableList(this.dataObjects) : null;
     }
@@ -172,6 +180,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         return opt.orElse(null);
     }
 
+    @JsonIgnore
     public byte[] getSerializedModel() throws Exception {
         return this.persistProv.loadBinaryData(ModelConstants.DATA_MODEL__DATA_COLLECTION, getIdentifier());
     }
@@ -209,33 +218,14 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
 
     public void associateWithDataDependencyGraph(DataDependencyGraph dataDependencyGraph) {
         if (dataDependencyGraph != null) {
-            if (!dataDependencyGraphs.contains(dataDependencyGraph)) {
-                dataDependencyGraphs.add(dataDependencyGraph);
-
-                // Persist the changes at the data source
-                this.storeToDS();
-            }
+            this.referenceCounter.incrementAndGet();
         }
     }
 
     public void removeAssociationWithDataDependencyGraph(DataDependencyGraph dataDependencyGraph) {
         if (dataDependencyGraph != null) {
-            if (dataDependencyGraphs.contains(dataDependencyGraph)) {
-                dataDependencyGraphs.remove(dataDependencyGraph);
-
-                // Persist the changes at the data source
-                this.storeToDS();
-            }
+            this.referenceCounter.decrementAndGet();
         }
-    }
-
-    /**
-     * Provides the list of data dependency graphs using this data model.
-     *
-     * @return An unmodifiable list of data dependency graphs.
-     */
-    public List<DataDependencyGraph> getDataDependencyGraphs() {
-        return this.dataDependencyGraphs != null ? Collections.unmodifiableList(this.dataDependencyGraphs) : null;
     }
 
     /**
@@ -246,7 +236,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
      * @throws Exception An exception thrown during the execution of this method
      */
     public List<CompilationIssue> compileDataModel(byte[] data) throws Exception {
-        List<CompilationIssue> issues = Collections.emptyList();
+        List<CompilationIssue> issues;
 
         if (this.isInitial()) {
             // Deserialize and compile the provided data model, i.e., generate the specified data objects and data
@@ -340,7 +330,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
     public void archive() throws Exception {
         if (this.isReady()) {
             // Remember changed objects for undoing changes in case of an exception
-            List<DataObject> changedObjects = new ArrayList<DataObject>();
+            List<DataObject> changedObjects = new ArrayList<>();
 
             try {
                 for (DataObject object : this.dataObjects) {
@@ -384,7 +374,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
     public void unarchive() throws Exception {
         if (this.isArchived()) {
             // Remember changed objects for undoing changes in case of an exception
-            List<DataObject> changedElements = new ArrayList<DataObject>();
+            List<DataObject> changedElements = new ArrayList<>();
 
             try {
                 for (DataObject object : this.dataObjects) {
@@ -430,7 +420,7 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         if (this.isReady() || this.isInitial() || this.isArchived()) {
 
             // Check if the data model is used by any data dependency graph, if not we can delete it
-            if (this.dataDependencyGraphs.isEmpty()) {
+            if (this.referenceCounter.get() < 1) {
                 try {
                     // Delete the associated data and destroy the persistence provider
                     this.persistProv.deleteBinaryData(ModelConstants.DATA_MODEL__DATA_COLLECTION, getIdentifier());
@@ -467,16 +457,16 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                     throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", e);
                 }
             } else {
-                // If the data value is used by any data element instance, we deny its deletion
+                // If the data model is used by any data dependency graph, we deny its deletion
                 logger.warn("Someone tried to delete data model ({}) which is used by '{}' data dependency graphs." +
                                 " " +
                                 "Therefore, the deletion attempt is rejected by the system.",
                         this
                                 .getIdentifier(),
-                        this.dataDependencyGraphs.size());
+                        this.referenceCounter.get());
 
                 throw new LifeCycleException("Someone tried to delete data model (" + this.getIdentifier() +
-                        ") which is used by " + this.dataDependencyGraphs.size() + " data dependency graphs. " +
+                        ") which is used by " + this.referenceCounter.get() + " data dependency graphs. " +
                         "Therefore, the deletion attempt is rejected by the system.");
             }
 
@@ -531,21 +521,25 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
         }
     }
 
+    @JsonIgnore
     public boolean isInitial() {
         return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
+    @JsonIgnore
     public boolean isReady() {
         return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
+    @JsonIgnore
     public boolean isArchived() {
         return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());

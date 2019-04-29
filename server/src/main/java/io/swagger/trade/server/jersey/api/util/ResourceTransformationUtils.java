@@ -107,7 +107,7 @@ public class ResourceTransformationUtils {
             resourceURL = LinkUtils.resolveResourceCollectionURI(uriInfo, notificationData.getTypeOfResourceToObserve());
         }
 
-        org.trade.core.model.notification.Notification notification = null;
+        org.trade.core.model.notification.Notification notification;
 
         if (modelResource != null) {
             notification = new org.trade.core.model.notification
@@ -251,7 +251,7 @@ public class ResourceTransformationUtils {
         result.setDataObjectName(dataElement.getParent().getName());
         result.setEntity(dataElement.getEntity());
         result.setStatus(string2Status(dataElement.getState()));
-        result.setIsCollectionElement(dataElement.isCollectionElement());
+        result.setIsCollectionElement(dataElement.getIsCollectionElement());
 
         return result;
     }

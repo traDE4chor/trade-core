@@ -16,6 +16,8 @@
 
 package org.trade.core.model.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -59,7 +61,7 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
     private String name;
 
-    private Date timestamp;
+    private Date creationTimestamp;
 
     private String owner;
 
@@ -76,10 +78,11 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
     private String contentType;
 
-    private Date lastModified = timestamp;
+    private Date lastModified = creationTimestamp;
 
     private long size;
 
+    @JsonProperty("dataElementInstances")
     @Reference
     private List<DataElementInstance> dataElementInstances;
 
@@ -95,9 +98,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
         this.hasData = false;
         this.size = 0L;
-        this.dataElementInstances = new ArrayList<DataElementInstance>();
+        this.dataElementInstances = new ArrayList<>();
 
-        this.timestamp = new Date();
+        this.creationTimestamp = new Date();
         this.lifeCycle = new DataValueLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataValue.class);
     }
@@ -130,7 +133,7 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
     }
 
     public Date getCreationTimestamp() {
-        return timestamp;
+        return creationTimestamp;
     }
 
     public String getOwner() {
@@ -204,6 +207,7 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         return hasData;
     }
 
+    @JsonIgnore
     public byte[] getData() throws Exception {
         return this.persistProv.loadBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
     }
@@ -273,6 +277,7 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
      *
      * @return An unmodifiable list of data element instances.
      */
+    @JsonIgnore
     public List<DataElementInstance> getDataElementInstances() {
         return this.dataElementInstances != null ? Collections.unmodifiableList(this.dataElementInstances) : null;
     }
@@ -412,24 +417,28 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         }
     }
 
+    @JsonIgnore
     @Override
     public boolean isCreated() {
         return getState() != null && this.getState().equals(InstanceStates
                 .CREATED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isInitialized() {
         return getState() != null && this.getState().equals(InstanceStates
                 .INITIALIZED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isArchived() {
         return getState() != null && this.getState().equals(InstanceStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     @Override
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(InstanceStates
@@ -514,6 +523,6 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
 
     @Override
     public int hashCode() {
-        return Objects.hash(identifier, name, timestamp, owner, type, contentType);
+        return Objects.hash(identifier, name, creationTimestamp, owner, type, contentType);
     }
 }

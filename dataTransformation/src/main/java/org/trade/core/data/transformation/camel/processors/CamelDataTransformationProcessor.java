@@ -163,10 +163,8 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
     }
 
     private List<Provider> resolveProviders(Transformation transformation) {
-        List<Provider> providers = new ArrayList<>();
-
         // By default we add all available providers
-        providers.addAll(transformation.getProviders());
+        List<Provider> providers = new ArrayList<>(transformation.getProviders());
 
         return providers;
     }
@@ -206,7 +204,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
         String result = "";
 
         if (valueQuery.isValid()) {
-            DataModel model = this.transformation.getDataModel();
+            DataModel model = this.transformation.getDataDependencyGraph().getDataModel();
 
             if (model != null) {
                 // Try to resolve the data object
@@ -231,7 +229,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                                 if (valueQuery.specifiesDataValueIndex()) {
                                     // Queries like: "$dataObject/dataElement/value[index]..."
 
-                                    if (dataElement.isCollectionElement()) {
+                                    if (dataElement.getIsCollectionElement()) {
                                         String indexString = valueQuery.getIndexOfDataValue();
                                         int index = -1;
 
@@ -346,7 +344,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                                     if (dataValues != null && !dataValues.isEmpty()) {
                                         if (valueQuery.specifiesPropertySelection()) {
                                             // Queries like: "$dataObject/dataElement/value?property"
-                                            if (dataElement.isCollectionElement()) {
+                                            if (dataElement.getIsCollectionElement()) {
 
                                                 switch (valueQuery.getProperty()) {
                                                     case URL:
@@ -423,7 +421,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
                                             }
                                         } else {
                                             // Queries like: "$dataObject/dataElement/value"
-                                            if (dataElement.isCollectionElement()) {
+                                            if (dataElement.getIsCollectionElement()) {
                                                 // Queries like: "$dataObject/dataElement/value" do not point to a usable value,
                                                 // if the data element is a collection element
                                                 logger.warn("The transformation with name '{}' " +
@@ -698,7 +696,7 @@ public class CamelDataTransformationProcessor extends ServiceSupport implements 
         io.swagger.trade.client.jersey.model.DataValueArray result = null;
 
         if (resource instanceof DataElement) {
-            if (((DataElement) resource).isCollectionElement()) {
+            if (((DataElement) resource).getIsCollectionElement()) {
                 // Get the correlation properties
                 DataElementInstance elmInstance = ((DataElement) resource).getDataElementInstanceByCorrelation
                         (instanceContext.getCorrelationProperties());

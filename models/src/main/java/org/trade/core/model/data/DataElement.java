@@ -16,6 +16,10 @@
 
 package org.trade.core.model.data;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
 import org.mongodb.morphia.annotations.Transient;
@@ -68,9 +72,12 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     @State
     private String state;
 
+    @JsonBackReference(value = "dataObject")
     @Reference
     private DataObject parent;
 
+    @JsonManagedReference(value = "dataElement")
+    @JsonProperty("instances")
     @Reference
     private List<DataElementInstance> instances;
 
@@ -88,7 +95,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         this.entity = entity;
         this.isCollectionElement = isCollectionElement;
 
-        this.instances = new ArrayList<DataElementInstance>();
+        this.instances = new ArrayList<>();
         this.lifeCycle = new DataElementLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElement.class);
     }
@@ -109,7 +116,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         this.entity = entity;
         this.isCollectionElement = isCollectionElement;
 
-        this.instances = new ArrayList<DataElementInstance>();
+        this.instances = new ArrayList<>();
         this.lifeCycle = new DataElementLifeCycle(this);
         this.persistProv = LocalPersistenceProviderFactory.createLocalPersistenceProvider(DataElement.class);
     }
@@ -234,6 +241,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      *
      * @return An unmodifiable list of data element instances.
      */
+    @JsonIgnore
     public List<DataElementInstance> getDataElementInstances() {
         return this.instances != null ? Collections.unmodifiableList(this.instances) : null;
     }
@@ -250,7 +258,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         return Collections.unmodifiableList(result);
     }
 
-    public boolean isCollectionElement() {
+    public boolean getIsCollectionElement() {
         return isCollectionElement;
     }
 
@@ -389,7 +397,7 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     public DataElementInstance instantiate(DataObjectInstance dataObjectInstance, String createdBy, HashMap<String, String>
             correlationProperties) throws
             LifeCycleException {
-        DataElementInstance result = null;
+        DataElementInstance result;
 
         if (this.isReady()) {
             result = new DataElementInstance(this, dataObjectInstance, createdBy, correlationProperties);
@@ -429,21 +437,25 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
         }
     }
 
+    @JsonIgnore
     public boolean isInitial() {
         return getState() != null && this.getState().equals(ModelStates
                 .INITIAL.name());
     }
 
+    @JsonIgnore
     public boolean isReady() {
         return getState() != null && this.getState().equals(ModelStates
                 .READY.name());
     }
 
+    @JsonIgnore
     public boolean isArchived() {
         return getState() != null && this.getState().equals(ModelStates
                 .ARCHIVED.name());
     }
 
+    @JsonIgnore
     public boolean isDeleted() {
         return getState() != null && this.getState().equals(ModelStates
                 .DELETED.name());

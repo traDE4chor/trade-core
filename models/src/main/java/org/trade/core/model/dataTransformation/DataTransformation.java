@@ -16,6 +16,7 @@
 
 package org.trade.core.model.dataTransformation;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Reference;
@@ -23,7 +24,7 @@ import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trade.core.model.ABaseResource;
-import org.trade.core.model.data.DataModel;
+import org.trade.core.model.data.DataDependencyGraph;
 import org.trade.core.model.data.instance.DataElementInstance;
 import org.trade.core.persistence.IPersistenceProvider;
 import org.trade.core.persistence.local.LocalPersistenceProviderFactory;
@@ -51,8 +52,9 @@ public class DataTransformation extends ABaseResource {
 
     private String transformerQName;
 
+    @JsonBackReference
     @Reference
-    private DataModel dataModel;
+    private DataDependencyGraph dataDependencyGraph;
 
     @Transient
     private Object hdtTransformer;
@@ -123,21 +125,21 @@ public class DataTransformation extends ABaseResource {
     }
 
     /**
-     * Gets the data model.
+     * Gets the data dependency graph.
      *
-     * @return the data model
+     * @return the data dependency graph
      */
-    public DataModel getDataModel() {
-        return dataModel;
+    public DataDependencyGraph getDataDependencyGraph() {
+        return dataDependencyGraph;
     }
 
     /**
-     * Sets the data model.
+     * Sets the data dependency graph.
      *
-     * @param dataModel the data model
+     * @param dataDependencyGraph the dependency graph
      */
-    public void setDataModel(DataModel dataModel) {
-        this.dataModel = dataModel;
+    public void setDataDependencyGraph(DataDependencyGraph dataDependencyGraph) {
+        this.dataDependencyGraph = dataDependencyGraph;
     }
 
     /* Gets the transformer QName specified in the data dependency graph.

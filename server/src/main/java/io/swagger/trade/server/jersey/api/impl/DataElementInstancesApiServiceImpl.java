@@ -86,7 +86,7 @@ public class DataElementInstancesApiServiceImpl extends DataElementInstancesApiS
 
             try {
                 int numberOfDataValues = dataElementInstance.getNumberOfDataValues();
-                if (indexOfDataValue != null && dataElementInstance.getDataElement().isCollectionElement()) {
+                if (indexOfDataValue != null && dataElementInstance.getDataElement().getIsCollectionElement()) {
                     if (indexOfDataValue >= 1 && indexOfDataValue <= numberOfDataValues) {
                         // Retrieve the data value for the specified index. We have to subtract one because the API
                         // provides an index in the range of [1,numberOfDataElements].
