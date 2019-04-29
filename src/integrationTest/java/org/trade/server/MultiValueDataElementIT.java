@@ -272,6 +272,7 @@ public class MultiValueDataElementIT {
         MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
         dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
         dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
+        dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
 
         dataStore.getCollection("dataValues").drop();
         dataStore.getCollection("dataElements").drop();

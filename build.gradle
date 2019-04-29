@@ -88,6 +88,9 @@ task integrationTest(type: Test) {
     // Exclude the basic hazelcast integration tests since it is not used yet
     exclude '**/TraDENodeIT.class'
 
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
+
     // By default gradle skips tasks whose inputs and outputs are up to date.
     // Uncomment the following line to enforce the execution of the integration test whenever the corresponding task
     // is triggered no matter if something has changed or not.

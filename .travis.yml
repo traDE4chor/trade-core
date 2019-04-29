@@ -3,6 +3,8 @@ sudo: false
 
 language: java
 
+services: mongodb
+
 jdk:
   - oraclejdk8
 
@@ -13,15 +15,6 @@ notifications:
     on_success: change
     on_failure: always
 
-addons:
-  apt:
-    sources:
-      - mongodb-upstart
-      - mongodb-3.2-trusty
-    packages:
-      - mongodb-org-server
-      - mongodb-org-shell
-
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
@@ -31,9 +24,5 @@ cache:
     - $HOME/.gradle/wrapper/
 
 script:
-  - ./gradlew build
-  - ./gradlew integrationTest
-
-services:
-  - mongodb
-
+  - ./gradlew clean build
+  - ./gradlew clean integrationTest
