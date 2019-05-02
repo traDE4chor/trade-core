@@ -515,8 +515,16 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
                 deleteDataElements();
 
                 // Trigger the delete event for the whole data object since all data elements are deleted
-                // successfully.
+                // successfully. This will also trigger the deletion of the corresponding object at the data source
+                // through the PersistableHashMap in the corresponding IDataManager instance.
                 this.lifeCycle.triggerEvent(this, ModelEvents.delete);
+
+                // Cleanup variables
+                this.identifier = null;
+                this.entity = null;
+                this.name = null;
+                this.lifeCycle = null;
+                this.dataElements = null;
             } catch (TooBusyException e) {
                 logger.error("State transition for data object '{}' with event '{}' could not be enacted " +
                         "after maximal " +
@@ -538,13 +546,6 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
 
                 throw new LifeCycleException("Deletion data object '" + this.getIdentifier() + "' not successful", e);
             }
-
-            // Cleanup variables
-            this.identifier = null;
-            this.entity = null;
-            this.name = null;
-            this.lifeCycle = null;
-            this.dataElements = null;
         } else {
             logger.info("The data object ({}) can not be deleted because it is in state '{}'.", this
                             .getIdentifier(),
@@ -596,7 +597,10 @@ public class DataObject extends ABaseResource implements ILifeCycleModelObject {
     public void removeDataObjectInstance(DataObjectInstance instance) {
         // Check if the object instance belongs to this data object
         if (instance.getDataObject() == this) {
-            this.dataObjectInstances.remove(instance);
+            if (this.dataObjectInstances.remove(instance)) {
+                // Persist the changed parent object
+                this.storeToDS();
+            }
         }
     }
 

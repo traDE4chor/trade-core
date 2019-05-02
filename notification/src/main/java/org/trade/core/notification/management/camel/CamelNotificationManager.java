@@ -208,6 +208,11 @@ public enum CamelNotificationManager implements INotificationManager {
         }
     }
 
+    @Override
+    public void clearCachedObjects() {
+        notifications.clear();
+    }
+
     // Implementation of IAuditingService methods
     @Override
     public void onEvent(ATraDEEvent event) {

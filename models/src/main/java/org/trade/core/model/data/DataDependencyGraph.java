@@ -175,7 +175,7 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
      */
     @JsonIgnore
     public List<DataTransformation> getDataTransformations() {
-        return Collections.unmodifiableList(this.dataTransformations);
+        return this.dataTransformations != null ? Collections.unmodifiableList(this.dataTransformations) : null;
     }
 
     /**
@@ -384,12 +384,15 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
                 }
             }
 
+            // Delete all data transformations of the DDG
+            deleteDataTransformations();
+
             // Delete the associated data of the graph and destroy the persistence provider
             this.persistProv.deleteBinaryData(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION, getIdentifier());
-            this.persistProv.destroyProvider();
 
             // Trigger the delete event for the whole data dependency graph since all related model objects are deleted
-            // successfully.
+            // successfully. This will also trigger the deletion of the corresponding object at the data source
+            // through the PersistableHashMap in the corresponding IDataManager instance.
             this.lifeCycle.triggerEvent(this, ModelEvents.delete);
 
             // Cleanup variables
@@ -454,6 +457,19 @@ public class DataDependencyGraph extends ABaseResource implements ILifeCycleMode
             } catch (Exception e) {
                 logger.error("Deleting data dependency graph '" + this.getIdentifier() + "' caused an exception.", e);
             }
+        }
+    }
+
+    private void deleteDataTransformations() throws Exception {
+        // Loop over all data transformations
+        for (Iterator<DataTransformation> iter = this.dataTransformations.iterator(); iter.hasNext(); ) {
+            DataTransformation dTrans = iter.next();
+
+            // Remove the data transformation from the list
+            iter.remove();
+
+            // Trigger the deletion of the data transformation
+            dTrans.delete();
         }
     }
 

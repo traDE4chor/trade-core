@@ -89,32 +89,34 @@ public class CamelDataTransformationManager implements IDataTransformationManage
 
         // Only check events which are of type 'data' (DataChangeEvent)
         if (event.getType() == ATraDEEvent.TYPE.data) {
+            // Check if a data dependency graph is set
+            if (ddg != null) {
+                // Filter the incoming events to check if they are relevant for this manager, i.e., are related to the
+                // managed data transformations. Since more than one data transformation might have to be triggered for a
+                // data change, we get a list back.
+                List<DataTransformation> transformations = resolveTransformations(event);
 
-            // Filter the incoming events to check if they are relevant for this manager, i.e., are related to the
-            // managed data transformations. Since more than one data transformation might have to be triggered for a
-            // data change, we get a list back.
-            List<DataTransformation> transformations = resolveTransformations(event);
+                // Trigger the resolved data transformations
+                for (DataTransformation transformation : transformations) {
+                    ProducerTemplate producer = null;
 
-            // Trigger the resolved data transformations
-            for (DataTransformation transformation : transformations) {
-                ProducerTemplate producer = null;
+                    // Check if we already have a producer template
+                    if (this.producerTemplaces.containsKey(transformation.getIdentifier())) {
+                        producer = this.producerTemplaces.get(transformation.getIdentifier());
+                    } else {
+                        // Resolve the dynamic context of the transformation
+                        CamelContext context = this.dynamicContexts.get(transformation.getIdentifier());
 
-                // Check if we already have a producer template
-                if (this.producerTemplaces.containsKey(transformation.getIdentifier())) {
-                    producer = this.producerTemplaces.get(transformation.getIdentifier());
-                } else {
-                    // Resolve the dynamic context of the transformation
-                    CamelContext context = this.dynamicContexts.get(transformation.getIdentifier());
+                        // Create a producer template to forward the event to a processor according to the defined dynamic route
+                        producer = context.createProducerTemplate();
 
-                    // Create a producer template to forward the event to a processor according to the defined dynamic route
-                    producer = context.createProducerTemplate();
+                        this.producerTemplaces.put(transformation.getIdentifier(), producer);
+                    }
 
-                    this.producerTemplaces.put(transformation.getIdentifier(), producer);
+                    // Forward the event to the corresponding processor of the transformation
+                    producer.sendBody(getDefaultEndpointString(transformation.getIdentifier()), ExchangePattern.InOnly,
+                            event);
                 }
-
-                // Forward the event to the corresponding processor of the transformation
-                producer.sendBody(getDefaultEndpointString(transformation.getIdentifier()), ExchangePattern.InOnly,
-                        event);
             }
         } else {
             // Invalidate the corresponding cache (cachedCorrelatedTransformations) entries, if the associations of a

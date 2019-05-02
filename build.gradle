@@ -89,6 +89,7 @@ task integrationTest(type: Test) {
     exclude '**/TraDENodeIT.class'
 
     testLogging.exceptionFormat = 'full'
+    testLogging.events = ["passed", "started", "failed", "skipped"]
 
     // By default gradle skips tasks whose inputs and outputs are up to date.
     // Uncomment the following line to enforce the execution of the integration test whenever the corresponding task

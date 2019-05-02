@@ -141,10 +141,10 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     public void removeDataElementInstance(DataElementInstance elementInstance) {
         // Check if the element instance belongs to this data object instance
         if (elementInstance.getDataObjectInstance() == this) {
-            this.dataElementInstances.remove(elementInstance);
-
-            // Persist the changes at the data source
-            this.storeToDS();
+            if (this.dataElementInstances.remove(elementInstance)) {
+                // Persist the changes at the data source
+                this.storeToDS();
+            }
         }
     }
 
@@ -191,6 +191,9 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     public void archive() throws Exception {
         // TODO: 24.04.2017 Implement archiving of data object instances
 
+        // Trigger the archive event for the data object instance
+        this.lifeCycle.triggerEvent(this, InstanceEvents.archive);
+
         // Persist the changes at the data source
         this.storeToDS();
     }
@@ -198,6 +201,9 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     @Override
     public void unarchive() throws Exception {
         // TODO: 24.04.2017 Implement un-archiving of data object instances
+
+        // Trigger the unarchive event for the data object instance
+        this.lifeCycle.triggerEvent(this, InstanceEvents.unarchive);
 
         // Persist the changes at the data source
         this.storeToDS();
@@ -207,6 +213,22 @@ public class DataObjectInstance extends ABaseResource implements ILifeCycleInsta
     public void delete() throws Exception {
         // Remove the data object instance from the data object
         getDataObject().removeDataObjectInstance(this);
+
+        // By convention we also directly delete all related data element instances of the data object instance
+        for (Iterator<DataElementInstance> iter = this.dataElementInstances.iterator(); iter.hasNext(); ) {
+            DataElementInstance instance = iter.next();
+
+            // Remove the element instance from the list
+            iter.remove();
+
+            // Trigger the deletion of the element instance
+            instance.delete();
+        }
+
+        // Trigger the delete event for the data object instance. This will also trigger the deletion of the
+        // corresponding object at the data source through the PersistableHashMap in the corresponding IDataManager
+        // instance.
+        this.lifeCycle.triggerEvent(this, InstanceEvents.delete);
     }
 
     @JsonIgnore

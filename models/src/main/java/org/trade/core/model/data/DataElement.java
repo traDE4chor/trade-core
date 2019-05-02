@@ -258,9 +258,16 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
      * @return An unmodifiable list of matching data element instances.
      */
     public List<DataElementInstance> getDataElementInstances(String createdBy) {
-        List<DataElementInstance> result = this.instances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
-                (Collectors.toList());
-        return Collections.unmodifiableList(result);
+        List<DataElementInstance> result = null;
+
+        if (this.instances != null) {
+            result = this.instances.stream().filter(s -> s.getCreatedBy().equals(createdBy)).collect
+                    (Collectors.toList());
+
+            result = Collections.unmodifiableList(result);
+        }
+
+        return result;
     }
 
     public boolean getIsCollectionElement() {
@@ -306,6 +313,32 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
             logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                     "amount of retries", this.getIdentifier(), ModelEvents.ready);
             throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
+        }
+    }
+
+    private void deleteDataElementInstances() throws Exception {
+        if (this.isInitial() || this.isReady() || this.isArchived()) {
+            // Loop over all data element instances
+            for (Iterator<DataElementInstance> iter = this.instances.iterator(); iter.hasNext(); ) {
+                DataElementInstance elmInst = iter.next();
+
+                // Remove the data element instance from the list
+                iter.remove();
+
+                // Trigger the deletion of the data element instance
+                elmInst.delete();
+            }
+
+            // Persist the changes at the data source
+            this.storeToDS();
+        } else {
+            logger.info("No data element instance can be deleted because the data element ({}) is in state '{}'.", this
+                            .getIdentifier(),
+                    getState());
+
+            throw new LifeCycleException("No data element instance can be deleted because the data element (" + this
+                    .getIdentifier() +
+                    ") is in state '" + getState() + "'.");
         }
     }
 
@@ -363,22 +396,27 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
 
     @Override
     public void delete() throws Exception {
-        if (this.isReady() || this.isInitial()) {
-            // TODO: 27.10.2016
-
-            // Trigger the delete event
+        if (this.isReady() || this.isInitial() || this.isArchived()) {
             try {
+                // Delete all data element instances
+                deleteDataElementInstances();
+
+                // Trigger the delete event. This will also trigger the deletion of the corresponding object at the
+                // data source through the PersistableHashMap in the corresponding IDataManager instance.
                 this.lifeCycle.triggerEvent(this, ModelEvents.delete);
+
+                // Cleanup variables
+                identifier = null;
+                entity = null;
+                name = null;
+                lifeCycle = null;
+                dataObject = null;
+                instances = null;
             } catch (TooBusyException e) {
                 logger.error("State transition for data element '{}' with event '{}' could not be enacted after maximal " +
                         "amount of retries", this.getIdentifier(), ModelEvents.delete);
                 throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
             }
-
-            identifier = null;
-            entity = null;
-            name = null;
-            lifeCycle = null;
         } else {
             logger.info("The data element ({}) can not be deleted because it is in state '{}'.", this
                             .getIdentifier(),
@@ -435,10 +473,10 @@ public class DataElement extends ABaseResource implements ILifeCycleModelObject 
     public void removeDataElementInstance(DataElementInstance instance) {
         // Check if the data element instance belongs to this data element
         if (instance.getDataElement() == this) {
-            this.instances.remove(instance);
-
-            // Persist the changes at the data source
-            this.storeToDS();
+            if (this.instances.remove(instance)) {
+                // Persist the changes at the data source
+                this.storeToDS();
+            }
         }
     }
 

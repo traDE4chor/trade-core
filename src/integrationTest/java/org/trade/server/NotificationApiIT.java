@@ -16,21 +16,13 @@
 
 package org.trade.server;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.NotificationApi;
 import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import static org.junit.Assert.*;
 
@@ -40,34 +32,12 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NotificationApiIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static NotificationApi notificationApi;
+    private static IntegrationTestEnvironment env;
 
     @BeforeClass
     public static void setupEnvironment() {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
-
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        notificationApi = new NotificationApi(client);
+        env = new IntegrationTestEnvironment();
+        env.setupEnvironment(true);
     }
 
     @Test
@@ -111,10 +81,10 @@ public class NotificationApiIT {
         test.setResourceFilters(filters);
 
         try {
-            Notification response = notificationApi.addNotification(test);
+            Notification response = env.getNotificationApi().addNotification(test);
             assertNotNull(response);
 
-            notificationApi.deleteNotification(response.getId());
+            env.getNotificationApi().deleteNotification(response.getId());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -129,7 +99,7 @@ public class NotificationApiIT {
         test.setSelectedNotifierServiceId("http");
 
         try {
-            notificationApi.addNotification(test);
+            env.getNotificationApi().addNotification(test);
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -141,7 +111,7 @@ public class NotificationApiIT {
     public void shouldRejectDeleteNotificationTest() {
         try {
             // Try to delete a non existing notification
-            notificationApi.deleteNotification("Not-Existing-Id");
+            env.getNotificationApi().deleteNotification("Not-Existing-Id");
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -189,7 +159,7 @@ public class NotificationApiIT {
 
         test.setResourceFilters(filters);
 
-        Notification response = notificationApi.addNotification(test);
+        Notification response = env.getNotificationApi().addNotification(test);
         assertNotNull(response);
 
         Notification updateRequest = new Notification();
@@ -207,9 +177,9 @@ public class NotificationApiIT {
 
         updateRequest.setResourceFilters(filters);
 
-        notificationApi.updateNotificationDirectly(response.getId(), updateRequest);
+        env.getNotificationApi().updateNotificationDirectly(response.getId(), updateRequest);
 
-        NotificationWithLinks updated = notificationApi.getNotificationDirectly(response.getId());
+        NotificationWithLinks updated = env.getNotificationApi().getNotificationDirectly(response.getId());
         // Check unchanged properties
         assertEquals(response.getId(), updated.getNotification().getId());
         assertEquals(response.getResourceFilters(), updated.getNotification().getResourceFilters());
@@ -222,11 +192,11 @@ public class NotificationApiIT {
         assertNotEquals(response.getName(), updated.getNotification().getName());
         assertNotEquals(response.getNotifierParameterValues(), updated.getNotification().getNotifierParameterValues());
 
-        notificationApi.deleteNotification(response.getId());
+        env.getNotificationApi().deleteNotification(response.getId());
 
         try {
             // Try to retrieve the deleted notification
-            notificationApi.getNotificationDirectly(response.getId());
+            env.getNotificationApi().getNotificationDirectly(response.getId());
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -236,26 +206,7 @@ public class NotificationApiIT {
 
     @AfterClass
     public static void destroy() {
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataElements").drop();
-        dataStore.getCollection("dataObjects").drop();
-        dataStore.getCollection("dataModels").drop();
-        dataStore.getCollection("dataDependencyGraphs").drop();
-        dataStore.getCollection("notifications").drop();
-        dataStore.getCollection("dataValues").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 }

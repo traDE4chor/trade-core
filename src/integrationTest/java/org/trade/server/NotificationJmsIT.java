@@ -16,13 +16,7 @@
 
 package org.trade.server;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.DataValueApi;
-import io.swagger.trade.client.jersey.api.NotificationApi;
 import io.swagger.trade.client.jersey.model.*;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
@@ -31,12 +25,10 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import javax.jms.*;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -45,13 +37,7 @@ import static org.junit.Assert.assertNotNull;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NotificationJmsIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static NotificationApi notificationApi;
-
-    private static DataValueApi dvApiInstance;
+    private static IntegrationTestEnvironment env;
 
     private static String activeMQBrokerURL = "tcp://127.0.0.1:61616";
 
@@ -59,31 +45,13 @@ public class NotificationJmsIT {
 
     @BeforeClass
     public static void setupEnvironment() throws Exception {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
-
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        notificationApi = new NotificationApi(client);
-
-        dvApiInstance = new DataValueApi(client);
+        env = new IntegrationTestEnvironment();
+        env.setupEnvironment(true);
 
         // Create a new embedded ActiveMQ broker for receiving test notifications
         broker = new BrokerService();
+        broker.setBrokerName("broker");
+        broker.setUseShutdownHook(false);
 
         // configure the broker
         broker.setPersistent(false);
@@ -136,7 +104,7 @@ public class NotificationJmsIT {
 
         try {
             // Add the notification
-            Notification response = notificationApi.addNotification(test);
+            Notification response = env.getNotificationApi().addNotification(test);
             assertNotNull(response);
 
             // Trigger the notification by adding a new data value and deleting it again
@@ -147,9 +115,9 @@ public class NotificationJmsIT {
             request.setType("binary");
             request.setContentType("text/plain");
 
-            DataValue result = dvApiInstance.addDataValue(request);
+            DataValue result = env.getDataValueApi().addDataValue(request);
             assertNotNull(result);
-            dvApiInstance.deleteDataValue(result.getId());
+            env.getDataValueApi().deleteDataValue(result.getId());
 
             // Connect to the target queue to receive the triggered notification message
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(activeMQBrokerURL);
@@ -164,7 +132,13 @@ public class NotificationJmsIT {
 
             connection.close();
 
-            notificationApi.deleteNotification(response.getId());
+            env.getNotificationApi().deleteNotification(response.getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
+
+            NotificationArrayWithLinks notifications = env.getNotificationApi().getNotifications(null, null, null, null);
+            assertEquals(0, notifications.getNotifications().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -175,26 +149,7 @@ public class NotificationJmsIT {
         // Stop the broker
         broker.stop();
 
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataValues").drop();
-        dataStore.getCollection("dataElements").drop();
-        dataStore.getCollection("dataObjects").drop();
-        dataStore.getCollection("dataModels").drop();
-        dataStore.getCollection("dataDependencyGraphs").drop();
-        dataStore.getCollection("notifications").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 }

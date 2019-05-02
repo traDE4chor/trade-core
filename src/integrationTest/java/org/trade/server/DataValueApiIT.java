@@ -16,13 +16,9 @@
 
 package org.trade.server;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.DataValueApi;
 import io.swagger.trade.client.jersey.model.DataValue;
+import io.swagger.trade.client.jersey.model.DataValueArrayWithLinks;
 import io.swagger.trade.client.jersey.model.DataValueData;
 import io.swagger.trade.client.jersey.model.DataValueWithLinks;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -31,9 +27,6 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import static org.junit.Assert.*;
 
@@ -43,39 +36,18 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DataValueApiIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static DataValueApi dvApiInstance;
+    private static IntegrationTestEnvironment env;
 
     @BeforeClass
-    public static void setupEnvironment() {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
+    public static void setupEnvironment() throws Exception {
+        env = new IntegrationTestEnvironment();
 
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        dvApiInstance = new DataValueApi(client);
+        env.setupEnvironment(true);
     }
 
     @Test
     public void dataValueApiRoundTripTest() throws Exception {
-        DataValueTestHelper helper = new DataValueTestHelper(dvApiInstance);
+        DataValueTestHelper helper = new DataValueTestHelper(env.getDataValueApi());
         helper.addDataValues();
 
         helper.getDataValues();
@@ -87,6 +59,9 @@ public class DataValueApiIT {
         helper.pullDataValues();
 
         helper.deleteDataValues();
+
+        DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+        assertEquals(0, values.getDataValues().size());
     }
 
     @Test
@@ -99,7 +74,7 @@ public class DataValueApiIT {
         request.setContentType("text/plain");
 
         try {
-            DataValue result3 = dvApiInstance.addDataValue(request);
+            DataValue result3 = env.getDataValueApi().addDataValue(request);
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -111,7 +86,7 @@ public class DataValueApiIT {
     public void shouldRejectDeleteDataValueRequestTest() {
         try {
             // Try to delete not existing data value
-            dvApiInstance.deleteDataValue("Not-Existing-Id");
+            env.getDataValueApi().deleteDataValue("Not-Existing-Id");
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -129,16 +104,16 @@ public class DataValueApiIT {
         request.setContentType("text/plain");
 
         try {
-            DataValue result = dvApiInstance.addDataValue(request);
+            DataValue result = env.getDataValueApi().addDataValue(request);
 
             DataValue updateRequest = new DataValue();
             updateRequest.setName("changedName");
             updateRequest.setContentType("changedContentType");
             updateRequest.setType("changedType");
 
-            dvApiInstance.updateDataValueDirectly(result.getId(), updateRequest);
+            env.getDataValueApi().updateDataValueDirectly(result.getId(), updateRequest);
 
-            DataValueWithLinks updated = dvApiInstance.getDataValueDirectly(result.getId());
+            DataValueWithLinks updated = env.getDataValueApi().getDataValueDirectly(result.getId());
             // Check unchanged properties
             assertEquals(result.getId(), updated.getDataValue().getId());
             assertEquals(result.getStatus(), updated.getDataValue().getStatus());
@@ -154,7 +129,10 @@ public class DataValueApiIT {
             assertNotEquals(result.getContentType(), updated.getDataValue().getContentType());
             assertNotEquals(result.getType(), updated.getDataValue().getType());
 
-            dvApiInstance.deleteDataValue(result.getId());
+            env.getDataValueApi().deleteDataValue(result.getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -171,21 +149,24 @@ public class DataValueApiIT {
         request.setContentType("text/plain");
 
         try {
-            DataValue dataValue = dvApiInstance.addDataValue(request);
+            DataValue dataValue = env.getDataValueApi().addDataValue(request);
 
             // Create a String with length = 1000 * 2**13 (8MB of data)
             String value = RandomStringUtils.randomAlphabetic(8192000);
             int length = value.getBytes().length;
-            dvApiInstance.pushDataValue(dataValue.getId(), value.getBytes(), false, (long) length);
+            env.getDataValueApi().pushDataValue(dataValue.getId(), value.getBytes(), false, (long) length);
 
-            byte[] resultData = dvApiInstance.pullDataValue(dataValue.getId());
+            byte[] resultData = env.getDataValueApi().pullDataValue(dataValue.getId());
             assertNotNull(resultData);
-            assertFalse(resultData.length == 0);
+            assertNotEquals(0, resultData.length);
 
             assertEquals(length, resultData.length);
             assertEquals(value, new String(resultData));
 
-            dvApiInstance.deleteDataValue(dataValue.getId());
+            env.getDataValueApi().deleteDataValue(dataValue.getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -202,20 +183,25 @@ public class DataValueApiIT {
         request.setContentType("text/plain");
 
         try {
-            DataValue dataValue = dvApiInstance.addDataValue(request);
+            DataValue dataValue = env.getDataValueApi().addDataValue(request);
+
+            int serverPort = env.getProperties().getHttpServerPort();
 
             // Use a link to the Swagger API YAML file provided through the server to test data resolution through links
-            String link = "http://127.0.0.1:8080/docs/swagger.yaml";
-            dvApiInstance.pushDataValue(dataValue.getId(), link.getBytes(), true, null);
+            String link = "http://127.0.0.1:" + serverPort + "/docs/swagger.yaml";
+            env.getDataValueApi().pushDataValue(dataValue.getId(), link.getBytes(), true, null);
 
-            byte[] resultData = dvApiInstance.pullDataValue(dataValue.getId());
+            byte[] resultData = env.getDataValueApi().pullDataValue(dataValue.getId());
             String result = new String(resultData);
             assertNotNull(resultData);
-            assertFalse(resultData.length == 0);
+            assertNotEquals(0, resultData.length);
 
             assertTrue(result.startsWith("swagger: '2.0'"));
 
-            dvApiInstance.deleteDataValue(dataValue.getId());
+            env.getDataValueApi().deleteDataValue(dataValue.getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -223,22 +209,8 @@ public class DataValueApiIT {
 
     @AfterClass
     public static void destroy() {
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataValues").drop();
-        dataStore.getCollection("notifications").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 
 }

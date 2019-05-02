@@ -59,4 +59,15 @@ public enum DataTransformationManagerFactory {
 
         return result;
     }
+
+    /**
+     * Clears and shuts down all registered data transformation managers.
+     */
+    public void shutdownDataTransformationManagers() {
+        for (IDataTransformationManager manager : transformationManagers.values()) {
+            manager.shutdown();
+        }
+
+        this.transformationManagers.clear();
+    }
 }

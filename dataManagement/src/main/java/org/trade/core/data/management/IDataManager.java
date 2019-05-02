@@ -483,4 +483,8 @@ public interface IDataManager extends TraDEEventListener {
      */
     void deleteDataValue(String dataValueId) throws Exception;
 
+    /**
+     * Clear all maps of objects cached by the IDataManager instance.
+     */
+    void clearCachedObjects();
 }

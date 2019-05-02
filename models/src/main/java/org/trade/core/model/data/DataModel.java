@@ -426,21 +426,28 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                 try {
                     // Delete the associated data and destroy the persistence provider
                     this.persistProv.deleteBinaryData(ModelConstants.DATA_MODEL__DATA_COLLECTION, getIdentifier());
-                    this.persistProv.destroyProvider();
 
                     // Delete all data objects
                     deleteDataObjects();
 
                     // Trigger the delete event for the whole data model since all data objects are deleted
-                    // successfully.
+                    // successfully. This will also trigger the deletion of the corresponding object at the data
+                    // source through the PersistableHashMap in the corresponding IDataManager instance.
                     this.lifeCycle.triggerEvent(this, ModelEvents.delete);
+
+                    // Cleanup variables
+                    this.identifier = null;
+                    this.entity = null;
+                    this.name = null;
+                    this.lifeCycle = null;
+                    this.dataObjects = null;
                 } catch (TooBusyException e) {
                     logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                             "after maximal " +
                             "amount of retries", this.getIdentifier(), ModelEvents.ready);
                     throw new LifeCycleException("State transition could not be enacted after maximal amount of retries", e);
                 } catch (Exception e) {
-                    logger.error("Deletion data model '{}' not successful because deletion of one of its data " +
+                    logger.error("Deletion of data model '{}' not successful because deletion of one of its data " +
                             "objects caused an exception. MANUAL INTERVENTION REQUIRED.", this.getIdentifier());
 
                     // Trigger the initial event to disable the creation of new instances of the corrupted model
@@ -453,10 +460,10 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                         logger.error("State transition for data model '{}' with event '{}' could not be enacted " +
                                 "after maximal " +
                                 "amount of retries", this.getIdentifier(), ModelEvents.ready);
-                        throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", ex);
+                        throw new LifeCycleException("Deletion of data model '" + this.getIdentifier() + "' not successful", ex);
                     }
 
-                    throw new LifeCycleException("Deletion data model '" + this.getIdentifier() + "' not successful", e);
+                    throw new LifeCycleException("Deletion of data model '" + this.getIdentifier() + "' not successful", e);
                 }
             } else {
                 // If the data model is used by any data dependency graph, we deny its deletion
@@ -471,13 +478,6 @@ public class DataModel extends ABaseResource implements ILifeCycleModelObject {
                         ") which is used by " + this.referenceCounter.get() + " data dependency graphs. " +
                         "Therefore, the deletion attempt is rejected by the system.");
             }
-
-            // Cleanup variables
-            this.identifier = null;
-            this.entity = null;
-            this.name = null;
-            this.lifeCycle = null;
-            this.dataObjects = null;
         } else {
             logger.info("The data model ({}) can not be deleted because it is in state '{}'.", this
                             .getIdentifier(),

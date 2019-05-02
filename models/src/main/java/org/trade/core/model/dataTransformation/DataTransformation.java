@@ -251,6 +251,11 @@ public class DataTransformation extends ABaseResource {
         return relatedDataElementInstances;
     }
 
+    public void delete() {
+        // Delete the data transformation from the data source
+        deleteFromDS();
+    }
+
     @Override
     public void storeToDS() {
         if (this.persistProv != null) {

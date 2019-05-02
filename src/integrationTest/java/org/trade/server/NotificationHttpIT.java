@@ -16,12 +16,7 @@
 
 package org.trade.server;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
 import org.apache.camel.test.AvailablePortFinder;
 import org.eclipse.jetty.server.Handler;
@@ -30,9 +25,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -52,19 +44,7 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NotificationHttpIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static NotificationApi notificationApi;
-
-    private static DataValueApi dvApiInstance;
-
-    private static DataObjectApi doApiInstance;
-
-    private static DataObjectInstanceApi doInstApiInstance;
-
-    private static DataElementApi deApiInstance;
+    private static IntegrationTestEnvironment env;
 
     private static Server httpServer;
 
@@ -76,38 +56,12 @@ public class NotificationHttpIT {
 
     @BeforeClass
     public static void setupEnvironment() throws Exception {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
-
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        notificationApi = new NotificationApi(client);
-
-        dvApiInstance = new DataValueApi(client);
-
-        doApiInstance = new DataObjectApi(client);
-
-        doInstApiInstance = new DataObjectInstanceApi(client);
-
-        deApiInstance = new DataElementApi(client);
+        env = new IntegrationTestEnvironment();
+        env.setupEnvironment(true);
 
         // Create a new embedded HTTP server which consumes the HTTP notifications
         notificationServerPort = AvailablePortFinder.getNextAvailable();
-        httpServer = new Server(new InetSocketAddress("0.0.0.0", notificationServerPort));
+        httpServer = new Server(new InetSocketAddress("127.0.0.1", notificationServerPort));
 
         // Create a handler to check the notification message send to the specified HTTP endpoint
         Handler handler = new AbstractHandler() {
@@ -180,7 +134,7 @@ public class NotificationHttpIT {
 
         try {
             // Add the notification
-            Notification response = notificationApi.addNotification(test);
+            Notification response = env.getNotificationApi().addNotification(test);
             assertNotNull(response);
 
             // Trigger the notification by adding a new data value and deleting it again
@@ -191,14 +145,20 @@ public class NotificationHttpIT {
             request.setType("binary");
             request.setContentType("text/plain");
 
-            DataValue result = dvApiInstance.addDataValue(request);
+            DataValue result = env.getDataValueApi().addDataValue(request);
             assertNotNull(result);
-            dvApiInstance.deleteDataValue(result.getId());
+            env.getDataValueApi().deleteDataValue(result.getId());
 
             lock.await(2000, TimeUnit.MILLISECONDS);
             assertNotNull(notificationMessage);
 
-            notificationApi.deleteNotification(response.getId());
+            env.getNotificationApi().deleteNotification(response.getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
+
+            NotificationArrayWithLinks notifications = env.getNotificationApi().getNotifications(null, null, null, null);
+            assertEquals(0, notifications.getNotifications().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -298,16 +258,16 @@ public class NotificationHttpIT {
 
         try {
             // Add the notification
-            Notification response = notificationApi.addNotification(test);
+            Notification response = env.getNotificationApi().addNotification(test);
             assertNotNull(response);
 
             // Trigger the notification by creating a data object with a data element and then instantiating the data
             // object
-            DataObject dObject = doApiInstance.addDataObject(new DataObjectData().name("testDataObject").entity
+            DataObject dObject = env.getDataObjectApi().addDataObject(new DataObjectData().name("testDataObject").entity
                     ("hahnml"));
             assertNotNull(dObject);
 
-            DataElement dElement = deApiInstance.addDataElement(dObject.getId(), new DataElementData().name
+            DataElement dElement = env.getDataElementApi().addDataElement(dObject.getId(), new DataElementData().name
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain")).getDataElement();
             assertNotNull(dElement);
 
@@ -316,15 +276,21 @@ public class NotificationHttpIT {
             corPropArray.add(new CorrelationProperty().key("chorID").value("1234567"));
 
             // Create a new data object instance to trigger the notification
-            DataObjectInstance doInst = doInstApiInstance.addDataObjectInstance(dObject.getId(), new
+            DataObjectInstance doInst = env.getDataObjectInstanceApi().addDataObjectInstance(dObject.getId(), new
                     DataObjectInstanceData().createdBy("hahnml").correlationProperties(corPropArray)).getInstance();
             assertNotNull(doInst);
 
             lock.await(2000, TimeUnit.MILLISECONDS);
             assertNotNull(notificationMessage);
 
-            doApiInstance.deleteDataObject(dObject.getId());
-            notificationApi.deleteNotification(response.getId());
+            env.getDataObjectApi().deleteDataObject(dObject.getId());
+            env.getNotificationApi().deleteNotification(response.getId());
+
+            DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null, null);
+            assertEquals(0, objects.getDataObjects().size());
+
+            NotificationArrayWithLinks notifications = env.getNotificationApi().getNotifications(null, null, null, null);
+            assertEquals(0, notifications.getNotifications().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -335,28 +301,7 @@ public class NotificationHttpIT {
         // Stop the server
         httpServer.stop();
 
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataValues").drop();
-        dataStore.getCollection("dataElements").drop();
-        dataStore.getCollection("dataElementInstances").drop();
-        dataStore.getCollection("dataObjects").drop();
-        dataStore.getCollection("dataObjectInstances").drop();
-        dataStore.getCollection("dataModels").drop();
-        dataStore.getCollection("dataDependencyGraphs").drop();
-        dataStore.getCollection("notifications").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 }

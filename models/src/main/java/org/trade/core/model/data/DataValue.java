@@ -229,8 +229,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
             try {
                 this.persistProv.storeBinaryData(data, ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
 
-                // Remember if data is set or not (setting a NULL value deletes the data by convention)
-                hasData = data != null;
+                // Remember if data is set or not (setting a NULL or empty byte[] as value deletes any existing data by
+                // convention)
+                hasData = (data != null && data.length > 0);
 
                 this.lastModified = new Date();
 
@@ -408,9 +409,9 @@ public class DataValue extends ABaseResource implements ILifeCycleInstanceObject
         if (this.dataElementInstances.isEmpty()) {
             // Delete the associated data and destroy the persistence provider
             this.persistProv.deleteBinaryData(ModelConstants.DATA_VALUE__DATA_COLLECTION, getIdentifier());
-            this.persistProv.destroyProvider();
 
-            // Trigger the delete event for the data value
+            // Trigger the delete event for the data value. This will also trigger the deletion of the corresponding
+            // object at the data source through the PersistableHashMap in the corresponding IDataManager instance.
             this.lifeCycle.triggerEvent(this, InstanceEvents.delete);
         } else {
             // If the data value is used by any data element instance, we deny its deletion

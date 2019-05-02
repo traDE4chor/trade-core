@@ -16,24 +16,13 @@
 
 package org.trade.server;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.DataDependencyGraphApi;
-import io.swagger.trade.client.jersey.api.DataElementApi;
-import io.swagger.trade.client.jersey.api.DataModelApi;
-import io.swagger.trade.client.jersey.api.DataObjectApi;
 import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,43 +37,13 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DataDependencyGraphApiIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static DataDependencyGraphApi ddgApiInstance;
-
-    private static DataModelApi dataModelApiInstance;
-
-    private static DataObjectApi dataObjectApiInstance;
-
-    private static DataElementApi dataElementApiInstance;
+    private static IntegrationTestEnvironment env;
 
     @BeforeClass
     public static void setupEnvironment() {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
+        env = new IntegrationTestEnvironment();
 
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        ddgApiInstance = new DataDependencyGraphApi(client);
-        dataModelApiInstance = new DataModelApi(client);
-        dataObjectApiInstance = new DataObjectApi(client);
-        dataElementApiInstance = new DataElementApi(client);
+        env.setupEnvironment(true);
     }
 
     @Test
@@ -99,36 +58,42 @@ public class DataDependencyGraphApiIT {
             ddg.setEntity(entity[i]);
             ddg.setName(name[i]);
 
-            DataDependencyGraphWithLinks resp = ddgApiInstance.addDataDependencyGraph(ddg);
+            DataDependencyGraphWithLinks resp = env.getDdgApi().addDataDependencyGraph(ddg);
             graphIds[i] = resp.getDataDependencyGraph().getId();
         }
 
         // Upload a graph model to the first DDG to enable namespace-based queries
         byte[] graph = TestUtils.getData("opalData.trade");
         // Try to upload and compile a serialized DDG
-        ddgApiInstance.uploadGraphModel(graphIds[0], Long.valueOf(graph.length), graph);
+        env.getDdgApi().uploadGraphModel(graphIds[0], Long.valueOf(graph.length), graph);
 
-        DataDependencyGraphArrayWithLinks result = ddgApiInstance.getDataDependencyGraphs(null, null, null, null,
+        DataDependencyGraphArrayWithLinks result = env.getDdgApi().getDataDependencyGraphs(null, null, null, null,
                 null);
         assertEquals(3, result.getDataDependencyGraphs().size());
 
-        result = ddgApiInstance.getDataDependencyGraphs(null, null, null, null,
+        result = env.getDdgApi().getDataDependencyGraphs(null, null, null, null,
                 "hahnml");
         assertEquals(2, result.getDataDependencyGraphs().size());
 
-        result = ddgApiInstance.getDataDependencyGraphs(null, null, null, "TestDataDependencyGraph",
+        result = env.getDdgApi().getDataDependencyGraphs(null, null, null, "TestDataDependencyGraph",
                 "hahnml");
         assertEquals(1, result.getDataDependencyGraphs().size());
 
-        result = ddgApiInstance.getDataDependencyGraphs(null, null, "http://de.uni-stuttgart.iaas/opalChor",
+        result = env.getDdgApi().getDataDependencyGraphs(null, null, "http://de.uni-stuttgart.iaas/opalChor",
                 null,
                 null);
         assertEquals(1, result.getDataDependencyGraphs().size());
 
         // Delete the three DDGs again
         for (int i = 0; i < entity.length; i++) {
-            ddgApiInstance.deleteDataDependencyGraph(graphIds[i]);
+            env.getDdgApi().deleteDataDependencyGraph(graphIds[i]);
         }
+
+        DataDependencyGraphArrayWithLinks ddgs = env.getDdgApi().getDataDependencyGraphs(null, null, null, null, null);
+        assertEquals(0, ddgs.getDataDependencyGraphs().size());
+
+        DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null, null);
+        assertEquals(0, objects.getDataObjects().size());
     }
 
     @Test
@@ -140,7 +105,7 @@ public class DataDependencyGraphApiIT {
         ddg.setEntity(entity);
         ddg.setName(name);
 
-        DataDependencyGraphWithLinks ddgResponse = ddgApiInstance.addDataDependencyGraph(ddg);
+        DataDependencyGraphWithLinks ddgResponse = env.getDdgApi().addDataDependencyGraph(ddg);
 
         assertNotNull(ddgResponse);
         assertNotNull(ddgResponse.getDataDependencyGraph());
@@ -155,19 +120,19 @@ public class DataDependencyGraphApiIT {
         byte[] graph = TestUtils.getData("opalData.trade");
 
         // Try to upload and compile a serialized DDG
-        ddgApiInstance.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
+        env.getDdgApi().uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
 
         // Links should be different, therefore objects should be not equal
-        DataDependencyGraphWithLinks ddgResponse2 = ddgApiInstance.getDataDependencyGraphDirectly(graphId);
+        DataDependencyGraphWithLinks ddgResponse2 = env.getDdgApi().getDataDependencyGraphDirectly(graphId);
         assertNotEquals(ddgResponse, ddgResponse2);
 
         // Try to query the resulting data objects and data elements
-        DataModelWithLinks dataModelResp = dataModelApiInstance.getDataModel(graphId);
+        DataModelWithLinks dataModelResp = env.getDataModelApi().getDataModel(graphId);
         String dataModelId = dataModelResp.getDataModel().getId();
 
         TestUtils.printLinkArray(dataModelResp.getLinks());
 
-        DataObjectArrayWithLinks dataObjects = dataObjectApiInstance.getDataObjects(dataModelId, null, null);
+        DataObjectArrayWithLinks dataObjects = env.getDataObjectApi().getDataObjects(dataModelId, null, null);
         assertEquals(4, dataObjects.getDataObjects().size());
 
         TestUtils.printLinkArray(dataObjects.getLinks());
@@ -175,36 +140,36 @@ public class DataDependencyGraphApiIT {
         int[] sizes = {3, 2, 2, 2};
         int index = 0;
         for (DataObjectWithLinks dataObject : dataObjects.getDataObjects()) {
-            DataElementArrayWithLinks dataElements = dataElementApiInstance.getDataElements(dataObject
+            DataElementArrayWithLinks dataElements = env.getDataElementApi().getDataElements(dataObject
                             .getDataObject().getId(), null, null,
                     null, null);
             assertEquals(sizes[index], dataElements.getDataElements().size());
             index++;
         }
 
-        byte[] graphData = ddgApiInstance.downloadGraphModel(graphId);
+        byte[] graphData = env.getDdgApi().downloadGraphModel(graphId);
         assertEquals(new String(graph, StandardCharsets.UTF_8), new String(graphData, StandardCharsets.UTF_8));
 
         // Delete the DDG
-        ddgApiInstance.deleteDataDependencyGraph(graphId);
+        env.getDdgApi().deleteDataDependencyGraph(graphId);
 
         // Check if the DDG is deleted
-        DataDependencyGraphArrayWithLinks result = ddgApiInstance.getDataDependencyGraphs(null, null, null, null,
+        DataDependencyGraphArrayWithLinks result = env.getDdgApi().getDataDependencyGraphs(null, null, null, null,
                 null);
         assertEquals(0, result.getDataDependencyGraphs().size());
 
         // And all related resources are also deleted
         // Data Model
-        DataModelArrayWithLinks models = dataModelApiInstance.getDataModels(null, null, null, null, null);
+        DataModelArrayWithLinks models = env.getDataModelApi().getDataModels(null, null, null, null, null);
         assertEquals(0, models.getDataModels().size());
 
         // Data Objects
-        DataObjectArrayWithLinks objects = dataObjectApiInstance.getAllDataObjects(null, null, null, null,
+        DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null,
                 null);
         assertEquals(0, objects.getDataObjects().size());
 
         // Data Elements
-        DataElementArrayWithLinks elements = dataElementApiInstance.getAllDataElements(null, null, null, null);
+        DataElementArrayWithLinks elements = env.getDataElementApi().getAllDataElements(null, null, null, null);
         assertEquals(0, elements.getDataElements().size());
     }
 
@@ -219,7 +184,7 @@ public class DataDependencyGraphApiIT {
 
         String id = null;
         try {
-            DataDependencyGraphWithLinks ddgResponse = ddgApiInstance.addDataDependencyGraph(ddg);
+            DataDependencyGraphWithLinks ddgResponse = env.getDdgApi().addDataDependencyGraph(ddg);
 
             assertNotNull(ddgResponse);
             assertNotNull(ddgResponse.getDataDependencyGraph());
@@ -232,7 +197,7 @@ public class DataDependencyGraphApiIT {
             byte[] graph = TestUtils.getData("opalDataFailure.trade");
 
             // Try to upload and compile a serialized DDG that is not valid
-            ddgApiInstance.uploadGraphModel(id, Long.valueOf(graph.length), graph);
+            env.getDdgApi().uploadGraphModel(id, Long.valueOf(graph.length), graph);
         } catch (ApiException e) {
             e.printStackTrace();
 
@@ -240,7 +205,15 @@ public class DataDependencyGraphApiIT {
 
             if (id != null) {
                 try {
-                    ddgApiInstance.deleteDataDependencyGraph(id);
+                    env.getDdgApi().deleteDataDependencyGraph(id);
+
+                    // Check if the DDG is deleted
+                    DataDependencyGraphArrayWithLinks result = env.getDdgApi().getDataDependencyGraphs(null, null, null, null,
+                            null);
+                    assertEquals(0, result.getDataDependencyGraphs().size());
+
+                    DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null, null);
+                    assertEquals(0, objects.getDataObjects().size());
                 } catch (ApiException e1) {
                     e1.printStackTrace();
                 }
@@ -252,26 +225,7 @@ public class DataDependencyGraphApiIT {
 
     @AfterClass
     public static void destroy() {
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataElements").drop();
-        dataStore.getCollection("dataObjects").drop();
-        dataStore.getCollection("dataModels").drop();
-        dataStore.getCollection("dataDependencyGraphs").drop();
-        dataStore.getCollection("notifications").drop();
-        dataStore.getCollection("dataValues").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 }

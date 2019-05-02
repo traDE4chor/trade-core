@@ -16,21 +16,13 @@
 
 package org.trade.server;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import static org.junit.Assert.*;
 
@@ -40,50 +32,13 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MultiValueDataElementIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static DataValueApi dvApiInstance;
-
-    private static DataObjectApi doApiInstance;
-
-    private static DataObjectInstanceApi doInstApiInstance;
-
-    private static DataElementApi deApiInstance;
-
-    private static DataElementInstanceApi deInstApiInstance;
+    private static IntegrationTestEnvironment env;
 
     @BeforeClass
-    public static void setupEnvironment() throws Exception {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
+    public static void setupEnvironment() {
+        env = new IntegrationTestEnvironment();
 
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        dvApiInstance = new DataValueApi(client);
-
-        doApiInstance = new DataObjectApi(client);
-
-        doInstApiInstance = new DataObjectInstanceApi(client);
-
-        deInstApiInstance = new DataElementInstanceApi(client);
-
-        deApiInstance = new DataElementApi(client);
+        env.setupEnvironment(true);
     }
 
     @Test
@@ -91,21 +46,24 @@ public class MultiValueDataElementIT {
         try {
             // Create a data object with a multi-value data element
             // object
-            DataObject dObject = doApiInstance.addDataObject(new DataObjectData().name("testDataObject").entity
+            DataObject dObject = env.getDataObjectApi().addDataObject(new DataObjectData().name("testDataObject").entity
                     ("hahnml"));
             assertNotNull(dObject);
 
-            DataElement dElement = deApiInstance.addDataElement(dObject.getId(), new DataElementData().name
+            DataElement dElement = env.getDataElementApi().addDataElement(dObject.getId(), new DataElementData().name
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain").isCollectionElement
                     (true)).getDataElement();
             assertNotNull(dElement);
             assertTrue(dElement.isIsCollectionElement());
 
-            DataElementWithLinks dElm = deApiInstance.getDataElementDirectly(dElement.getId());
+            DataElementWithLinks dElm = env.getDataElementApi().getDataElementDirectly(dElement.getId());
             assertNotNull(dElm.getDataElement());
             assertTrue(dElm.getDataElement().isIsCollectionElement());
 
-            doApiInstance.deleteDataObject(dObject.getId());
+            env.getDataObjectApi().deleteDataObject(dObject.getId());
+
+            DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null, null);
+            assertEquals(0, objects.getDataObjects().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -116,11 +74,11 @@ public class MultiValueDataElementIT {
         try {
             // Create a data object with a multi-value data element and then instantiating the data
             // object
-            DataObject dObject = doApiInstance.addDataObject(new DataObjectData().name("testDataObject").entity
+            DataObject dObject = env.getDataObjectApi().addDataObject(new DataObjectData().name("testDataObject").entity
                     ("hahnml"));
             assertNotNull(dObject);
 
-            DataElement dElement = deApiInstance.addDataElement(dObject.getId(), new DataElementData().name
+            DataElement dElement = env.getDataElementApi().addDataElement(dObject.getId(), new DataElementData().name
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain").isCollectionElement
                     (true)).getDataElement();
             assertNotNull(dElement);
@@ -131,25 +89,25 @@ public class MultiValueDataElementIT {
             corPropArray.add(new CorrelationProperty().key("chorID").value("1234567"));
 
             // Create a new data object instance
-            DataObjectInstance doInst = doInstApiInstance.addDataObjectInstance(dObject.getId(), new
+            DataObjectInstance doInst = env.getDataObjectInstanceApi().addDataObjectInstance(dObject.getId(), new
                     DataObjectInstanceData().createdBy("hahnml").correlationProperties(corPropArray)).getInstance();
             assertNotNull(doInst);
 
-            DataElementInstanceWithLinks elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            DataElementInstanceWithLinks elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                             .getId(), dElement.getName());
             assertNotNull(elmInstance);
             assertNotNull(elmInstance.getInstance());
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
 
             // Create and associated two data values to the data element instance
-            DataValueWithLinks firstDataValue = dvApiInstance.associateDataValueToDataElementInstance(elmInstance
+            DataValueWithLinks firstDataValue = env.getDataValueApi().associateDataValueToDataElementInstance(elmInstance
                     .getInstance().getId(), new DataValue()
                     .name("data1").createdBy("hahnml").type("binary").contentType("text/plain"));
 
             assertNotNull(firstDataValue);
             assertNotNull(firstDataValue.getDataValue());
 
-            DataValueWithLinks secondDataValue = dvApiInstance.associateDataValueToDataElementInstance(elmInstance
+            DataValueWithLinks secondDataValue = env.getDataValueApi().associateDataValueToDataElementInstance(elmInstance
                     .getInstance().getId(), new DataValue()
                     .name("data2").createdBy("hahnml").type("binary").contentType("text/plain"));
 
@@ -157,49 +115,61 @@ public class MultiValueDataElementIT {
             assertNotNull(secondDataValue.getDataValue());
 
             // Data element instance should still be in state CREATED
-            elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                     .getId(), dElement.getName());
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
-            assertTrue(elmInstance.getInstance().getNumberOfDataValues() == 2);
+            assertEquals(2, (int) elmInstance.getInstance().getNumberOfDataValues());
 
             // Assign data to the first data value
-            dvApiInstance.pushDataValue(firstDataValue.getDataValue().getId(), "test".getBytes(), null, 4L);
+            env.getDataValueApi().pushDataValue(firstDataValue.getDataValue().getId(), "test".getBytes(), null, 4L);
 
             // Data element instance should still be in state CREATED
-            elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                     .getId(), dElement.getName());
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
 
             // Assign data to the second data value
-            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), "abcd".getBytes(), null, 4L);
+            env.getDataValueApi().pushDataValue(secondDataValue.getDataValue().getId(), "abcd".getBytes(), null, 4L);
 
             // Data element instance should be be in state INITIALIZED now
-            elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                     .getId(), dElement.getName());
             assertEquals(InstanceStatusEnum.INITIALIZED, elmInstance.getInstance().getStatus());
 
             // Unset data from the second data value
-            dvApiInstance.pushDataValue(secondDataValue.getDataValue().getId(), null, null, 0L);
+            env.getDataValueApi().pushDataValue(secondDataValue.getDataValue().getId(), new byte[0], null, 0L);
 
             // Data element instance should be be in state CREATED again
-            elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                     .getId(), dElement.getName());
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
 
-            // Remove the first data value from the element instance
-            dvApiInstance.removeDataValueFromDataElementInstance(elmInstance.getInstance().getId(), secondDataValue
+            // Remove the second data value from the element instance
+            env.getDataValueApi().removeDataValueFromDataElementInstance(elmInstance.getInstance().getId(), secondDataValue
                     .getDataValue().getId());
 
             // Data element instance should be be in state INITIALIZED again and only have one data value
-            elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                     .getId(), dElement.getName());
 
-            assertTrue(elmInstance.getInstance().getNumberOfDataValues() == 1);
+            assertEquals(1, (int) elmInstance.getInstance().getNumberOfDataValues());
             assertEquals(InstanceStatusEnum.INITIALIZED, elmInstance.getInstance().getStatus());
 
+            // Delete data object and all related data elements, instances, etc. to remove data value associations
+            env.getDataObjectApi().deleteDataObject(dObject.getId());
+
+            DataObjectInstanceArrayWithLinks instances = env.getDataObjectInstanceApi().getAllDataObjectInstances(null, null, null);
+            assertEquals(0, instances.getInstances().size());
+
+            DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null, null);
+            assertEquals(0, objects.getDataObjects().size());
+
             // Delete data values
-            dvApiInstance.deleteDataValue(firstDataValue.getDataValue().getId());
-            dvApiInstance.deleteDataValue(secondDataValue.getDataValue().getId());
+            env.getDataValueApi().deleteDataValue(firstDataValue.getDataValue().getId());
+            env.getDataValueApi().deleteDataValue(secondDataValue.getDataValue().getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -210,11 +180,11 @@ public class MultiValueDataElementIT {
         try {
             // Create a data object with a multi-value data element and then instantiating the data
             // object
-            DataObject dObject = doApiInstance.addDataObject(new DataObjectData().name("testDataObject").entity
+            DataObject dObject = env.getDataObjectApi().addDataObject(new DataObjectData().name("testDataObject").entity
                     ("hahnml"));
             assertNotNull(dObject);
 
-            DataElement dElement = deApiInstance.addDataElement(dObject.getId(), new DataElementData().name
+            DataElement dElement = env.getDataElementApi().addDataElement(dObject.getId(), new DataElementData().name
                     ("testDataElement").entity("hahnml").type("binary").contentType("text/plain").isCollectionElement
                     (true)).getDataElement();
             assertNotNull(dElement);
@@ -225,44 +195,56 @@ public class MultiValueDataElementIT {
             corPropArray.add(new CorrelationProperty().key("chorID").value("1234567"));
 
             // Create a new data object instance
-            DataObjectInstance doInst = doInstApiInstance.addDataObjectInstance(dObject.getId(), new
+            DataObjectInstance doInst = env.getDataObjectInstanceApi().addDataObjectInstance(dObject.getId(), new
                     DataObjectInstanceData().createdBy("hahnml").correlationProperties(corPropArray)).getInstance();
             assertNotNull(doInst);
 
-            DataElementInstanceWithLinks elmInstance = deInstApiInstance.getDataElementInstanceByDataElementName(doInst
+            DataElementInstanceWithLinks elmInstance = env.getDataElementInstanceApi().getDataElementInstanceByDataElementName(doInst
                     .getId(), dElement.getName());
             assertNotNull(elmInstance);
             assertNotNull(elmInstance.getInstance());
             assertEquals(InstanceStatusEnum.CREATED, elmInstance.getInstance().getStatus());
 
             // Create and associated two data values to the data element instance
-            DataValueWithLinks firstDataValue = dvApiInstance.associateDataValueToDataElementInstance(elmInstance
+            DataValueWithLinks firstDataValue = env.getDataValueApi().associateDataValueToDataElementInstance(elmInstance
                     .getInstance().getId(), new DataValue()
                     .name("data1").createdBy("hahnml").type("binary").contentType("text/plain"));
 
             assertNotNull(firstDataValue);
             assertNotNull(firstDataValue.getDataValue());
 
-            DataValueWithLinks secondDataValue = dvApiInstance.associateDataValueToDataElementInstance(elmInstance
+            DataValueWithLinks secondDataValue = env.getDataValueApi().associateDataValueToDataElementInstance(elmInstance
                     .getInstance().getId(), new DataValue()
                     .name("data2").createdBy("hahnml").type("binary").contentType("text/plain"));
 
             assertNotNull(secondDataValue);
             assertNotNull(secondDataValue.getDataValue());
 
-            DataValueArrayWithLinks dvArray1 = dvApiInstance.getDataValues(elmInstance.getInstance().getId(), 1);
+            DataValueArrayWithLinks dvArray1 = env.getDataValueApi().getDataValues(elmInstance.getInstance().getId(), 1);
             assertNotNull(dvArray1.getDataValues());
             assertFalse(dvArray1.getDataValues().isEmpty());
             assertEquals(firstDataValue.getDataValue().getId(), dvArray1.getDataValues().get(0).getDataValue().getId());
 
-            DataValueArrayWithLinks dvArray2 = dvApiInstance.getDataValues(elmInstance.getInstance().getId(), 2);
+            DataValueArrayWithLinks dvArray2 = env.getDataValueApi().getDataValues(elmInstance.getInstance().getId(), 2);
             assertNotNull(dvArray2.getDataValues());
             assertFalse(dvArray2.getDataValues().isEmpty());
             assertEquals(secondDataValue.getDataValue().getId(), dvArray2.getDataValues().get(0).getDataValue().getId());
 
+            // Delete data object and all related data elements, instances, etc. to remove data value associations
+            env.getDataObjectApi().deleteDataObject(dObject.getId());
+
+            DataObjectArrayWithLinks objects = env.getDataObjectApi().getAllDataObjects(null, null, null, null, null);
+            assertEquals(0, objects.getDataObjects().size());
+
+            DataObjectInstanceArrayWithLinks instances = env.getDataObjectInstanceApi().getAllDataObjectInstances(null, null, null);
+            assertEquals(0, instances.getInstances().size());
+
             // Delete data values
-            dvApiInstance.deleteDataValue(firstDataValue.getDataValue().getId());
-            dvApiInstance.deleteDataValue(secondDataValue.getDataValue().getId());
+            env.getDataValueApi().deleteDataValue(firstDataValue.getDataValue().getId());
+            env.getDataValueApi().deleteDataValue(secondDataValue.getDataValue().getId());
+
+            DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+            assertEquals(0, values.getDataValues().size());
         } catch (ApiException e) {
             e.printStackTrace();
         }
@@ -270,28 +252,7 @@ public class MultiValueDataElementIT {
 
     @AfterClass
     public static void destroy() throws Exception {
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataValues").drop();
-        dataStore.getCollection("dataElements").drop();
-        dataStore.getCollection("dataElementInstances").drop();
-        dataStore.getCollection("dataObjects").drop();
-        dataStore.getCollection("dataObjectInstances").drop();
-        dataStore.getCollection("dataModels").drop();
-        dataStore.getCollection("dataDependencyGraphs").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 }

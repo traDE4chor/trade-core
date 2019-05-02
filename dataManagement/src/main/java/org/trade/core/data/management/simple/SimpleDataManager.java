@@ -680,23 +680,6 @@ public enum SimpleDataManager implements IDataManager {
         if (hasDataObjectInstance(instanceId)) {
             DataObjectInstance result = this.dataObjectInstances.get(instanceId);
 
-            DataObject parent = result.getDataObject();
-
-            // By convention we also directly delete all related data element instances of the data object instance
-            // TODO: 24.04.2017 Maybe we will change this behavior in a future version again...
-            for (DataElementInstance elmInstance : result.getDataElementInstances()) {
-                DataElement elm = elmInstance.getDataElement();
-                List<DataValue> values = elmInstance.getDataValues();
-
-                // Remove the data element instance from the data object instance
-                result.removeDataElementInstance(elmInstance);
-
-                // Try to delete the data element instance
-                elmInstance.delete();
-
-                this.dataElementInstances.remove(elmInstance.getIdentifier());
-            }
-
             // Try to delete the data object instance
             result.delete();
 
@@ -715,6 +698,19 @@ public enum SimpleDataManager implements IDataManager {
             // After the data value is successfully deleted, we can remove it from the map
             this.dataValues.remove(dataValueId);
         }
+    }
+
+    @Override
+    public void clearCachedObjects() {
+        dataDependencyGraphs.clear();
+        dataModels.clear();
+        dataObjects.clear();
+        dataObjectInstances.clear();
+        dataElements.clear();
+        dataElementInstances.clear();
+        dataValues.clear();
+
+        DataTransformationManagerFactory.INSTANCE.shutdownDataTransformationManagers();
     }
 
     private void registerContentsOfDataDependencyGraph(DataDependencyGraph graph) {

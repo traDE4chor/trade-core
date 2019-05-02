@@ -316,6 +316,11 @@ public enum HazelcastDataManager implements IDataManager {
 
     }
 
+    @Override
+    public void clearCachedObjects() {
+
+    }
+
     // Implementation of IAuditingService methods
     @Override
     public void onEvent(ATraDEEvent event) {

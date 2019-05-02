@@ -59,6 +59,8 @@ public class TraDEServer {
     public void stopHTTPServer() throws Exception {
         server.stop();
         server.destroy();
+
+        clearManagers();
     }
 
     private void setupConnectors(TraDEProperties props) {
@@ -153,5 +155,10 @@ public class TraDEServer {
     private void initializeManagers() {
         dataManager = DataManagerFactory.createDataManager();
         notificationManager = NotificationManagerFactory.createNotificationManager();
+    }
+
+    private void clearManagers() {
+        dataManager.clearCachedObjects();
+        notificationManager.clearCachedObjects();
     }
 }

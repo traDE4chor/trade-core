@@ -17,14 +17,9 @@
 package org.trade.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
 import io.swagger.hdtapps.client.jersey.JSON;
 import io.swagger.hdtapps.client.jersey.model.TransformationRequest;
-import io.swagger.trade.client.jersey.ApiClient;
 import io.swagger.trade.client.jersey.ApiException;
-import io.swagger.trade.client.jersey.api.*;
 import io.swagger.trade.client.jersey.model.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -35,9 +30,6 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.trade.core.model.ModelConstants;
-import org.trade.core.server.TraDEServer;
-import org.trade.core.utils.TraDEProperties;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -61,56 +53,22 @@ import static org.junit.Assert.assertNotNull;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DataTransformationIT {
 
-    private static TraDEServer server;
-
-    private static TraDEProperties properties;
-
-    private static DataDependencyGraphApi ddgApi;
-
-    private static DataModelApi dataModelApi;
-
-    private static DataObjectApi dataObjectApi;
-
-    private static DataObjectInstanceApi dataObjectInstanceApi;
-
-    private static DataElementInstanceApi dataElementInstanceApi;
-
-    private static DataValueApi dataValueApi;
+    private static IntegrationTestEnvironment env;
 
     private static Server hdtAppsServer;
 
     @BeforeClass
     public static void setupEnvironment() throws Exception {
-        // Load custom properties such as MongoDB url and db name
-        properties = new TraDEProperties();
+        env = new IntegrationTestEnvironment();
 
-        // Create a new server
-        server = new TraDEServer();
-
-        // Start the server
-        try {
-            server.startHTTPServer(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ApiClient client = new ApiClient();
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        client.setBasePath("http://127.0.0.1:8080/api");
-
-        ddgApi = new DataDependencyGraphApi(client);
-        dataModelApi = new DataModelApi(client);
-        dataObjectApi = new DataObjectApi(client);
-        dataObjectInstanceApi = new DataObjectInstanceApi(client);
-        dataElementInstanceApi = new DataElementInstanceApi(client);
-        dataValueApi = new DataValueApi(client);
+        // Setup the environment with the fixed port specified in the config.properties file, so that the resulting
+        // data value of the data transformation can be uploaded properly
+        env.setupEnvironment(true, 9080);
 
         // Create a new embedded HTTP server which consumes the requests sent to the HDT API
         // Here we also have to use the default port since the HDT endpoint is read from the properties file
         // in CamelDataTransformationManager
-        hdtAppsServer = new Server(new InetSocketAddress("0.0.0.0", 8082));
+        hdtAppsServer = new Server(new InetSocketAddress("127.0.0.1", 8082));
 
         // Create a handler to check the transformation requests send to the HDT framework API
         Handler handler = new AbstractHandler() {
@@ -136,7 +94,7 @@ public class DataTransformationIT {
         ddg.setEntity(entity);
         ddg.setName(name);
 
-        DataDependencyGraphWithLinks ddgResponse = ddgApi.addDataDependencyGraph(ddg);
+        DataDependencyGraphWithLinks ddgResponse = env.getDdgApi().addDataDependencyGraph(ddg);
 
         assertNotNull(ddgResponse);
         assertNotNull(ddgResponse.getDataDependencyGraph());
@@ -149,10 +107,10 @@ public class DataTransformationIT {
         byte[] graph = TestUtils.getData("opalDataTransformation.trade");
 
         // Try to upload and compile a serialized DDG
-        ddgApi.uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
+        env.getDdgApi().uploadGraphModel(graphId, Long.valueOf(graph.length), graph);
 
         // Query the data dependency graph again to check if all data transformations are compiled as expected
-        DataDependencyGraphWithLinks ddgResponseAfterCompile = ddgApi.getDataDependencyGraphDirectly(graphId);
+        DataDependencyGraphWithLinks ddgResponseAfterCompile = env.getDdgApi().getDataDependencyGraphDirectly(graphId);
         // Check if the DDG contains two transformations
         assertEquals(2, ddgResponseAfterCompile.getDataDependencyGraph().getTransformations().size());
         // Check if both transformations specify together two parameters (actually only one of the transformations
@@ -177,14 +135,14 @@ public class DataTransformationIT {
         instanceData.setCreatedBy("test");
         instanceData.setCorrelationProperties(correlationProperties);
 
-        DataObjectInstanceWithLinks dObjInstance = dataObjectInstanceApi.addDataObjectInstance(dObjId,
+        DataObjectInstanceWithLinks dObjInstance = env.getDataObjectInstanceApi().addDataObjectInstance(dObjId,
                 instanceData);
         assertNotNull(dObjInstance);
         assertNotNull(dObjInstance.getInstance());
 
         String dObjInstanceId = dObjInstance.getInstance().getId();
 
-        DataElementInstanceWithLinks dElementInstance = dataElementInstanceApi
+        DataElementInstanceWithLinks dElementInstance = env.getDataElementInstanceApi()
                 .getDataElementInstanceByDataElementName(
                         dObjInstanceId, "snapshots[]");
         assertNotNull(dElementInstance);
@@ -199,41 +157,54 @@ public class DataTransformationIT {
         dataValueData.setName("testDataValue");
         dataValueData.setCreatedBy("test");
 
-        DataValueWithLinks value = dataValueApi.associateDataValueToDataElementInstance(dElementInstance.getInstance()
+        DataValueWithLinks value = env.getDataValueApi().associateDataValueToDataElementInstance(dElementInstance.getInstance()
                 .getId(), dataValueData);
         assertNotNull(value);
         assertNotNull(value.getDataValue());
 
-        DataValueArrayWithLinks values = dataValueApi.getDataValuesDirectly(null, null, null, null);
+        DataValueArrayWithLinks values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
         assertNotNull(values.getDataValues());
         int size = values.getDataValues().size();
 
         // Upload data to the data value
-        dataValueApi.pushDataValue(value.getDataValue().getId(), "TEST-DATA".getBytes(), false,
+        env.getDataValueApi().pushDataValue(value.getDataValue().getId(), "TEST-DATA".getBytes(), false,
                 9L);
 
         // Wait some time until the transformation results are stored in a new data value
         Thread.sleep(60000);
 
-        values = dataValueApi.getDataValuesDirectly(null, null, null, null);
+        values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
         assertNotNull(values.getDataValues());
         assertEquals(size + 1, values.getDataValues().size());
 
         // Remove the associations between the data values and the data element instances and delete the data values
         for (DataValueWithLinks dataValue : values.getDataValues()) {
-            DataElementInstanceArrayWithLinks elementInstances = dataElementInstanceApi
+            DataElementInstanceArrayWithLinks elementInstances = env.getDataElementInstanceApi()
                     .getDataElementInstancesUsingDataValue(dataValue.getDataValue().getId(), null,
                             null);
 
             // Remove all associations
             for (DataElementInstanceWithLinks elmInstance : elementInstances.getInstances()) {
-                dataValueApi.removeDataValueFromDataElementInstance(elmInstance.getInstance().getId(),
+                env.getDataValueApi().removeDataValueFromDataElementInstance(elmInstance.getInstance().getId(),
                         dataValue.getDataValue().getId());
             }
 
-            // Delete the data object
-            dataValueApi.deleteDataValue(dataValue.getDataValue().getId());
+            // Delete the data value
+            env.getDataValueApi().deleteDataValue(dataValue.getDataValue().getId());
         }
+
+        env.getDdgApi().deleteDataDependencyGraph(graphId);
+
+        // Check if the DDG is deleted
+        DataDependencyGraphArrayWithLinks result = env.getDdgApi().getDataDependencyGraphs(null, null, null, null,
+                null);
+        assertEquals(0, result.getDataDependencyGraphs().size());
+
+        DataObjectInstanceArrayWithLinks instances = env.getDataObjectInstanceApi().getAllDataObjectInstances(null, null, null);
+        assertEquals(0, instances.getInstances().size());
+
+        values = env.getDataValueApi().getDataValuesDirectly(null, null, null, null);
+        assertEquals(0, values.getDataValues().size());
     }
 
     // TODO: 14.02.2018 Add more test cases which target different aspects of the transformation functionality, e.g.,
@@ -382,7 +353,7 @@ public class DataTransformationIT {
     private DataObjectWithLinks resolveDataObject(String dataModelNamespace, String dataModelName, String dataObjectName) throws ApiException {
         DataObjectWithLinks result = null;
 
-        DataModelArrayWithLinks dataModels = dataModelApi.getDataModels(null,
+        DataModelArrayWithLinks dataModels = env.getDataModelApi().getDataModels(null,
                 null, dataModelNamespace,
                 dataModelName, null);
 
@@ -397,7 +368,7 @@ public class DataTransformationIT {
 
                 // Retrieve the list of data objects which should contain
                 // the searched one
-                DataObjectArrayWithLinks list = dataObjectApi.getDataObjects(
+                DataObjectArrayWithLinks list = env.getDataObjectApi().getDataObjects(
                         model.getDataModel().getId(), null, null);
                 Iterator<DataObjectWithLinks> iterObj = list.getDataObjects()
                         .iterator();
@@ -421,31 +392,9 @@ public class DataTransformationIT {
     public static void destroy() throws Exception {
         // Stop the server
         hdtAppsServer.stop();
+        hdtAppsServer.destroy();
 
-        // Cleanup the database
-        MongoClient dataStoreClient = new MongoClient(new MongoClientURI(properties.getDataPersistenceDbUrl()));
-        MongoDatabase dataStore = dataStoreClient.getDatabase(properties.getDataPersistenceDbName());
-        dataStore.getCollection(ModelConstants.DATA_MODEL__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_DEPENDENCY_GRAPH__DATA_COLLECTION).drop();
-        dataStore.getCollection(ModelConstants.DATA_VALUE__DATA_COLLECTION).drop();
-
-        dataStore.getCollection("dataValues").drop();
-        dataStore.getCollection("dataElements").drop();
-        dataStore.getCollection("dataElementInstances").drop();
-        dataStore.getCollection("dataObjects").drop();
-        dataStore.getCollection("dataObjectInstances").drop();
-        dataStore.getCollection("dataModels").drop();
-        dataStore.getCollection("dataDependencyGraphs").drop();
-        dataStore.getCollection("notifications").drop();
-        dataStore.getCollection("dataTransformations").drop();
-
-        dataStoreClient.close();
-
-        // Stop the server
-        try {
-            server.stopHTTPServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        env.destroyEnvironment();
+        env = null;
     }
 }

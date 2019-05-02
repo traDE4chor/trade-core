@@ -258,12 +258,15 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     }
 
     private boolean areDataValuesInitialized() {
-        return this.dataValues.stream().allMatch(dataValue -> dataValue.isInitialized());
+        return this.dataValues.stream().allMatch(DataValue::isInitialized);
     }
 
     @Override
     public void archive() throws Exception {
         // TODO: 24.04.2017 Implement archiving of data element instances
+
+        // Trigger the archive event for the data element instance
+        this.lifeCycle.triggerEvent(this, InstanceEvents.archive);
 
         // Persist the changes at the data source
         this.storeToDS();
@@ -272,6 +275,9 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
     @Override
     public void unarchive() throws Exception {
         // TODO: 24.04.2017 Implement un-archiving of data element instances
+
+        // Trigger the unarchive event for the data element instance
+        this.lifeCycle.triggerEvent(this, InstanceEvents.unarchive);
 
         // Persist the changes at the data source
         this.storeToDS();
@@ -283,12 +289,17 @@ public class DataElementInstance extends ABaseResource implements ILifeCycleInst
         getDataElement().removeDataElementInstance(this);
 
         // Remove the data element instance from the data object instance
-        dataObjectInstance.removeDataElementInstance(this);
+        this.dataObjectInstance.removeDataElementInstance(this);
 
         // If one or more data value were set before, remove the reference to this data element instance
         if (!this.dataValues.isEmpty()) {
             removeAllDataValues();
         }
+
+        // Trigger the delete event for the data element instance. This will also trigger the deletion of the
+        // corresponding object at the data source through the PersistableHashMap in the corresponding IDataManager
+        // instance.
+        this.lifeCycle.triggerEvent(this, InstanceEvents.delete);
     }
 
     @JsonIgnore

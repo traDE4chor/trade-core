@@ -90,4 +90,8 @@ public interface INotificationManager extends TraDEEventListener {
      */
     void deleteNotification(String notificationId) throws Exception;
 
+    /**
+     * Clear all maps of objects cached by the IDataManager instance.
+     */
+    void clearCachedObjects();
 }
